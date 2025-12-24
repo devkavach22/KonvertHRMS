@@ -300,6 +300,7 @@ import {
   LeaveEmployeeKHR,
   LeaveSettingsKHR,
   LeaveAdminKHR,
+  GeoKHR,
 } from "./lazyRoutes";
 
 // Import third-party components
@@ -351,6 +352,11 @@ export const publicRoutes = [
   {
     path: routes.termination,
     element: <Termination />,
+    route: Route,
+  },
+  {
+    path: routes.geoConfigKHR,
+    element: <GeoKHR />,
     route: Route,
   },
   {
