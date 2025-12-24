@@ -1,0 +1,54 @@
+{
+  "user": {
+    "name": "Adrian",
+    "greeting": "Good Morning",
+    "time": "08:35 AM, 11 Mar 2025",
+    "avatar": "assets/img/profiles/avatar-27.jpg",
+    "productionHours": "3.45",
+    "punchIn": "10.00 AM"
+  },
+  "summaryCards": [
+    {
+      "icon": "ti ti-clock-stop",
+      "bg": "primary",
+      "title": "Total Hours Today",
+      "value": "8.36",
+      "total": "9",
+      "trend": "5% This Week",
+      "trendType": "up"
+    },
+    {
+      "icon": "ti ti-clock-up",
+      "bg": "dark",
+      "title": "Total Hours Week",
+      "value": "10",
+      "total": "40",
+      "trend": "7% Last Week",
+      "trendType": "up"
+    },
+    {
+      "icon": "ti ti-calendar-up",
+      "bg": "info",
+      "title": "Total Hours Month",
+      "value": "75",
+      "total": "98",
+      "trend": "8% Last Month",
+      "trendType": "down"
+    },
+    {
+      "icon": "ti ti-calendar-star",
+      "bg": "pink",
+      "title": "Overtime this Month",
+      "value": "16",
+      "total": "28",
+      "trend": "6% Last Month",
+      "trendType": "down"
+    }
+  ],
+  "workStats": [
+    { "label": "Total Working hours", "value": "12h 36m", "color": "dark" },
+    { "label": "Productive Hours", "value": "08h 36m", "color": "success" },
+    { "label": "Break hours", "value": "22m 15s", "color": "warning" },
+    { "label": "Overtime", "value": "05h 15m", "color": "info" }
+  ]
+}

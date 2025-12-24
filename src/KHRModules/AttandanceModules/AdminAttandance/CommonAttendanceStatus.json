@@ -1,0 +1,44 @@
+{
+  "summaryCards": [
+    {
+      "id": 1,
+      "title": "Present",
+      "count": 250,
+      "percentage": "+1%",
+      "badgeType": "success",
+      "icon": "ti-arrow-wave-right-down"
+    },
+    {
+      "id": 2,
+      "title": "Late Login",
+      "count": 45,
+      "percentage": "-1%",
+      "badgeType": "danger",
+      "icon": "ti-arrow-wave-right-down"
+    },
+    {
+      "id": 3,
+      "title": "Uninformed",
+      "count": 15,
+      "percentage": "-12%",
+      "badgeType": "danger",
+      "icon": "ti-arrow-wave-right-down"
+    },
+    {
+      "id": 4,
+      "title": "Permission",
+      "count": 3,
+      "percentage": "+1%",
+      "badgeType": "success",
+      "icon": "ti-arrow-wave-right-down"
+    },
+    {
+      "id": 5,
+      "title": "Absent",
+      "count": 12,
+      "percentage": "-19%",
+      "badgeType": "danger",
+      "icon": "ti-arrow-wave-right-down"
+    }
+  ]
+}

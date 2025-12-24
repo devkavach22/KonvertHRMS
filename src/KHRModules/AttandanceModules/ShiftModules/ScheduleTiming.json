@@ -1,0 +1,22 @@
+{
+  "data": [
+    {
+      "id": "1",
+      "name": "John Doe",
+      "jobTitle": "Developer",
+      "image": "avatar-1.jpg"
+    },
+    {
+      "id": "2",
+      "name": "Sarah Smith",
+      "jobTitle": "Designer",
+      "image": "avatar-2.jpg"
+    },
+    {
+      "id": "3",
+      "name": "Rahul Patel",
+      "jobTitle": "HR Manager",
+      "image": "avatar-3.jpg"
+    }
+  ]
+}

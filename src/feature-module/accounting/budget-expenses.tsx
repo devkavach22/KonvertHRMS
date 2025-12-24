@@ -1,0 +1,168 @@
+import { Link } from "react-router-dom";
+import { all_routes } from "../../router/all_routes";
+import CollapseHeader from "../../core/common/collapse-header/collapse-header";
+import PredefinedDateRanges from "../../core/common/datePicker";
+import { budgetExpensesData } from "../../core/data/json/budgetExpensesData";
+import Table from "../../core/common/dataTable/index";
+import BudgetExpensesModal from "../../core/modals/budgetExpensesModal";
+
+interface BudgetExpense {
+  ExpenseName: string;
+  CategoryName: string;
+  SubCategoryName: string;
+  Amount: string;
+  ExpenseDate: string;
+  [key: string]: any; // For any extra fields, or remove if not needed
+}
+
+interface ColumnType<T> {
+  title: string;
+  dataIndex: keyof T | string;
+  render?: (text: any, record?: T) => React.ReactNode;
+  sorter?: (a: T, b: T) => number;
+}
+
+const BudgetExpenses = () => {
+  const routes = all_routes;
+  const data: BudgetExpense[] = budgetExpensesData;
+
+  const columns: ColumnType<BudgetExpense>[] = [
+    {
+      title: "Expense Name",
+      dataIndex: "ExpenseName",
+      render: (text: string) => (
+        <h6 className="fw-medium">
+          <Link to="#">{text}</Link>
+        </h6>
+      ),
+      sorter: (a, b) => a.ExpenseName.length - b.ExpenseName.length,
+    },
+    {
+      title: "Category Name",
+      dataIndex: "CategoryName",
+      sorter: (a, b) => a.CategoryName.length - b.CategoryName.length,
+    },
+    {
+      title: "Sub Category Name",
+      dataIndex: "SubCategoryName",
+      sorter: (a, b) => a.SubCategoryName.length - b.SubCategoryName.length,
+    },
+    {
+      title: "Amount",
+      dataIndex: "Amount",
+      sorter: (a, b) => a.Amount.length - b.Amount.length,
+    },
+    {
+      title: "Expense Date",
+      dataIndex: "ExpenseDate",
+      sorter: (a, b) => a.ExpenseDate.length - b.ExpenseDate.length,
+    },
+    {
+      title: "",
+      dataIndex: "actions",
+      render: () => (
+        <div>
+          <div className="action-icon d-inline-flex">
+            <Link
+              to="#"
+              className="me-2"
+              data-bs-toggle="modal"
+              data-inert={true}
+              data-bs-target="#edit_new_expense"
+            >
+              <i className="ti ti-edit" />
+            </Link>
+            <Link to="#" data-bs-toggle="modal" data-inert={true} data-bs-target="#delete_modal">
+              <i className="ti ti-trash" />
+            </Link>
+          </div>
+        </div>
+      ),
+    },
+  ];
+  return (
+    <>
+      {/* Page Wrapper */}
+      <div className="page-wrapper">
+        <div className="content">
+          {/* Breadcrumb */}
+          <div className="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
+            <div className="my-auto mb-2">
+              <h2 className="mb-1">Budget Expenses</h2>
+              <nav>
+                <ol className="breadcrumb mb-0">
+                  <li className="breadcrumb-item">
+                    <Link to={routes.adminDashboard}>
+                      <i className="ti ti-smart-home" />
+                    </Link>
+                  </li>
+                  <li className="breadcrumb-item">HR</li>
+                  <li className="breadcrumb-item active" aria-current="page">
+                    Budget Expenses
+                  </li>
+                </ol>
+              </nav>
+            </div>
+            <div className="d-flex my-xl-auto right-content align-items-center flex-wrap ">
+              <div className="me-2 mb-2">
+                <div className="dropdown">
+                  <Link
+                    to="#"
+                    className="dropdown-toggle btn btn-white d-inline-flex align-items-center"
+                    data-bs-toggle="dropdown"
+                  >
+                    <i className="ti ti-file-export me-1" />
+                    Export
+                  </Link>
+                  <ul className="dropdown-menu  dropdown-menu-end p-3">
+                    <li>
+                      <Link to="#" className="dropdown-item rounded-1">
+                        <i className="ti ti-file-type-pdf me-1" />
+                        Export as PDF
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="#" className="dropdown-item rounded-1">
+                        <i className="ti ti-file-type-xls me-1" />
+                        Export as Excel{" "}
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <div className="mb-2">
+                <Link
+                  to="#"
+                  data-bs-toggle="modal" data-inert={true}
+                  data-bs-target="#add_new_expense"
+                  className="btn btn-primary d-flex align-items-center"
+                >
+                  <i className="ti ti-circle-plus me-2" />
+                  Add Expense
+                </Link>
+              </div>
+              <div className="ms-2 head-icons">
+                <CollapseHeader />
+              </div>
+            </div>
+          </div>
+        
+        </div>
+        <div className="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3">
+          <p className="mb-0">2014 - 2025 © SmartHR.</p>
+          <p>
+            Designed &amp; Developed By{" "}
+            <Link to="#" className="text-primary">
+              Dreams
+            </Link>
+          </p>
+        </div>
+      </div>
+      {/* /Page Wrapper */}
+
+      <BudgetExpensesModal />
+    </>
+  );
+};
+
+export default BudgetExpenses;
