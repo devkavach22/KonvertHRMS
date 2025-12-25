@@ -11,18 +11,16 @@ import ImageWithBasePath from "@/core/common/imageWithBasePath";
 import { DatePicker, TimePicker } from "antd";
 // import CollapseHeader from '../../../core/common/collapse-header/collapse-header';
 import { toast } from "react-toastify";
-import attendanceData from "./empoloyeeAttendanceCard.json";
 
 import { useEffect, useState } from "react";
 import DatatableKHR from "@/CommonComponent/DataTableKHR/DatatableKHR";
 import CommonHeader from "@/CommonComponent/HeaderKHR/HeaderKHR";
 import SummaryCards from "@/CommonComponent/CommonAttendanceStatus/SummaryCards";
-import WorkStatsWithTimeline from "./WorksWithTimeline";
 // import { all } from 'node_modules/axios/index.d.cts';
 import { attendance_admin_details } from "@/core/data/json/attendanceadmin";
 import { attendance_employee_details } from "@/core/data/json/attendanceemployee";
-import { getAttendance } from "./EmployeeAttandanceServices";
-import AttendanceQueryModal from "./AttendanceQueryModal";
+import { getAttendance } from "../AttandanceModules/EmployeeAttandance/EmployeeAttandanceServices";
+import AddEmployeeContractModal from "./AddEmployeeContractModal";
 
 // Define a type for attendance admin data
 interface AttendanceAdminData {
@@ -47,7 +45,7 @@ interface EmployeeAttendance {
   Status: string;
 }
 
-const EmployeeAttendanceKHR = () => {
+const EmployeeContractKHR = () => {
   // const attendanceTableDummyData: AttendanceAdminData[] = [
   //   {
   //     Employee: "John Doe",
@@ -92,7 +90,7 @@ const EmployeeAttendanceKHR = () => {
   const [selectedAttendancee, setSelectedAttendancee] = useState<any>(null);
 
   const [loading, setLoading] = useState<boolean>(true);
-  const [selectedAttendance, setSelectedAttendance] =
+  const [selectedEmployeeContract, setSelectedEmployeeContract] =
     useState<EmployeeAttendance | null>(null);
 
   // Dummy async function for fetching employee attendance
@@ -305,134 +303,19 @@ const EmployeeAttendanceKHR = () => {
 
       <div className="page-wrapper">
         <div className="content">
-          <div onClick={() => setSelectedAttendance(null)}>
-            <CommonHeader
-              title="Employee Attendance"
+          <div onClick={() => setSelectedEmployeeContract(null)}>
+            
+
+              <CommonHeader
+              title="Employee Contract"
               parentMenu="Employee"
-              activeMenu="Employee Attendance"
+              activeMenu="Employee Contract"
               routes={routes}
-              rightActions={
-                <>
-                  {/* View Switch */}
-                  <div className="d-flex border bg-white rounded p-1">
-                    <Link
-                      to={all_routes.attendaceEmployeeKHR}
-                      className="btn btn-icon btn-sm me-1"
-                    >
-                      <i className="ti ti-brand-days-counter" />
-                    </Link>
-                    <Link
-                      to={all_routes.attendanceAdminKHR}
-                      className="btn btn-icon btn-sm active bg-primary text-white"
-                    >
-                      <i className="ti ti-calendar-event" />
-                    </Link>
-                  </div>
-
-                  {/* Export */}
-                  <div className="dropdown">
-                    <button
-                      className="btn btn-white dropdown-toggle d-flex align-items-center"
-                      data-bs-toggle="dropdown"
-                    >
-                      <i className="ti ti-file-export me-1" />
-                      Export
-                    </button>
-                    <ul className="dropdown-menu dropdown-menu-end p-3">
-                      <li>
-                        <button className="dropdown-item">
-                          <i className="ti ti-file-type-pdf me-1" /> PDF
-                        </button>
-                      </li>
-                      <li>
-                        <button className="dropdown-item">
-                          <i className="ti ti-file-type-xls me-1" /> Excel
-                        </button>
-                      </li>
-                    </ul>
-                  </div>
-
-                  {/* Report */}
-                  <button
-                    className="btn btn-primary d-flex align-items-center"
-                    data-bs-toggle="modal"
-                    data-bs-target="#attendance_report"
-                  >
-                    <i className="ti ti-file-analytics me-2" />
-                    Report
-                  </button>
-                </>
-              }
+              buttonText="Add Employee Contract"
+              modalTarget="#add_employee_contract"
             />
           </div>
-          <div className="row">
-            <div className="col-xl-3 col-lg-4 d-flex">
-              <div className="card flex-fill">
-                <div className="card-body">
-                  <div className="mb-3 text-center">
-                    {/* <h6 className="fw-medium text-gray-5 mb-2">
-Good Morning, Adrian
-</h6>
-<h4>08:35 AM, 11 Mar 2025</h4> */}
-                    <h6 className="fw-medium text-gray-5 mb-2">
-                      {attendanceData.user.greeting}, {attendanceData.user.name}
-                    </h6>
-
-                    <h4>{attendanceData.user.time}</h4>
-                  </div>
-                  <div
-                    className="attendance-circle-progress mx-auto mb-3"
-                    data-value={65}
-                  >
-                    <span className="progress-left">
-                      <span className="progress-bar border-success" />
-                    </span>
-                    <span className="progress-right">
-                      <span className="progress-bar border-success" />
-                    </span>
-                    <div className="avatar avatar-xxl avatar-rounded">
-                      {/* <ImageWithBasePath src="assets/img/profiles/avatar-27.jpg" alt="avatar" /> */}
-                      <ImageWithBasePath
-                        src={attendanceData.user.avatar}
-                        alt="avatar"
-                      />
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    {/* <div className="badge badge-md badge-primary mb-3">
-Production : 3.45 hrs
-</div>
-<h6 className="fw-medium d-flex align-items-center justify-content-center mb-3">
-<i className="ti ti-fingerprint text-primary me-1" />
-Punch In at 10.00 AM
-</h6> */}
-                    <div className="badge badge-md badge-primary mb-3">
-                      Production : {attendanceData.user.productionHours} hrs
-                    </div>
-
-                    <h6 className="fw-medium d-flex align-items-center justify-content-center mb-3">
-                      <i className="ti ti-fingerprint text-primary me-1" />
-                      Punch In at {attendanceData.user.punchIn}
-                    </h6>
-                    <Link to="#" className="btn btn-dark w-100">
-                      Punch Out
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-xl-9 col-lg-8 d-flex">
-              <div className="row flex-fill">
-                <SummaryCards
-                  cards={attendanceData.summaryCards.map((card: any) => ({
-                    ...card,
-                    trendType: card.trendType === "up" ? "up" : "down",
-                  }))}
-                />
-                <WorkStatsWithTimeline stats={attendanceData.workStats} />
-              </div>
-            </div>
-          </div>
+       
 
           <div className="card">
             <div className="card-body p-0">
@@ -443,7 +326,7 @@ Punch In at 10.00 AM
                     className="spinner-border text-primary"
                     role="status"
                   ></div>
-                  <div className="mt-2">Loading Attendence...</div>
+                  <div className="mt-2">Loading Employee Contract...</div>
                 </div>
               ) : (
                 <DatatableKHR
@@ -460,17 +343,12 @@ Punch In at 10.00 AM
       </div>
 
       {/* Modal Component */}
-      {/* <AddDepartmentModal onSuccess={fetchData} data={selectedDepartment} /> */}
+      <AddEmployeeContractModal onSuccess={fetchData} data={selectedEmployeeContract} />
 
-      {showQueryModal && selectedAttendancee && (
-        <AttendanceQueryModal
-          attendance={selectedAttendancee}
-          onClose={() => setShowQueryModal(false)}
-        />
-      )}
+      
 
     </>
   );
 };
 
-export default EmployeeAttendanceKHR;
+export default EmployeeContractKHR;

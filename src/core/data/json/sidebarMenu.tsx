@@ -29,6 +29,7 @@ export const SidebarDataTest = [
           { label: "Skills", link: routes.skillsKHR },
           { label: "Industries", link: routes.industriesKHR },
           { label: "HR Contract Type ", link: routes.hrContractTypeKHR },
+          { label: "Geo Configurations", link: routes.geoKHR },
 
           // { label: "Country", link: routes.dealsDashboard },
           // { label: "State", link: routes.leadsDashboard },
@@ -52,7 +53,8 @@ export const SidebarDataTest = [
         materialicons: "start",
         dot: false,
         submenuItems: [
-          { label: "Employees", link: routes.employeeKHR },
+            { label: "Employees", link: routes.employeeKHR },
+            { label: "Employee Contract", link: routes.employeeContract },
           // { label: "Attendance", link: routes.attendanceadmin },
           // { label: "Leave Management", link: routes.leaveadmin },
           // { label: "Holidays", link: routes.holidays },

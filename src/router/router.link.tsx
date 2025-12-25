@@ -300,12 +300,14 @@ import {
   LeaveEmployeeKHR,
   LeaveSettingsKHR,
   LeaveAdminKHR,
+  GeoKHR,
 } from "./lazyRoutes";
 
 // Import third-party components
 import { Pagination, Progress, Typography } from "antd";
 import { Offcanvas, Spinner } from "react-bootstrap";
 import { Video } from "react-feather";
+import EmployeeContractKHR from "@/KHRModules/EmployeeContract/EmployeeContractKHR";
 
 const routes = all_routes;
 
@@ -354,6 +356,11 @@ export const publicRoutes = [
     route: Route,
   },
   {
+    path: routes.geoConfigKHR,
+    element: <GeoKHR />,
+    route: Route,
+  },
+  {
     path: routes.resignation,
     element: <Resignation />,
     route: Route,
@@ -366,6 +373,12 @@ export const publicRoutes = [
   {
     path: routes.trainingType,
     element: <TrainingType />,
+    route: Route,
+  },
+  
+   {
+    path: routes.employeeContract,
+    element: <EmployeeContractKHR />,
     route: Route,
   },
   {

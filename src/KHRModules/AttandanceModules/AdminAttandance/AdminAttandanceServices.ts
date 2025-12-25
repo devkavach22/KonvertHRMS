@@ -1,32 +1,21 @@
 import Instance from "../../../api/axiosInstance";
 
-/* =======================
-Interfaces
-======================= */
-
-export interface EmployeeAttendance {
-  id?: string;
-  Employee_Name: string;
-  Attendance_Date: string;
-  Status: "Present" | "Absent" | "Leave";
-  Created_Date: string;
-  key?: string;
-}
-
-export interface APIEmployeeAttendance {
+// Admin Attendance API response
+export interface APIAdminAttendance {
   id: number;
-  employee: {
-    id: number;
-    name: string;
-  };
-  date: string;
-  status: "Present" | "Absent" | "Leave";
+  check_in: string;
+  check_out: string | false;
+  worked_hours: number;
+  early_out_minutes: number;
+  overtime_hours: number;
+  is_early_out: boolean;
+  validated_overtime_hours: number;
+  is_late_in: boolean;
+  late_time_display: string;
+  status_code: boolean;
 }
 
-/* =======================
-Auth Helper
-======================= */
-
+// Helper to get auth details
 const getAuthDetails = () => {
   const user_id = localStorage.getItem("user_id");
   const unique_user_id = localStorage.getItem("unique_user_id");
@@ -37,62 +26,18 @@ const getAuthDetails = () => {
   };
 };
 
-/* =======================
-API Calls
-======================= */
-
-// GET - http://localhost:4000/api/employee-attendance?user_id=219
-export const getEmployeeAttendance = async (): Promise<
-  APIEmployeeAttendance[]
-> => {
+// GET - http://192.168.11.150:4000/api/admin/attendances?user_id=219
+export const getAdminAttendance = async (): Promise<APIAdminAttendance[]> => {
   try {
     const { user_id } = getAuthDetails();
-    const response = await Instance.get("/api/department", {
+
+    const response = await Instance.get("/api/admin/attendances", {
       params: { user_id },
     });
-    console.log(response.data, "dddddd");
 
     return response.data.data || response.data || [];
   } catch (error) {
-    console.error("Fetch Error:", error);
+    console.error("Admin Attendance Fetch Error:", error);
     return [];
   }
-};
-
-// POST - http://localhost:4000/api/create/employee-attendance
-export const addEmployeeAttendance = async (formData: EmployeeAttendance) => {
-  const { user_id, unique_user_id } = getAuthDetails();
-
-  const payload = {
-    ...formData,
-    user_id,
-    unique_user_id,
-  };
-
-  return await Instance.post("/api/create/employee-attendance", payload);
-};
-
-// PUT - http://localhost:4000/api/employee-attendance/376
-export const updateEmployeeAttendance = async (
-  id: string,
-  formData: EmployeeAttendance
-) => {
-  const { user_id, unique_user_id } = getAuthDetails();
-
-  const payload = {
-    ...formData,
-    user_id,
-    unique_user_id,
-  };
-
-  return await Instance.put(`/api/employee-attendance/${id}`, payload);
-};
-
-// DELETE - http://localhost:4000/api/employee-attendance/376?user_id=219
-export const deleteEmployeeAttendance = async (id: string) => {
-  const { user_id } = getAuthDetails();
-
-  return await Instance.delete(`/api/employee-attendance/${id}`, {
-    params: { user_id },
-  });
 };
