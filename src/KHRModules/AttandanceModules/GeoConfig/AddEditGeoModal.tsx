@@ -24,8 +24,8 @@ const AddEditAttendancePolicyModal = ({ onSubmit }: any) => {
   });
 
 
-  console.log(formData,"formDaaatttaa");
-  
+  console.log(formData, "formDaaatttaa");
+
   const [errors, setErrors] = useState<any>({});
   const { validateAttendancePolicy } = useFormValidation();
 
@@ -40,10 +40,10 @@ const AddEditAttendancePolicyModal = ({ onSubmit }: any) => {
     // ✅ API CALL IS OUTSIDE
     onSubmit(formData);
 
-    
 
 
-    
+
+
   };
 
   useEffect(() => {

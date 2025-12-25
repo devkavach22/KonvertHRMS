@@ -420,4 +420,5 @@ export const all_routes = {
   attendancereport: "/attendance-report",
   leavereport: "/leave-report",
   dailyreport: "/daily-report",
+  employeeContract:"/employee-contract",
 };

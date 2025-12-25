@@ -307,6 +307,7 @@ import {
 import { Pagination, Progress, Typography } from "antd";
 import { Offcanvas, Spinner } from "react-bootstrap";
 import { Video } from "react-feather";
+import EmployeeContractKHR from "@/KHRModules/EmployeeContract/EmployeeContractKHR";
 
 const routes = all_routes;
 
@@ -372,6 +373,12 @@ export const publicRoutes = [
   {
     path: routes.trainingType,
     element: <TrainingType />,
+    route: Route,
+  },
+  
+   {
+    path: routes.employeeContract,
+    element: <EmployeeContractKHR />,
     route: Route,
   },
   {
