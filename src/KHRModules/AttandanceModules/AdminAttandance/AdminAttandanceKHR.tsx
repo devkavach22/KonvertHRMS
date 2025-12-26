@@ -30,6 +30,8 @@ import {
 } from "./AdminAttandanceServices";
 import Link from "antd/es/typography/Link";
 import CommonAttendanceStatus from "@/CommonComponent/CommonAttendanceStatus/CommonAttendanceStatus";
+import { useDispatch, useSelector } from "react-redux";
+import { AttendancesApi, TBSelector, updateState } from "@/Store/Reducers/TBSlice";
 
 // Define a type for attendance admin data
 interface AttendanceAdminData {
@@ -80,6 +82,9 @@ const AdminAttandanceKHR = () => {
       ProductionHours: "9",
     },
   ];
+  const { isAttendancesApiFetching, isAttendancesApi, AttendancesApiData } = useSelector(TBSelector);
+
+  const dispatch = useDispatch<any>()
 
   const routes = all_routes;
 
@@ -113,8 +118,8 @@ const AdminAttandanceKHR = () => {
       const response: any = await getAdminAttendance();
 
 
-      console.log(response,"dddddffff");
-      
+      console.log(response, "dddddffff");
+
       // Safety Check: Backend might return { data: [...] } or just [...]
       const rawArray = Array.isArray(response)
         ? response
@@ -149,8 +154,32 @@ const AdminAttandanceKHR = () => {
   };
 
   useEffect(() => {
-    fetchData();
+    // fetchData();
+    dispatch(AttendancesApi())
   }, []);
+  useEffect(() => {
+    if (isAttendancesApi) {
+      const mappedData: AttendanceAdminData[] = AttendancesApiData?.map((item: any) => ({
+        Employee: Array.isArray(item.employee_id) ? item.employee_id[1] : "Employee",
+        Image: item.employee?.avatar || "avatar-1.jpg",
+        Role: item.job_name || "Employee",
+        Status: item.status_code ? "Present" : "Absent",
+        CheckIn: formatTime(item.check_in),
+        CheckOut: formatTime(item.check_out),
+        Break: item.break_time_display || "-",
+        Late: item.is_late_in ? "Yes" : "No",
+        ProductionHours:
+          typeof item.worked_hours === "number"
+            ? item.worked_hours.toFixed(2)
+            : item.worked_hours
+              ? String(item.worked_hours)
+              : "0",
+      }));
+      setData(mappedData);
+      dispatch(updateState({ isAttendancesApi: false }))
+    }
+  }, [isAttendancesApi]);
+
 
   const columns = [
     {
@@ -180,8 +209,8 @@ const AdminAttandanceKHR = () => {
       render: (text: string, record: AttendanceAdminData) => (
         <span
           className={`badge ${text === "Present"
-              ? "badge-success-transparent"
-              : "badge-danger-transparent"
+            ? "badge-success-transparent"
+            : "badge-danger-transparent"
             } d-inline-flex align-items-center`}
         >
           <i className="ti ti-point-filled me-1" />
@@ -221,11 +250,11 @@ const AdminAttandanceKHR = () => {
       render: (_text: string, record: AttendanceAdminData) => (
         <span
           className={`badge d-inline-flex align-items-center badge-sm ${parseFloat(record.ProductionHours) < 8
-              ? "badge-danger"
-              : parseFloat(record.ProductionHours) >= 8 &&
-                parseFloat(record.ProductionHours) <= 9
-                ? "badge-success"
-                : "badge-info"
+            ? "badge-danger"
+            : parseFloat(record.ProductionHours) >= 8 &&
+              parseFloat(record.ProductionHours) <= 9
+              ? "badge-success"
+              : "badge-info"
             }`}
         >
           <i className="ti ti-clock-hour-11 me-1"></i>
@@ -405,7 +434,7 @@ const AdminAttandanceKHR = () => {
           <div className="card">
             <div className="card-body p-0">
               {" "}
-              {loading ? (
+              {isAttendancesApiFetching ? (
                 <div className="text-center p-5">
                   <div
                     className="spinner-border text-primary"

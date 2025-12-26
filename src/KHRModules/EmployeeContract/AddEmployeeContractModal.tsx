@@ -64,7 +64,8 @@ const AddEmployeeContractModal: React.FC<Props> = ({ onSubmit }) => {
             return;
         }
 
-        onSubmit(formData);
+        // onSubmit(formData);
+        console.log("saasd", formData)
     };
 
     useEffect(() => {
