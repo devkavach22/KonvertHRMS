@@ -35,7 +35,7 @@ export const getAdminAttendance = async (): Promise<APIAdminAttendance[]> => {
       params: { user_id },
     });
 
-    return response.data.data || response.data || [];
+    return response.data || response.data || [];
   } catch (error) {
     console.error("Admin Attendance Fetch Error:", error);
     return [];

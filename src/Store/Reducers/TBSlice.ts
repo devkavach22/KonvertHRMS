@@ -4,6 +4,18 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 const { user_id } = Service.getAuthDetails();
 
+
+const authheader = () => {
+  const token = localStorage.getItem("token");
+
+  return {
+    Authorization: token ? `Bearer ${token}` : "",
+    "Content-Type": "application/json",
+  };
+};
+
+
+
 //Usersignin
 export const Usersignin = createAsyncThunk(
   "Usersignin",
@@ -36,7 +48,9 @@ export const AttendancesApi = createAsyncThunk(
       let result = await axios({
         method: "GET",
         baseURL: CONFIG.BASE_URL_ALL,
-        // headers: authheader,
+        headers: {
+    "Content-Type": "application/json",
+  },
         url: `api/admin/attendances`,
         params: { user_id },
       });
