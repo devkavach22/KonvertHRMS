@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const Instance = axios.create({
-  baseURL: "http://192.168.11.150:4000/",
+  baseURL: "http://192.168.11.245:4000/",
   headers: {
     "Content-Type": "application/json",
   },
@@ -10,7 +10,7 @@ const Instance = axios.create({
 const getFreshToken = async () => {
   try {
     console.log("🔄 Fetching fresh token...");
-    const response = await axios.post("http://192.168.11.150:4000/api/auth", {
+    const response = await axios.post("http://192.168.11.245:4000/api/auth", {
       user_name: "dhaval",
     });
     const newToken = response.data.token;
@@ -47,7 +47,7 @@ Instance.interceptors.request.use(
     }
 
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = `${token}`;    // Bearer we will add   
     }
 
     return config;

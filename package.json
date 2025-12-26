@@ -27,6 +27,7 @@
     "react-apexcharts": "^1.7.0",
     "react-dom": "^19.1.1",
     "react-error-boundary": "^6.0.0",
+    "react-hot-toast": "^2.6.0",
     "react-perfect-scrollbar": "^1.5.8",
     "react-toastify": "^11.0.5",
     "rollup-plugin-node-polyfills": "^0.2.1"

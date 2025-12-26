@@ -300,6 +300,12 @@ import {
   LeaveEmployeeKHR,
   LeaveSettingsKHR,
   LeaveAdminKHR,
+  LeaveTypesKHR,
+  LeaveAllocationKHR,
+  LeaveRequestKHR,
+  AccuralPlanKHR,
+  PublicHolidayKHR,
+  MendetoryDaysKHR
 } from "./lazyRoutes";
 
 // Import third-party components
@@ -1645,6 +1651,36 @@ export const publicRoutes = [
     path: routes.leaveAdminKHR,
     element: <LeaveAdminKHR />,
     route: Route,
+  },
+  {
+    path: routes.leaveTypesKHR,
+    element: <LeaveTypesKHR />,
+    route: Route,
+  },
+  {
+    path: routes.leaveAllocationKHR,
+    element: <LeaveAllocationKHR />,
+    route: Route,
+  },
+  {
+    path: routes.leaveRequestKHR,
+    element: <LeaveRequestKHR />,
+    route: Route,
+  },
+  {
+      path: routes.accuralPlanKHR,
+      element: <AccuralPlanKHR />,
+      route: Route,
+  },
+  {
+      path: routes.publicHolidayKHR,
+      element: <PublicHolidayKHR />,
+      route: Route,
+  },
+  {
+      path: routes.mendetoryDaysKHR,
+      element: <MendetoryDaysKHR />,
+      route: Route,
   },
   {
     path: routes.buisnessTypeKHR,

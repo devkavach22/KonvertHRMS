@@ -3,7 +3,7 @@ import {
   addAttendancePolicy,
   updateAttendancePolicy,
   AttendancePolicy,
-} from "./LeaveEmpServices";
+} from "./LeaveRequestServices";
 import moment from "moment";
 
 interface Props {
@@ -526,3 +526,5 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
 };
 
 export default AddEditAttendancePolicyModal;
+
+

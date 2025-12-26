@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { all_routes } from "../../../router/all_routes";
 import DatatableKHR from "../../../CommonComponent/DataTableKHR/DatatableKHR";
 import CommonHeader from "../../../CommonComponent/HeaderKHR/HeaderKHR";
-import AddEditAttendancePolicyModal from "./AddEditLeaveModal";
+import AddEditAttendancePolicyModal from "./AddEditLeaveRequestModal";
 import moment from "moment";
 
 import {
@@ -11,7 +11,7 @@ import {
   deleteAttendancePolicy,
   AttendancePolicy as AttendancePolicyType,
   APIAttendancePolicy,
-} from "./LeaveServices";
+} from "./LeaveRequestServices";
 
 const LeaveAdminKHR = () => {
   const routes = all_routes;
@@ -20,12 +20,52 @@ const LeaveAdminKHR = () => {
   const [selectedPolicy, setSelectedPolicy] =
     useState<AttendancePolicyType | null>(null);
   const [employeesOptions, setEmployeesOptions] = useState<Array<{id:any;name:string}>>([]);
-  const [selectedSection, setSelectedSection] = useState<string | null>(null);
-  const [displayedColumns, setDisplayedColumns] = useState<any[] | null>(null);
-  const [displayedData, setDisplayedData] = useState<any[] | null>(null);
+  // New form state for Leave Type settings
+  const [leaveName, setLeaveName] = useState<string>("");
+  const [approvalLeaveRequests, setApprovalLeaveRequests] = useState<string>("");
+  const [isEarnedLeave, setIsEarnedLeave] = useState<boolean>(false);
+  const [allocationRequires, setAllocationRequires] = useState<string>("");
+  const [leaveTypeCode, setLeaveTypeCode] = useState<number | string>("");
+  const [leaveCategory, setLeaveCategory] = useState<string>("");
+  const [employeeRequests, setEmployeeRequests] = useState<string>("");
+  const [approvalAllocationRequests, setApprovalAllocationRequests] = useState<string>("");
+  // Configuration & other fields
+  const [notifiedLeaveOfficer, setNotifiedLeaveOfficer] = useState<string>("");
+  const [hrApproval, setHrApproval] = useState<string>("");
+  const [takeLeaveIn, setTakeLeaveIn] = useState<string>("day");
+  const [deductExtraHours, setDeductExtraHours] = useState<boolean>(false);
+  const [publicHolidayIncluded, setPublicHolidayIncluded] = useState<boolean>(false);
+  const [showOnDashboard, setShowOnDashboard] = useState<boolean>(false);
+  const [sandwichLeaves, setSandwichLeaves] = useState<boolean>(false);
+  const [allowAttachSupportingDocument, setAllowAttachSupportingDocument] = useState<boolean>(false);
+  const [kindOfLeave, setKindOfLeave] = useState<string>("");
+  const [company, setCompany] = useState<string>("");
+  const [negativeCap, setNegativeCap] = useState<boolean>(false);
+  const [allowCarryForward, setAllowCarryForward] = useState<boolean>(false);
+  const [allowLapse, setAllowLapse] = useState<boolean>(false);
+  const [allowEncashment, setAllowEncashment] = useState<boolean>(false);
+  // New fields: Leave Encashment & Payroll
+  const [allowLeaveEncashment, setAllowLeaveEncashment] = useState<boolean>(false);
+  const [maxAllowLeaveCarryForward, setMaxAllowLeaveCarryForward] = useState<number | string>("");
+  const [workEntryType, setWorkEntryType] = useState<string>("");
+  const [applicableEmployeeCategory, setApplicableEmployeeCategory] = useState<string>("");
+  const [applicableLocations, setApplicableLocations] = useState<string>("");
+  const [genderRestriction, setGenderRestriction] = useState<string>("all");
+  const [eligibleAfter, setEligibleAfter] = useState<string>("day_after_joining");
+  const [daysRequired, setDaysRequired] = useState<number | string>("");
+  const [backdatedAllowed, setBackdatedAllowed] = useState<boolean>(false);
+  const [maxBackdatedDays, setMaxBackdatedDays] = useState<number | string>("");
+  const [futureDatedAllowed, setFutureDatedAllowed] = useState<boolean>(false);
+  const [minimumWorkingDays, setMinimumWorkingDays] = useState<number | string>("");
+  const [daysPerMonth, setDaysPerMonth] = useState<number | string>("");
+  const [maximumAnnualLeave, setMaximumAnnualLeave] = useState<number | string>("");
+
+  // Options loaded from API
+  const [companiesOptions, setCompaniesOptions] = useState<Array<{id:any;name:string}>>([]);
+  const [locationsOptions, setLocationsOptions] = useState<Array<{id:any;name:string}>>([]);
 
   const fetchData = async () => {
-    setLoading(false);
+    setLoading(true);
     try {
       const result = await getAttendancePolicies();
       const safeResult = Array.isArray(result) ? result : [];
@@ -65,6 +105,9 @@ const LeaveAdminKHR = () => {
           no_of_days: (item as any).no_of_days ?? null,
           remaining_days: (item as any).remaining_days ?? null,
           reason: (item as any).reason ?? "",
+          // include approved_by and status fields so columns map correctly
+          approved_by: (item as any).approved_by ?? (item as any).approver ?? (item as any).approved_by_name ?? null,
+          status: (item as any).status ?? (item as any).approval_status ?? (item as any).state ?? null,
           created_date: item.create_date ?? "-",
         } as any;
       });
@@ -72,7 +115,6 @@ const LeaveAdminKHR = () => {
       setData(mappedData);
     } catch (error) {
       console.error("Failed to load policies", error);
-      setLoading(false);
     } finally {
       setLoading(false);
     }
@@ -82,63 +124,41 @@ const LeaveAdminKHR = () => {
     fetchData();
   }, []);
 
-  // update displayed columns/data when a section is selected or when data changes
+  // fetch companies and locations
   useEffect(() => {
-    if (!selectedSection) {
-      setDisplayedColumns(null);
-      setDisplayedData(null);
-      return;
-    }
+    let mounted = true;
+    (async () => {
+      try {
+        const fetchList = async (endpoints: string[]) => {
+          for (const ep of endpoints) {
+            try {
+              const res = await fetch(ep);
+              if (!res.ok) continue;
+              const json = await res.json();
+              if (Array.isArray(json)) return json;
+              if (json && Array.isArray(json.data)) return json.data;
+            } catch (e) {
+              // continue
+            }
+          }
+          return null;
+        };
 
-    const buildSection = (section: string, src: any[]) => {
-      // define column subsets for each card section
-      const columnSets: Record<string, any[]> = {
-        total_present: [
-          columns[0], // Employee
-          columns[2], // From
-          columns[3], // To
-          columns[4], // No of Days
-        ],
-        planned_leaves: [
-          columns[1], // Leave Type
-          columns[2], // From
-          columns[3], // To
-          columns[4], // No of Days
-        ],
-        unplanned_leaves: [
-          columns[0], // Employee
-          columns[1], // Leave Type
-          columns[2], // From
-          columns[3], // To
-          columns[5], // Remaining Days
-        ],
-        pending_requests: [
-          columns[0], // Employee
-          columns[1], // Leave Type
-          columns[8], // Reason
-          columns[columns.length - 1], // Actions
-        ],
-      };
+        const companies = await fetchList(["/api/companies", "/companies", "/api/organizations"]);
+        const locations = await fetchList(["/api/locations", "/locations", "/api/branches"]);
 
-      // basic heuristics to filter rows by section using available fields
-      const filters: Record<string, (r: any) => boolean> = {
-        total_present: (r: any) => (r.type && String(r.type).toLowerCase().includes("present")) || (r.remaining_days && Number(r.remaining_days) > 0),
-        planned_leaves: (r: any) => (r.type && String(r.type).toLowerCase().includes("planned")) || false,
-        unplanned_leaves: (r: any) => (r.type && String(r.type).toLowerCase().includes("unplanned")) || false,
-        pending_requests: (r: any) => (r.reason && String(r.reason).toLowerCase().includes("pending")) || false,
-      };
-
-      const cols = columnSets[section] ?? columns;
-      const predicate = filters[section] ?? (() => true);
-      const rows = Array.isArray(src) ? src.filter(predicate) : src;
-      // fallback: if filter produced no rows, show all rows
-      return { cols, rows: rows.length ? rows : src };
-    };
-
-    const { cols, rows } = buildSection(selectedSection, data);
-    setDisplayedColumns(cols);
-    setDisplayedData(rows);
-  }, [selectedSection, data]);
+        if (mounted && Array.isArray(companies)) {
+          setCompaniesOptions(companies.map((c: any) => ({ id: c.id ?? c.value, name: c.name ?? c.label ?? String(c.id) })));
+        }
+        if (mounted && Array.isArray(locations)) {
+          setLocationsOptions(locations.map((l: any) => ({ id: l.id ?? l.value, name: l.name ?? l.label ?? String(l.id) })));
+        }
+      } catch (e) {
+        // ignore
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   // fetch employees list for name lookup
   useEffect(() => {
@@ -186,27 +206,7 @@ const LeaveAdminKHR = () => {
 
   const columns: any[] = [
     {
-      title: "Employee",
-      dataIndex: "employees_selection",
-      render: (employees: any) => {
-        if (!Array.isArray(employees) || employees.length === 0) return <span>-</span>;
-        const names = employees
-          .map((e: any) => e?.name || e?.label || e?.full_name || e?.employee_name || "")
-          .filter((n: string) => !!n);
-        return <span>{names.length ? names.join(", ") : `${employees.length} employees`}</span>;
-      },
-      sorter: (a: any, b: any) => {
-        const aName = Array.isArray(a?.employees_selection) && a.employees_selection[0]
-          ? String(a.employees_selection[0].name || a.employees_selection[0].label || "")
-          : "";
-        const bName = Array.isArray(b?.employees_selection) && b.employees_selection[0]
-          ? String(b.employees_selection[0].name || b.employees_selection[0].label || "")
-          : "";
-        return aName.localeCompare(bName);
-      },
-    },
-    {
-      title: "Leave Type",
+      title: "Leave ",
       dataIndex: "type",
       render: (val: any) => <span>{typeof val === "string" && val ? String(val).replace(/_/g, " ") : "-"}</span>,
       sorter: (a: any, b: any) => String(a?.type ?? "").localeCompare(String(b?.type ?? "")),
@@ -227,6 +227,20 @@ const LeaveAdminKHR = () => {
         if (ad.isValid()) return -1;
         if (bd.isValid()) return 1;
         return 0;
+      },
+    },
+    {
+      title: "Approved By",
+      dataIndex: "approved_by",
+      render: (_: any, record: any) => {
+        const ap = (record.approved_by && (record.approved_by.name || record.approved_by)) || record.approver || record.approved_by_name || null;
+        if (!ap) return <span>-</span>;
+        return <span>{typeof ap === 'string' ? ap : String(ap)}</span>;
+      },
+      sorter: (a: any, b: any) => {
+        const A = (a?.approved_by && (a.approved_by.name || a.approved_by)) || a?.approver || a?.approved_by_name || "";
+        const B = (b?.approved_by && (b.approved_by.name || b.approved_by)) || b?.approver || b?.approved_by_name || "";
+        return String(A).localeCompare(String(B));
       },
     },
     {
@@ -273,18 +287,15 @@ const LeaveAdminKHR = () => {
         return getDays(a) - getDays(b);
       },
     },
-      {
-        title: "Remaining Days",
-        dataIndex: "remaining_days",
-        render: (val: any) => (val !== undefined && val !== null ? <span>{Number(val)}</span> : <span>-</span>),
-        sorter: (a: any, b: any) => (Number(a?.remaining_days ?? 0) - Number(b?.remaining_days ?? 0)),
+    {
+      title: "Status",
+      dataIndex: "status",
+      render: (val: any, record: any) => {
+        const s = val ?? record.approval_status ?? record.state ?? record.status ?? null;
+        return <span>{s ? String(s) : "-"}</span>;
       },
-      {
-        title: "Reason",
-        dataIndex: "reason",
-        render: (val: any) => <span>{val ? String(val) : "-"}</span>,
-        sorter: (a: any, b: any) => String(a?.reason ?? "").localeCompare(String(b?.reason ?? "")),
-      },
+      sorter: (a: any, b: any) => String(a?.status ?? a?.approval_status ?? a?.state ?? "").localeCompare(String(b?.status ?? b?.approval_status ?? b?.state ?? "")),
+    },
     {
       title: "Actions",
       key: "actions",
@@ -324,112 +335,38 @@ const LeaveAdminKHR = () => {
           <div className="content">
             <div onClick={() => setSelectedPolicy(null)}>
               <CommonHeader
-                title="Leave "
+                title="Leave List"
                 parentMenu="HR"
-                activeMenu="Leave Admin"
+                activeMenu="Leave List"
                 routes={routes}
-                buttonText="Add Leave"
+                buttonText="Add leave Request"
                 modalTarget="#add_attendance_policy"
               />
             </div>
+
           
-          {/* Leaves Info */}
-          <div className="row">
-            <div className="col-xl-3 col-md-6">
-              <div className="card bg-green-img">
-                <div className="card-body">
-                  <div className="d-flex align-items-center justify-content-between">
-                    <div className="d-flex align-items-center">
-                      <div className="flex-shrink-0 me-2">
-                        <span className="avatar avatar-md rounded-circle bg-white d-flex align-items-center justify-content-center">
-                          <i className="ti ti-user-check text-success fs-18" />
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-end">
-                      <p className="mb-1">Total Present</p>
-                      <h4>180/200</h4>
-                    </div>
-                  </div>
-                </div>
+          {/* Leave Type Form */}
+          <div className="card mb-3">
+            <div className="card-body">
+              <h5 className="card-title">Leave List</h5>
+
+                {/* Attendance Policy Form */}
+              <div className="mt-3">
+                <DatatableKHR
+                  columns={columns}
+                  data={data}
+                />
               </div>
-            </div>
-            <div className="col-xl-3 col-md-6">
-              <div className="card bg-pink-img">
-                <div className="card-body">
-                  <div className="d-flex align-items-center justify-content-between">
-                    <div className="d-flex align-items-center">
-                      <div className="flex-shrink-0 me-2">
-                        <span className="avatar avatar-md rounded-circle bg-white d-flex align-items-center justify-content-center">
-                          <i className="ti ti-user-edit text-pink fs-18" />
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-end">
-                      <p className="mb-1">Planned Leaves</p>
-                      <h4>10</h4>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-xl-3 col-md-6">
-              <div className="card bg-yellow-img">
-                <div className="card-body">
-                  <div className="d-flex align-items-center justify-content-between">
-                    <div className="d-flex align-items-center">
-                      <div className="flex-shrink-0 me-2">
-                        <span className="avatar avatar-md rounded-circle bg-white d-flex align-items-center justify-content-center">
-                          <i className="ti ti-user-exclamation text-warning fs-18" />
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-end">
-                      <p className="mb-1">Unplanned Leaves</p>
-                      <h4>10</h4>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-xl-3 col-md-6">
-              <div className="card bg-blue-img">
-                <div className="card-body">
-                  <div className="d-flex align-items-center justify-content-between">
-                    <div className="d-flex align-items-center">
-                      <div className="flex-shrink-0 me-2">
-                        <span className="avatar avatar-md rounded-circle bg-white d-flex align-items-center justify-content-center">
-                          <i className="ti ti-user-question text-info fs-18" />
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-end">
-                      <p className="mb-1">Pending Requests</p>
-                      <h4>15</h4>
-                    </div>
-                  </div>
-                </div>
-              </div>
+
+
+
             </div>
           </div>
-            <div className="card">
-              <div className="card-body">
-                {loading ? (
-                  <div className="text-center p-4">Loading data...</div>
-                ) : (
-                  <DatatableKHR
-                    data={data}
-                    columns={columns}
-                    selection={true}
-                    // textKey="employees_selection"
-                    title="Leave List"
-                    showSortFilter={true}
-                    showStatusFilter={true}
-                  />
-                )}
-              </div>
-            </div>
+
+
+
           </div>
+          
         </div>
 
         <AddEditAttendancePolicyModal

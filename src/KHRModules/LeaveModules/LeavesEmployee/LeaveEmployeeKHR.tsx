@@ -11,7 +11,7 @@ import {
   deleteAttendancePolicy,
   AttendancePolicy as AttendancePolicyType,
   APIAttendancePolicy,
-} from "./LeaveServices";
+} from "./LeaveEmpServices";
 
 const LeaveAdminKHR = () => {
   const routes = all_routes;
