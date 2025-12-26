@@ -1,13 +1,19 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { useDispatch, useSelector } from "react-redux";
 import themeSettingSlice from "./themeSettingSlice";
 import sidebarSlice from "./sidebarSlice";
+import { TBSlice } from "@/Store/Reducers/TBSlice";
 import type { RootState } from "../types";
+
+const mainReducer = combineReducers({
+  TB: TBSlice.reducer,
+});
 
 const store = configureStore({
   reducer: {
     themeSetting: themeSettingSlice,
     sidebarSlice: sidebarSlice,
+    main: mainReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

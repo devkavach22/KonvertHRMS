@@ -14,6 +14,9 @@ export const all_routes = {
   industriesKHR: "/KHR-industries",
   hrContractTypeKHR: "/KHR-hr-contract-type",
   banksKHR: "/KHR-banks",
+  geoConfigKHR: "/KHR-geo-configurations",
+  geoKHR: "/KHR-geo-configurations",
+
   //Employee Modules
   employeeKHR: "/KHR-employees",
 
@@ -418,4 +421,5 @@ export const all_routes = {
   attendancereport: "/attendance-report",
   leavereport: "/leave-report",
   dailyreport: "/daily-report",
+  employeeContract:"/employee-contract",
 };

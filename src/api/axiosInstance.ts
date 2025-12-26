@@ -19,7 +19,6 @@ const getFreshToken = async () => {
     });
     const newToken = response.data.token;
     if (newToken) {
-      // Clear storage before saving to ensure NO MESS
       localStorage.removeItem("authToken");
       localStorage.setItem("authToken", newToken);
       console.log("✅ New token saved.");
@@ -69,7 +68,7 @@ Instance.interceptors.response.use(
     const isAuthError =
       error.response?.status === 401 ||
       error.response?.data?.message ===
-        "Token not found. Please generate a new token";
+      "Token not found. Please generate a new token";
 
     if (isAuthError && !originalRequest._retry) {
       originalRequest._retry = true;
