@@ -12,8 +12,9 @@ interface Props {
   data: AttendancePolicy | null;
 }
 
+const { Option } = Select;
+
 const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
-  // Initial state for the new geofence-style attendance fields
   const initialFormState = {
     name: "",
     latitude: "",
@@ -22,24 +23,30 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
     employees_selection: [] as any[],
   };
 
-  const { Option } = Select;
-
-
   const [formData, setFormData] = useState<any>(initialFormState);
   const [validated, setValidated] = useState(false);
+  const [errors, setErrors] = useState<any>({});
 
-  // 1. DATA SYNC: Populate form when editing
+  const employeesList = [
+    { id: 1, name: "John Doe", role: "Developer" },
+    { id: 2, name: "Jane Smith", role: "UI/UX Designer" },
+    { id: 3, name: "Michael Brown", role: "Project Manager" },
+    { id: 4, name: "Emily Johnson", role: "QA Engineer" },
+    { id: 5, name: "Robert Wilson", role: "Backend Developer" },
+  ];
+
+  // Populate form in edit mode
   useEffect(() => {
     if (data) {
-      // Map incoming `data` to the new form shape.
       let employees: any[] = [];
+
       if (Array.isArray((data as any).employees_selection)) {
         employees = (data as any).employees_selection;
       } else if (typeof (data as any).employees_selection === "string") {
         try {
           const parsed = JSON.parse((data as any).employees_selection);
           if (Array.isArray(parsed)) employees = parsed;
-        } catch (e) {
+        } catch {
           employees = [];
         }
       }
@@ -56,91 +63,77 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
     }
   }, [data]);
 
-
-  const employeesList = [
-    { id: 1, name: "John Doe", role: "Developer" },
-    { id: 2, name: "Jane Smith", role: "UI/UX Designer" },
-    { id: 3, name: "Michael Brown", role: "Project Manager" },
-    { id: 4, name: "Emily Johnson", role: "QA Engineer" },
-    { id: 5, name: "Robert Wilson", role: "Backend Developer" },
-  ];
-
-
-  // 2. RESET LOGIC: Listen for Modal Close
+  // Reset on modal close
   useEffect(() => {
     const modalElement = document.getElementById("add_attendance_policy");
+
     const handleModalClose = () => {
       setValidated(false);
+      setErrors({});
       setFormData(initialFormState);
     };
-    if (modalElement) {
-      modalElement.addEventListener("hidden.bs.modal", handleModalClose);
-    }
+
+    modalElement?.addEventListener("hidden.bs.modal", handleModalClose);
     return () => {
-      if (modalElement) {
-        modalElement.removeEventListener("hidden.bs.modal", handleModalClose);
-      }
+      modalElement?.removeEventListener("hidden.bs.modal", handleModalClose);
     };
   }, []);
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, value } = e.target as HTMLInputElement | HTMLTextAreaElement;
-
-    // Special handling for employees_selection textarea: always store as an array of objects
-    if (name === "employees_selection") {
-      // If the user clears the textarea, set to empty array
-      if (!value || value.trim() === "") {
-        setFormData((prev: any) => ({ ...prev, [name]: [] }));
-        return;
-      }
-
-      try {
-        const parsed = JSON.parse(value);
-        if (Array.isArray(parsed)) {
-          setFormData((prev: any) => ({ ...prev, [name]: parsed }));
-          return;
-        }
-      } catch (err) {
-        // If invalid JSON, set empty array to avoid storing raw string
-        setFormData((prev: any) => ({ ...prev, [name]: [] }));
-        return;
-      }
-
-      // If parsed but not an array, set empty array
-      setFormData((prev: any) => ({ ...prev, [name]: [] }));
-      return;
-    }
-
-    // For numeric fields (latitude, longitude, radius_km) keep as string but allow empty
-    if (name === "latitude" || name === "longitude" || name === "radius_km") {
-      setFormData((prev: any) => ({ ...prev, [name]: value }));
-      return;
-    }
-
+    const { name, value } = e.target;
     setFormData((prev: any) => ({ ...prev, [name]: value }));
   };
 
+  // 🔐 VALIDATION ONLY
+  const validateForm = () => {
+    const newErrors: any = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = "Name is required";
+    }
+
+    if (
+      (formData.latitude && !formData.longitude) ||
+      (!formData.latitude && formData.longitude)
+    ) {
+      newErrors.location =
+        "Both latitude and longitude must be provided together";
+    }
+
+    if (formData.radius_km && Number(formData.radius_km) <= 0) {
+      newErrors.radius_km = "Radius must be greater than 0";
+    }
+
+    if (
+      !formData.employees_selection ||
+      formData.employees_selection.length === 0
+    ) {
+      newErrors.employees_selection =
+        "Please select at least one employee";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // ❗ API LOGIC NOT TOUCHED
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     e.stopPropagation();
-
-    const form = e.currentTarget;
     setValidated(true);
 
-    if (form.checkValidity() === false) {
-      return;
-    }
+    if (!validateForm()) return;
 
-    // Prepare Payload: convert numeric fields and ensure employees_selection is an array
     const apiPayload: any = { ...formData };
 
-    apiPayload.latitude = apiPayload.latitude === "" ? null : Number(apiPayload.latitude);
-    apiPayload.longitude = apiPayload.longitude === "" ? null : Number(apiPayload.longitude);
-    apiPayload.radius_km = apiPayload.radius_km === "" ? null : Number(apiPayload.radius_km);
+    apiPayload.latitude =
+      apiPayload.latitude === "" ? null : Number(apiPayload.latitude);
+    apiPayload.longitude =
+      apiPayload.longitude === "" ? null : Number(apiPayload.longitude);
+    apiPayload.radius_km =
+      apiPayload.radius_km === "" ? null : Number(apiPayload.radius_km);
 
     if (!Array.isArray(apiPayload.employees_selection)) {
       apiPayload.employees_selection = [];
@@ -153,8 +146,7 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
         await addAttendancePolicy(apiPayload);
       }
 
-      const closeBtn = document.getElementById("close-btn-policy");
-      closeBtn?.click();
+      document.getElementById("close-btn-policy")?.click();
       onSuccess();
     } catch (error) {
       console.error("Failed to save policy", error);
@@ -163,11 +155,7 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
   };
 
   return (
-    <div
-      className="modal custom-modal fade"
-      id="add_attendance_policy"
-      role="dialog"
-    >
+    <div className="modal fade" id="add_attendance_policy" role="dialog">
       <div className="modal-dialog modal-dialog-centered modal-lg">
         <div className="modal-content">
           <div className="modal-header">
@@ -179,19 +167,19 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
               className="btn-close"
               data-bs-dismiss="modal"
               id="close-btn-policy"
-              aria-label="Close"
-            >
-              <span aria-hidden="true">×</span>
-            </button>
+            />
           </div>
+
           <div className="modal-body">
             <form
-              className={`needs-validation ${validated ? "was-validated" : ""}`}
               noValidate
+              className={`needs-validation ${
+                validated ? "was-validated" : ""
+              }`}
               onSubmit={handleSubmit}
             >
               <div className="row">
-                {/* Name - MANDATORY */}
+                {/* Name */}
                 <div className="col-md-12 mb-3">
                   <label className="form-label">
                     Name <span className="text-danger">*</span>
@@ -200,78 +188,78 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
                     type="text"
                     name="name"
                     className="form-control"
-                    required
-                    value={String(formData.name ?? "")}
+                    value={formData.name}
                     onChange={handleChange}
-                    placeholder="e.g. Main Office Geofence"
                   />
-                  <div className="invalid-feedback">Please provide a name.</div>
+                  {errors.name && (
+                    <div className="text-danger mt-1">{errors.name}</div>
+                  )}
                 </div>
 
-                {/* Latitude - float */}
+                {/* Latitude */}
                 <div className="col-md-4 mb-3">
                   <label className="form-label">Latitude</label>
                   <input
                     type="number"
-                    step="any"
                     name="latitude"
                     className="form-control"
-                    value={formData.latitude ?? ""}
+                    value={formData.latitude}
                     onChange={handleChange}
-                    placeholder="e.g. 23.780887"
                   />
                 </div>
 
-                {/* Longitude - float */}
+                {/* Longitude */}
                 <div className="col-md-4 mb-3">
                   <label className="form-label">Longitude</label>
                   <input
                     type="number"
-                    step="any"
                     name="longitude"
                     className="form-control"
-                    value={formData.longitude ?? ""}
+                    value={formData.longitude}
                     onChange={handleChange}
-                    placeholder="e.g. 90.279237"
                   />
                 </div>
 
-                {/* Radius Km - float */}
+                {/* Radius */}
                 <div className="col-md-4 mb-3">
                   <label className="form-label">Radius (Km)</label>
                   <input
                     type="number"
-                    step="any"
                     name="radius_km"
                     className="form-control"
-                    value={formData.radius_km ?? ""}
+                    value={formData.radius_km}
                     onChange={handleChange}
-                    placeholder="e.g. 0.5"
                   />
+                  {errors.radius_km && (
+                    <div className="text-danger mt-1">
+                      {errors.radius_km}
+                    </div>
+                  )}
                 </div>
 
-                {/* Employees Selection - list of objects (JSON textarea) */}
+                {errors.location && (
+                  <div className="col-md-12 mb-2">
+                    <div className="text-danger">{errors.location}</div>
+                  </div>
+                )}
+
+                {/* Employees */}
                 <div className="col-md-12 mb-3">
                   <label className="form-label">Employees Selection</label>
-
                   <Select
-                    className="antd-form-select text-black"
                     mode="multiple"
                     allowClear
-                    placeholder="Select Employees"
-                    value={formData.employees_selection?.map((emp: any) => emp.id)}
-                    getPopupContainer={(triggerNode) => triggerNode.parentElement!}
-                    onChange={(selectedIds: number[]) => {
-                      const selectedEmployees = employeesList.filter((emp) =>
-                        selectedIds.includes(emp.id)
+                    style={{ width: "100%" }}
+                    value={formData.employees_selection.map((e: any) => e.id)}
+                    onChange={(ids: number[]) => {
+                      const selected = employeesList.filter((emp) =>
+                        ids.includes(emp.id)
                       );
-
                       setFormData({
                         ...formData,
-                        employees_selection: selectedEmployees,
+                        employees_selection: selected,
                       });
                     }}
-                    style={{ width: "100%" }}
                   >
                     {employeesList.map((emp) => (
                       <Option key={emp.id} value={emp.id}>
@@ -280,7 +268,11 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
                     ))}
                   </Select>
 
-
+                  {errors.employees_selection && (
+                    <div className="text-danger mt-1">
+                      {errors.employees_selection}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -305,5 +297,3 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
 };
 
 export default AddEditAttendancePolicyModal;
-
-

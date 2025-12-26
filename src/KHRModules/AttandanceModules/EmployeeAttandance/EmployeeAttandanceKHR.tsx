@@ -89,7 +89,7 @@ const EmployeeAttendanceKHR = () => {
   // const [data, setData] = useState<EmployeeAttendance[]>([]);
   const [data, setData] = useState<AttendanceAdminData[]>([]);
   const [showQueryModal, setShowQueryModal] = useState(false);
-const [selectedAttendancee, setSelectedAttendancee] = useState<any>(null);
+  const [selectedAttendancee, setSelectedAttendancee] = useState<any>(null);
 
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedAttendance, setSelectedAttendance] =
@@ -130,8 +130,8 @@ const [selectedAttendancee, setSelectedAttendancee] = useState<any>(null);
         CheckOut: formatTime(item.check_out),
         LateTime: item.late_time_display,
         Late: item.is_late_in ? "Yes" : "No",
-        Overtime: 
-        typeof item.overtime_hours === "number"
+        Overtime:
+          typeof item.overtime_hours === "number"
             ? item.overtime_hours.toFixed(2)
             : item.overtime_hours
               ? String(item.overtime_hours)
@@ -266,20 +266,20 @@ const [selectedAttendancee, setSelectedAttendancee] = useState<any>(null);
       ),
     },
     {
-  title: "Action",
-  dataIndex: "actions",
-  render: (_: any, record: AttendanceAdminData) => (
-    <button
-      className="btn btn-sm btn-outline-primary"
-      onClick={() => {
-        setSelectedAttendancee(record);
-        setShowQueryModal(true);
-      }}
-    >
-      Raise Query
-    </button>
-  ),
-}
+      title: "Action",
+      dataIndex: "actions",
+      render: (_: any, record: AttendanceAdminData) => (
+        <button
+          className="btn btn-sm btn-outline-primary"
+          onClick={() => {
+            setSelectedAttendancee(record);
+            setShowQueryModal(true);
+          }}
+        >
+          Raise Query
+        </button>
+      ),
+    }
   ];
 
   const statusChoose = [
@@ -463,11 +463,11 @@ Punch In at 10.00 AM
       {/* <AddDepartmentModal onSuccess={fetchData} data={selectedDepartment} /> */}
 
       {showQueryModal && selectedAttendancee && (
-  <AttendanceQueryModal
-    attendance={selectedAttendancee}
-    onClose={() => setShowQueryModal(false)}
-  />
-)}
+        <AttendanceQueryModal
+          attendance={selectedAttendancee}
+          onClose={() => setShowQueryModal(false)}
+        />
+      )}
 
     </>
   );
