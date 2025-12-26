@@ -13,10 +13,10 @@ export const all_routes = {
   skillsKHR: "/KHR-skills",
   industriesKHR: "/KHR-industries",
   hrContractTypeKHR: "/KHR-hr-contract-type",
-
+  banksKHR: "/KHR-banks",
   //Employee Modules
   employeeKHR: "/KHR-employees",
-  
+
   // Leave Modules
   leaveAdminKHR: "/KHR-leave-admin",
   leaveEmployeeKHR: "/KHR-leave-employee",

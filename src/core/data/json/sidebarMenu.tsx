@@ -28,6 +28,7 @@ export const SidebarDataTest = [
           { label: "Work Entry Type", link: routes.workEntryTypeKHR },
           { label: "Skills", link: routes.skillsKHR },
           { label: "Industries", link: routes.industriesKHR },
+          { label: "Bank", link: routes.banksKHR },
           { label: "HR Contract Type ", link: routes.hrContractTypeKHR },
 
           // { label: "Country", link: routes.dealsDashboard },
