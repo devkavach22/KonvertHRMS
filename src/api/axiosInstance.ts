@@ -68,7 +68,7 @@ Instance.interceptors.response.use(
     const isAuthError =
       error.response?.status === 401 ||
       error.response?.data?.message ===
-      "Token not found. Please generate a new token";
+        "Token not found. Please generate a new token";
 
     if (isAuthError && !originalRequest._retry) {
       originalRequest._retry = true;
