@@ -1,3 +1,4 @@
+import CommonSelect from "@/core/common/commonSelect";
 import { TimePicker, Select } from "antd";
 import dayjs from "dayjs";
 import { useState } from "react";
@@ -21,6 +22,7 @@ const AttendanceQueryModal = ({
 
   const [errors, setErrors] = useState<any>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   /* Dummy Data */
   const employeesList = [
@@ -29,10 +31,10 @@ const AttendanceQueryModal = ({
   ];
 
   const categories = [
-    { id: "early_login", name: "Early Login" },
-    { id: "late_login", name: "Late Login" },
-    { id: "missed_checkout", name: "Missed Checkout" },
-    { id: "leave", name: "Leave Approval" },
+    { value: "early_login", label: "Early Login" },
+    { value: "late_login", label: "Late Login" },
+    { value: "missed_checkout", label: "Missed Checkout" },
+    { value: "leave", label: "Leave Approval" },
   ];
 
   /* =========================
@@ -92,10 +94,13 @@ const AttendanceQueryModal = ({
     return isValid;
   };
 
+
+
   /* =========================
      SUBMIT HANDLER
      ========================= */
   const handleSubmit = async () => {
+    setIsSubmitted(true);
     if (!validateForm()) {
       toast.error("Please fix validation errors");
       return;
@@ -157,7 +162,7 @@ const AttendanceQueryModal = ({
               </div>
 
               {/* Category */}
-              <div className="col-md-6 mb-3">
+              {/* <div className="col-md-6 mb-3">
                 <label className="form-label">
                   Regularization Category{" "}
                   <span className="text-danger">*</span>
@@ -178,69 +183,175 @@ const AttendanceQueryModal = ({
                 {errors.category && (
                   <small className="text-danger">{errors.category}</small>
                 )}
-              </div>
+              </div> */}
 
-              {/* Reason */}
-              <div className="col-md-12 mb-3">
-                <label className="form-label">
-                  Reason <span className="text-danger">*</span>
+              <div className="col-md-6 mb-3">
+                <label className="form-label fs-13 fw-bold">
+                  Regularization Category <span className="text-danger">*</span>
                 </label>
-                <textarea
-                  className="form-control"
-                  rows={3}
-                  value={formData.reason}
-                  onChange={(e) =>
-                    setFormData({ ...formData, reason: e.target.value })
+
+                <div
+                  className={
+                    isSubmitted
+                      ? errors.category
+                        ? "border border-danger rounded shadow-sm"
+                        : formData.category
+                          ? "border border-success rounded shadow-sm"
+                          : ""
+                      : ""
                   }
-                />
-                {errors.reason && (
-                  <small className="text-danger">{errors.reason}</small>
+                >
+                  <CommonSelect
+                    options={categories}
+                    placeholder="Select Category"
+                    defaultValue={categories.find(
+                      (opt) => opt.value === formData.category
+                    )}
+                    onChange={(opt: any) => {
+                      setFormData({
+                        ...formData,
+                        category: opt?.value || "",
+                      });
+
+                      if (errors.category) {
+                        setErrors({ ...errors, category: "" });
+                      }
+                    }}
+                  />
+                </div>
+
+                {isSubmitted && errors.category && (
+                  <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                    <i className="ti ti-info-circle me-1"></i>
+                    {errors.category}
+                  </div>
                 )}
               </div>
 
+
+
+              {/* Reason */}
+              <div className="col-md-12 mb-3">
+                <label className="form-label fs-13 fw-bold">
+                  Reason <span className="text-danger">*</span>
+                </label>
+
+                <textarea
+                  rows={3}
+                  className={`form-control ${isSubmitted
+                    ? errors.reason
+                      ? "is-invalid"
+                      : formData.reason
+                        ? "is-valid"
+                        : ""
+                    : ""
+                    }`}
+                  placeholder="Enter reason"
+                  value={formData.reason}
+                  onChange={(e) => {
+                    setFormData({ ...formData, reason: e.target.value });
+                    if (errors.reason) {
+                      setErrors({ ...errors, reason: "" });
+                    }
+                  }}
+                />
+
+                {isSubmitted && errors.reason && (
+                  <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                    <i className="ti ti-info-circle me-1"></i>
+                    {errors.reason}
+                  </div>
+                )}
+              </div>
+
+
+
               {/* Requested Check-in */}
               <div className="col-md-6 mb-3">
-                <label className="form-label">Requested Check-in</label>
+                <label className="form-label fs-13 fw-bold">
+                  Requested Check-in
+                </label>
+
                 <TimePicker
-                  className="w-100"
+                  className={`w-100 ${isSubmitted
+                      ? errors.requested_check_in
+                        ? "is-invalid"
+                        : formData.requested_check_in
+                          ? "is-valid"
+                          : ""
+                      : ""
+                    }`}
                   format="HH:mm"
-                  onChange={(time) =>
+                  value={
+                    formData.requested_check_in
+                      ? dayjs(formData.requested_check_in, "HH:mm")
+                      : null
+                  }
+                  onChange={(time) => {
                     setFormData({
                       ...formData,
                       requested_check_in: time
                         ? dayjs(time).format("HH:mm")
                         : "",
-                    })
-                  }
+                    });
+
+                    if (errors.requested_check_in) {
+                      setErrors({ ...errors, requested_check_in: "" });
+                    }
+                  }}
                 />
-                {errors.requested_check_in && (
-                  <small className="text-danger">
+
+                {isSubmitted && errors.requested_check_in && (
+                  <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                    <i className="ti ti-info-circle me-1"></i>
                     {errors.requested_check_in}
-                  </small>
+                  </div>
                 )}
               </div>
 
               {/* Requested Check-out */}
               <div className="col-md-6 mb-3">
-                <label className="form-label">Requested Check-out</label>
+                <label className="form-label fs-13 fw-bold">
+                  Requested Check-out
+                </label>
+
                 <TimePicker
-                  className="w-100"
+                  className={`w-100 ${isSubmitted
+                      ? errors.requested_check_out
+                        ? "is-invalid"
+                        : formData.requested_check_out
+                          ? "is-valid"
+                          : ""
+                      : ""
+                    }`}
                   format="HH:mm"
-                  onChange={(time) =>
+                  value={
+                    formData.requested_check_out
+                      ? dayjs(formData.requested_check_out, "HH:mm")
+                      : null
+                  }
+                  onChange={(time) => {
                     setFormData({
                       ...formData,
                       requested_check_out: time
                         ? dayjs(time).format("HH:mm")
                         : "",
-                    })
-                  }
+                    });
+
+                    if (errors.requested_check_out) {
+                      setErrors({ ...errors, requested_check_out: "" });
+                    }
+                  }}
                 />
-                {errors.requested_check_out && (
-                  <small className="text-danger">
+
+                {isSubmitted && errors.requested_check_out && (
+                  <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                    <i className="ti ti-info-circle me-1"></i>
                     {errors.requested_check_out}
-                  </small>
+                  </div>
                 )}
               </div>
+
             </div>
 
             {/* Approval Logs */}

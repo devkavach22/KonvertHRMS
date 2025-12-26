@@ -81,6 +81,10 @@ export const Login = createLazyComponent(
 export const GeoKHR = createLazyComponent(
   () => import("../KHRModules/AttandanceModules/GeoConfig/GeoKHR"),
 );
+export const EmployeeContractKHR = createLazyComponent(
+  () => import("../KHRModules/EmployeeContract/EmployeeContractKHR"),
+  <LoadingSpinner text="Loading employee contract..." />
+);
 export const SecurityKeyLogin = createLazyComponent(
   () => import("../feature-module/auth/login/SecretKeyLogin"),
   <LoadingSpinner text="Loading login..." />,

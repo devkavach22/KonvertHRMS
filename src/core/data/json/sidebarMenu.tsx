@@ -53,7 +53,8 @@ export const SidebarDataTest = [
         materialicons: "start",
         dot: false,
         submenuItems: [
-          { label: "Employees", link: routes.employeeKHR },
+            { label: "Employees", link: routes.employeeKHR },
+            { label: "Employee Contract", link: routes.employeeContract },
           // { label: "Attendance", link: routes.attendanceadmin },
           // { label: "Leave Management", link: routes.leaveadmin },
           // { label: "Holidays", link: routes.holidays },
