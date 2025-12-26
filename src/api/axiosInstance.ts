@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const Instance = axios.create({
-  baseURL: "http://192.168.11.150:4000/",
+  // baseURL: "http://192.168.11.150:4000/",
+  baseURL: "http://178.236.185.232:4000/",
   headers: {
     "Content-Type": "application/json",
   },
@@ -10,7 +11,10 @@ const Instance = axios.create({
 const getFreshToken = async () => {
   try {
     console.log("🔄 Fetching fresh token...");
-    const response = await axios.post("http://192.168.11.150:4000/api/auth", {
+    // const response = await axios.post("http://192.168.11.150:4000/api/auth", {
+    //   user_name: "dhaval",
+    // });
+    const response = await axios.post("http://178.236.185.232:4000/api/auth", {
       user_name: "dhaval",
     });
     const newToken = response.data.token;

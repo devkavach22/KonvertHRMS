@@ -195,12 +195,14 @@ export const addEmployee = async (payload: any) => {
 };
 
 export const updateEmployee = async (id: string, data: any) => {
-  const payload = { ...data, user_id: getUserId() };
-  return await Instance.put(`/api/employee/${id}`, payload);
+  const payload = { ...data }; // your request body
+  return await Instance.put(`/employee/${id}`, payload, {
+    params: { user_id: getUserId() }, // query params
+  });
 };
 
 export const deleteEmployee = async (id: string) => {
-  return await Instance.delete(`/api/employee/${id}`, {
+  return await Instance.delete(`/employee/${id}`, {
     params: { user_id: getUserId() },
   });
 };

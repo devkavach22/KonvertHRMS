@@ -300,6 +300,7 @@ import {
   LeaveEmployeeKHR,
   LeaveSettingsKHR,
   LeaveAdminKHR,
+  BanksKHR,
   GeoKHR,
 } from "./lazyRoutes";
 
@@ -1617,6 +1618,11 @@ export const publicRoutes = [
   {
     path: routes.industriesKHR,
     element: <IndustriesKHR />,
+    route: Route,
+  },
+  {
+    path: routes.banksKHR,
+    element: <BanksKHR />,
     route: Route,
   },
   {

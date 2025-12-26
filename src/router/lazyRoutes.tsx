@@ -414,6 +414,9 @@ export const EmployeeAttandanceKHR = createLazyComponent(
       "../KHRModules/AttandanceModules/EmployeeAttandance/EmployeeAttandanceKHR"
     )
 );
+export const BanksKHR = createLazyComponent(
+  () => import("../KHRModules/Master Modules/BanksKHR/BanksKHR")
+);
 
 export const ShiftModulesKHR = createLazyComponent(
   () => import("../KHRModules/AttandanceModules/ShiftModules/ShiftModulesKHR")
