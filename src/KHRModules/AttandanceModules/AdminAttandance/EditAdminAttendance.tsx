@@ -3,28 +3,31 @@ import FormInput from "@/KHRModules/commanForm/inputComman/FormInput";
 import { DatePicker, TimePicker } from "antd";
 import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
+import { updateAdminAttendance } from "./AdminAttandanceServices";
+
 
 interface Props {
   attendance: any;
   onClose: () => void;
+  onSuccess: () => void;
 }
 
-const EditAttendanceModal: React.FC<Props> = ({ attendance, onClose }) => {
+const EditAttendanceModal: React.FC<Props> = ({ attendance, onClose, onSuccess }) => {
   const [formData, setFormData] = useState<any>({
     date: null,
     check_in: null,
     check_out: null,
     late_time_display: "",
-    production_hours: "",
+    // production_hours: "",
   });
 
   /* =====================
      PREFILL DATA
   ===================== */
   useEffect(() => {
-    console.log(attendance,"aaaaaaa");
-    
     if (attendance) {
+      console.log(attendance, "attendance");
+
       setFormData({
         date: attendance.Attendance_Date
           ? dayjs(attendance.Attendance_Date)
@@ -37,17 +40,24 @@ const EditAttendanceModal: React.FC<Props> = ({ attendance, onClose }) => {
           attendance.CheckOut && attendance.CheckOut !== "-"
             ? dayjs(attendance.CheckOut, "hh:mm A")
             : null,
-        late_minutes: attendance.Late || "",
-        production_hours: attendance.ProductionHours || "",
+        late_time_display: attendance.Late
+          ? Number(attendance.Late.replace(/\D/g, ""))
+          : "",
+        // production_hours: attendance.ProductionHours ?? "",
       });
     }
   }, [attendance]);
 
 
+  console.log(formData, "formdattatt");
+
+
+
+
   /* =====================
      SUBMIT
   ===================== */
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const date = formData.date?.format("YYYY-MM-DD");
 
     const checkIn = formData.check_in
@@ -61,13 +71,20 @@ const EditAttendanceModal: React.FC<Props> = ({ attendance, onClose }) => {
     const payload = {
       check_in: checkIn,
       check_out: checkOut,
-      late_time_display: Number(formData.late_time_display),
-      production_hours: Number(formData.production_hours),
+      late_minutes: Number(formData.late_time_display),
+      // production_hours: Number(formData.production_hours),
     };
 
     console.log("EDIT ATTENDANCE PAYLOAD 👉", payload);
 
-    // 🔥 API call here
+    try {
+      await updateAdminAttendance(attendance.id, payload);
+      onClose()
+      onSuccess();
+    } catch (error) {
+      console.error("Failed to update attendance");
+    }
+
     onClose();
   };
 
@@ -122,19 +139,24 @@ const EditAttendanceModal: React.FC<Props> = ({ attendance, onClose }) => {
         <div className="col-md-6">
           <FormInput
             label="Late (minutes)"
-            name="late_minutes"
+            name="late_time_display"
             type="number"
-            value={formData.late_minutes}
+            value={formData.
+              late_time_display}
             onChange={(e) =>
-              setFormData({ ...formData, late_minutes: e.target.value })
+              setFormData({
+                ...formData,
+                late_time_display: e.target.value,
+              })
             }
           />
+
 
         </div>
       </div>
 
       {/* Production Hours */}
-      <FormInput
+      {/* <FormInput
         label="Production Hours"
         name="production_hours"
         value={formData.production_hours}
@@ -144,7 +166,7 @@ const EditAttendanceModal: React.FC<Props> = ({ attendance, onClose }) => {
             production_hours: e.target.value,
           })
         }
-      />
+      /> */}
     </CommonModal>
   );
 };

@@ -26,7 +26,7 @@ export const getAttendance = async (): Promise<APIAttendance[]> => {
     try {
 
         const { user_id } = getAuthDetails();
-        const response = await Instance.get("/api/attendance", {
+        const response = await Instance.get("/api/employee/attendance", {
             params: { user_id },
         });
         return response.data.data || response.data || [];

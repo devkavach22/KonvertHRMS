@@ -30,12 +30,16 @@ const AttendanceQueryModal = ({
     { id: 2, name: "Jane Smith" },
   ];
 
+
+
   const categories = [
     { value: "early_login", label: "Early Login" },
     { value: "late_login", label: "Late Login" },
     { value: "missed_checkout", label: "Missed Checkout" },
     { value: "leave", label: "Leave Approval" },
   ];
+
+  
 
   /* =========================
      VALIDATION FUNCTION

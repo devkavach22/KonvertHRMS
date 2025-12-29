@@ -15,6 +15,13 @@ export interface APIAdminAttendance {
   status_code: boolean;
 }
 
+interface UpdateAttendancePayload {
+  check_in: string | null;
+  check_out: string | null;
+  late_minutes: number;
+  production_hours: number;
+}
+
 // Helper to get auth details
 const getAuthDetails = () => {
   const user_id = localStorage.getItem("user_id");
@@ -39,5 +46,23 @@ export const getAdminAttendance = async (): Promise<APIAdminAttendance[]> => {
   } catch (error) {
     console.error("Admin Attendance Fetch Error:", error);
     return [];
+  }
+};
+
+
+export const updateAdminAttendance = async (
+  attendanceId: number,
+  payload: UpdateAttendancePayload
+) => {
+  try {
+    const response = await Instance.put(
+      `/api/admin/updateattendances/${attendanceId}`,
+      payload
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Update Attendance Error:", error);
+    throw error;
   }
 };

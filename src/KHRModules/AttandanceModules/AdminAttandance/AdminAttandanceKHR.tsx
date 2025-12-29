@@ -34,6 +34,7 @@ import EditAttendanceModal from "./EditAdminAttendance";
 
 // Define a type for attendance admin data
 interface AttendanceAdminData {
+  id: number;
   Employee: string;
   Image: string;
   Role: string;
@@ -56,41 +57,7 @@ type AttendanceCard = {
 };
 
 const AdminAttandanceKHR = () => {
-  const attendanceTableDummyData: AttendanceAdminData[] = [
-    {
-      Employee: "John Doe",
-      Image: "avatar-1.jpg",
-      Role: "Developer",
-      Status: "Present",
-      CheckIn: "09:30 AM",
-      CheckOut: "06:30 PM",
-      Break: "45 min",
-      Late: "No",
-      ProductionHours: "8.5",
-    },
-    {
-      Employee: "Sarah Smith",
-      Image: "avatar-2.jpg",
-      Role: "Designer",
-      Status: "Absent",
-      CheckIn: "-",
-      CheckOut: "-",
-      Break: "-",
-      Late: "Yes",
-      ProductionHours: "0",
-    },
-    {
-      Employee: "Rahul Patel",
-      Image: "avatar-3.jpg",
-      Role: "HR",
-      Status: "Present",
-      CheckIn: "10:00 AM",
-      CheckOut: "07:00 PM",
-      Break: "30 min",
-      Late: "No",
-      ProductionHours: "9",
-    },
-  ];
+
 
   const routes = all_routes;
 
@@ -158,11 +125,12 @@ const AdminAttandanceKHR = () => {
         const isPresent = !!item.check_in;
 
         return {
+          id: item.id,
           Employee: Array.isArray(item.employee_id)
             ? item.employee_id[1]
             : "Employee",
 
-          Image: item.employee?.avatar || "avatar-1.jpg",
+          // Image: item.employee?.avatar || "avatar-1.jpg",
 
           Role: item.job_name || "Employee",
 
@@ -255,13 +223,7 @@ const AdminAttandanceKHR = () => {
       dataIndex: "Employee",
       render: (_text: string, record: AttendanceAdminData) => (
         <div className="d-flex align-items-center file-name-icon">
-          <span className="avatar avatar-md border avatar-rounded">
-            <ImageWithBasePath
-              src={`assets/img/users/${record.Image}`}
-              className="img-fluid"
-              alt={`${record.Employee} Profile`}
-            />
-          </span>
+
           <div className="ms-2">
             <h6 className="fw-medium">{record.Employee}</h6>
             <span className="fs-12 fw-normal ">{record.Role}</span>
@@ -335,23 +297,30 @@ const AdminAttandanceKHR = () => {
     {
       title: "",
       dataIndex: "actions",
-      render: (_: any, record: AttendanceAdminData) => (
-        <div className="action-icon d-inline-flex">
-          <button
-            type="button"
-            className="me-2"
-            data-bs-toggle="modal"
-            data-bs-target="#edit_attendance"
-            aria-label="Edit attendance"
-            onClick={() => {
-              setSelectedAttendanceeEditModal(record);
-            }}
-          >
-            <i className="ti ti-edit" />
-          </button>
-        </div>
-      ),
-    },
+      render: (_: any, record: AttendanceAdminData) => {
+        const canEdit = record.Status === "Present" && record.id;
+
+        if (!canEdit) return null;
+
+        return (
+          <div className="action-icon d-inline-flex">
+            <button
+              type="button"
+              className="me-2"
+              data-bs-toggle="modal"
+              data-bs-target="#edit_attendance"
+              aria-label="Edit attendance"
+              onClick={() => {
+                setSelectedAttendanceeEditModal(record);
+              }}
+            >
+              <i className="ti ti-edit" />
+            </button>
+          </div>
+        );
+      },
+    }
+
   ];
 
   const statusChoose = [
@@ -533,9 +502,14 @@ const AdminAttandanceKHR = () => {
       {selectedAttendanceeEditModal && (
         <EditAttendanceModal
           attendance={selectedAttendanceeEditModal}
-          onClose={() => setSelectedAttendanceeEditModal(false)}
+          onClose={() => setSelectedAttendanceeEditModal(null)}
+          onSuccess={() => {
+            setSelectedAttendanceeEditModal(null);
+            fetchData();
+          }}
         />
       )}
+
     </>
   );
 };
