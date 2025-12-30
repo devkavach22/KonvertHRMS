@@ -76,7 +76,7 @@ const StatusCheckInPopup: React.FC = () => {
       console.log(latitude, longitude,"Submitting attendance...");
       
       // await submitAttendance(latitude, longitude);
-      await submitAttendance(12.000000, 12.000000);
+      await submitAttendance(23.089409500000, 72.530084100000);
 
 
       setCheckInTime(new Date());
@@ -94,7 +94,9 @@ const StatusCheckInPopup: React.FC = () => {
   const handleCheckOut = async () => {
     try {
       const { latitude, longitude } = await getCurrentLocation();
-      await submitAttendance(latitude, longitude);
+      // await submitAttendance(latitude, longitude);
+      await submitAttendance(23.089409500000, 72.530084100000);
+
 
       setIsCheckedIn(false);
       setCheckInTime(null);
@@ -180,7 +182,7 @@ const StatusCheckInPopup: React.FC = () => {
 
               <div className="mb-2">
                 <small className="text-muted">Total today</small>
-                <div className="fs-5 fw-bold">
+                <div className=" fw-bold">
                   {formatTotal(totalMinutes)}
                 </div>
               </div>
