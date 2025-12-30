@@ -23,6 +23,7 @@ export const all_routes = {
   leaveAdminKHR: "/KHR-leave-admin",
   leaveEmployeeKHR: "/KHR-leave-employee",
   leaveSettingsKHR: "/KHR-leave-settings",
+  employeeSalaryKHR:"/KHR-employee-salary",
 
   //Attendance Modules
   attendanceAdminKHR: "/KHR-attendance-admin",

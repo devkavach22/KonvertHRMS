@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { toast } from "react-toastify";
+import { submitAttendance } from "./checkinCheckOutService";
 
 const StatusCheckInPopup: React.FC = () => {
   const [open, setOpen] = useState(false);
@@ -8,7 +10,9 @@ const StatusCheckInPopup: React.FC = () => {
 
   const ref = useRef<HTMLDivElement>(null);
 
-  // Close popup on outside click
+  /* =====================
+     CLOSE ON OUTSIDE CLICK
+  ===================== */
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -19,7 +23,9 @@ const StatusCheckInPopup: React.FC = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Timer logic
+  /* =====================
+     TIMER LOGIC
+  ===================== */
   useEffect(() => {
     let interval: any;
 
@@ -36,27 +42,73 @@ const StatusCheckInPopup: React.FC = () => {
     return () => clearInterval(interval);
   }, [isCheckedIn, checkInTime]);
 
-  // API calls
+  /* =====================
+     GET CURRENT LOCATION
+  ===================== */
+  const getCurrentLocation = (): Promise<{
+    latitude: number;
+    longitude: number;
+  }> => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject("Geolocation not supported");
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        },
+        (error) => reject(error),
+        { enableHighAccuracy: true }
+      );
+    });
+  };
+
+  /* =====================
+     CHECK-IN
+  ===================== */
   const handleCheckIn = async () => {
     try {
-      await fetch("/api/check-in", { method: "POST" });
-      const now = new Date();
-      setCheckInTime(now);
+      const { latitude, longitude } = await getCurrentLocation();
+      console.log(latitude, longitude,"Submitting attendance...");
+      
+      // await submitAttendance(latitude, longitude);
+      await submitAttendance(12.000000, 12.000000);
+
+
+      setCheckInTime(new Date());
       setIsCheckedIn(true);
+      toast.success("Checked in successfully");
     } catch (err) {
-      console.error("Check-in failed");
+      console.error(err);
+      toast.error("Check-in failed");
     }
   };
 
+  /* =====================
+     CHECK-OUT
+  ===================== */
   const handleCheckOut = async () => {
     try {
-      await fetch("/api/check-out", { method: "POST" });
+      const { latitude, longitude } = await getCurrentLocation();
+      await submitAttendance(latitude, longitude);
+
       setIsCheckedIn(false);
+      setCheckInTime(null);
+      setTotalMinutes(0);
+      toast.success("Checked out successfully");
     } catch (err) {
-      console.error("Check-out failed");
+      console.error(err);
+      toast.error("Check-out failed");
     }
   };
 
+  /* =====================
+     FORMATTERS
+  ===================== */
   const formatTime = (date: Date | null) =>
     date
       ? date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
@@ -68,23 +120,26 @@ const StatusCheckInPopup: React.FC = () => {
     return `${h}:${m.toString().padStart(2, "0")}`;
   };
 
+  /* =====================
+     UI
+  ===================== */
   return (
     <div ref={ref} style={{ position: "relative" }}>
-      {/* Green Dot */}
+      {/* STATUS DOT */}
       <span
         onClick={() => setOpen(!open)}
         style={{
           width: "10px",
           height: "10px",
           borderRadius: "50%",
-          backgroundColor: "#28c76f",
+          backgroundColor: isCheckedIn ? "#28c76f" : "#ea5455",
           cursor: "pointer",
           display: "inline-block",
           boxShadow: "0 0 0 4px rgba(40,199,111,0.2)",
         }}
       />
 
-      {/* Popup */}
+      {/* POPUP */}
       {open && (
         <div
           style={{
@@ -110,12 +165,16 @@ const StatusCheckInPopup: React.FC = () => {
             <>
               <div className="d-flex justify-content-between mb-2">
                 <div>
-                  <small className="text-muted">Before</small>
-                  <div className="fw-bold">{formatTime(checkInTime)}</div>
+                  <small className="text-muted">Check-in</small>
+                  <div className="fw-bold">
+                    {formatTime(checkInTime)}
+                  </div>
                 </div>
                 <div>
                   <small className="text-muted">Since</small>
-                  <div className="fw-bold">{formatTotal(totalMinutes)}</div>
+                  <div className="fw-bold">
+                    {formatTotal(totalMinutes)}
+                  </div>
                 </div>
               </div>
 
