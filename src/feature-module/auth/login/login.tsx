@@ -50,12 +50,9 @@ const Login = () => {
       console.log("Login Response:", response.data);
 
       if (response.data.status === "success") {
-        // 1. CLEAR STORAGE: This removes the messy/concatenated strings you currently have
         localStorage.clear();
-
-        // 2. STORE INDIVIDUAL KEYS: No more overlapping strings
-        // Store the token (if returned)
         const token = response.data.token || response.data.accessToken;
+
         if (token) {
           localStorage.setItem("authToken", token);
         }

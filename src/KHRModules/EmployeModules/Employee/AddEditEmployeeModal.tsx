@@ -23,6 +23,7 @@ import {
   updateEmployee,
 } from "./EmployeeServices";
 import CommonAlertCard from "@/CommonComponent/AlertKHR/CommonAlertCard";
+import { AddEditBankAccountModal } from "./AddEditBankAccountModal";
 
 interface Props {
   onSuccess: () => void;
@@ -219,30 +220,47 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
   };
   useEffect(() => {
     if (data) {
-      // Helper to extract ID from [id, "name"] arrays
-      const getVal = (field: any) =>
-        Array.isArray(field) ? String(field[0]) : field || "";
+      // 1. Helper to handle API's [id, "name"] or false/null values
+      const getVal = (field: any) => {
+        if (Array.isArray(field)) return String(field[0]); // Extract ID from [123, "Name"]
+        if (field === false || field === null) return ""; // Convert 'false' to empty string
+        return String(field);
+      };
 
+      // 2. Set the Form Data
       setFormData({
-        ...data,
-        // Ensure dropdown IDs are extracted from [id, name] arrays
+        ...initialFormData, // Start with defaults to ensure all keys exist
+        ...data, // Spread API data
+
+        // Explicitly map/format dropdown fields
         attendance_policy_id: getVal(data.attendance_policy_id),
-        name_of_client: getVal(data.name_of_client),
+        name_of_client: getVal(data.name_of_site), // API uses name_of_site, form uses name_of_client
         resource_calendar_id: getVal(data.resource_calendar_id),
         shift_roster_id: getVal(data.shift_roster_id),
         country_id: getVal(data.country_id),
         state_id: getVal(data.state_id),
         district_id: getVal(data.district_id),
-        bussiness_type_id: getVal(data.bussiness_type_id),
-        business_location_id: getVal(data.business_location_id),
         department_id: getVal(data.department_id),
         job_id: getVal(data.job_id),
+        bank_account_id: getVal(data.bank_account_id),
         reporting_manager_id: getVal(data.reporting_manager_id),
         head_of_department_id: getVal(data.head_of_department_id),
-        bank_account_id: getVal(data.bank_account_id),
+
+        // Handle numeric fields that come as 0 or false
+        pin_code: data.pin_code === 0 ? "" : data.pin_code,
+
+        // Handle Base64 strings (Keep them as strings in state for now)
+        // We don't convert them to File objects here, just store the Base64
+        image_1920: data.image_1920 || null,
+        driving_license: data.driving_license || null,
+        upload_passbook: data.upload_passbook || null,
       });
 
-      if (data.image_1920) setImgPreview(data.image_1920);
+      // 3. Set Visual Previews for Base64 data
+      // API returns raw base64, so we add the Data URI prefix
+      if (data.image_1920) {
+        setImgPreview(`data:image/png;base64,${data.image_1920}`);
+      }
     }
   }, [data]);
 
@@ -1286,7 +1304,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <div className="modal fade" id="add_employee_modal" role="dialog">
       {showErrorAlert && (
@@ -2442,7 +2460,6 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                     </div>
                   </div>
                 )}
-
                 {/* 3. Address Details */}
                 {activeTab === "address" && (
                   <div className="address-info-wrapper animate__animated animate__fadeIn">
@@ -2613,7 +2630,6 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                     </div>
                   </div>
                 )}
-
                 {/* 4. Emergency Contact */}
                 {activeTab === "emergency" && (
                   <div className="emergency-info-wrapper animate__animated animate__fadeIn">
@@ -2783,7 +2799,6 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                     </div>
                   </div>
                 )}
-
                 {/* 5. Employment Information */}
                 {activeTab === "employment" && (
                   <div className="employment-wrapper animate__animated animate__fadeIn">
@@ -3285,83 +3300,72 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                     </div>
                   </div>
                 )}
-
                 {/* 6. Banking Information */}
+                {/* 6. Banking Information Tab Content */}
                 {activeTab === "banking" && (
                   <div className="banking-info-wrapper animate__animated animate__fadeIn">
-                    {/* --- Section: Payment Account --- */}
                     <div className="form-section mb-4">
                       <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
                         <i className="ti ti-building-bank fs-18 me-2"></i>{" "}
                         Salary Payment Details
                       </h6>
 
-                      <div className="row g-3">
-                        {/* Bank Account - MANDATORY */}
+                      <div className="row g-3 align-items-end">
                         <div className="col-md-6">
                           <label className="form-label fs-13">
                             Bank Account <span className="text-danger">*</span>
                           </label>
-                          <div
-                            className={
-                              isSubmitted
-                                ? errors.bank_account_id
-                                  ? "border border-danger rounded shadow-sm"
-                                  : formData.bank_account_id
-                                  ? "border border-success rounded shadow-sm"
-                                  : ""
-                                : ""
+                          <CommonSelect
+                            options={banks}
+                            placeholder="Select Bank Account"
+                            defaultValue={banks.find(
+                              (opt) =>
+                                opt.value === String(formData.bank_account_id)
+                            )}
+                            onChange={(option) =>
+                              setFormData({
+                                ...formData,
+                                bank_account_id: option?.value || "",
+                              })
                             }
-                          >
-                            <CommonSelect
-                              className="select"
-                              options={banks}
-                              placeholder="Select Bank Account"
-                              // Correctly handles the [id, "name"] array structure from Odoo/API responses
-                              defaultValue={banks.find(
-                                (opt) =>
-                                  opt.value ===
-                                  String(
-                                    Array.isArray(formData.bank_account_id)
-                                      ? formData.bank_account_id[0]
-                                      : formData.bank_account_id
-                                  )
-                              )}
-                              onChange={(option) => {
-                                setFormData({
-                                  ...formData,
-                                  bank_account_id: option?.value || "",
-                                });
-                                if (errors.bank_account_id)
-                                  setErrors({ ...errors, bank_account_id: "" });
-                              }}
-                            />
-                          </div>
-                          {isSubmitted && errors.bank_account_id && (
-                            <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
-                              <i className="ti ti-info-circle me-1"></i>
-                              {errors.bank_account_id}
-                            </div>
-                          )}
+                          />
                         </div>
-                      </div>
-                    </div>
 
-                    {/* Information Note */}
-                    <div
-                      className="alert alert-soft-info border-0 d-flex align-items-center shadow-sm"
-                      role="alert"
-                    >
-                      <i className="ti ti-info-circle-filled fs-20 me-2 text-info"></i>
-                      <div className="fs-12">
-                        <strong>Note:</strong> The selected account will be used
-                        for automated payroll processing. Ensure the bank
-                        details are verified by the accounts department to avoid
-                        payment delays.
+                        <div className="banking-info-wrapper">
+                          {" "}
+                          {/* FIX: Ensure data-bs-toggle and data-bs-target are present */}
+                          <button
+                            type="button"
+                            className="btn btn-primary w-100 fs-12"
+                            data-bs-toggle="modal"
+                            data-bs-target="#add_bank_account_modal"
+                          >
+                            <i className="ti ti-plus me-1"></i> New Account
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
                 )}
+
+                {/* FIX: Move the Modal component outside of the tab-content conditional check.
+   If it's inside {activeTab === "banking" && ...}, it might unmount when you 
+   switch tabs, causing issues. Place it at the very bottom of the main modal-body.
+*/}
+                <AddEditBankAccountModal
+                  onSuccess={async (newId: string) => {
+                    // Refresh banks list and select new ID
+                    const bankList = await getBanks();
+                    const formatted = bankList.map((b: any) => ({
+                      value: String(b.id),
+                      label: `${b.acc_number} - ${
+                        Array.isArray(b.bank_id) ? b.bank_id[1] : "Bank"
+                      }`,
+                    }));
+                    setBanks(formatted);
+                    setFormData({ ...formData, bank_account_id: newId });
+                  }}
+                />
                 {/* 7. Notice Information */}
                 {activeTab === "notice" && (
                   <div className="notice-info-wrapper animate__animated animate__fadeIn">
