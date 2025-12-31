@@ -121,6 +121,30 @@ export const SidebarDataTest = [
     ],
   },
 
+
+   {
+    tittle: "Finance & Accounts",
+    icon: "payroll",
+    showAsTab: true,
+    separateRoute: false,
+    submenuItems: [
+      {
+        label: "payroll",
+        link: "index",
+        submenu: true,
+        showSubRoute: false,
+        icon: "users",
+        base: "dashboard",
+        materialicons: "start",
+        dot: false,
+        submenuItems: [
+          { label: "Structure Types", link: routes.employeeSalaryKHR },
+          { label: "Salary Rules", link: routes.SalaryRuleKHR },
+       
+        ],
+      },
+    ],
+  },
   // {
   //   tittle: "Main Menu",
   //   icon: "airplay",
