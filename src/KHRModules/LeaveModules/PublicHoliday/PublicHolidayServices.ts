@@ -88,3 +88,17 @@ export const getCalenderId = async (): Promise<any> => {
   let user_id = localStorage.getItem("user_id");    
   return await Instance.get(`/api/WorkingSchedules?user_id=${user_id}`);
 }
+
+// put :- http://192.168.11.245:4000/api/public-holiday/70?user_id=3145
+export const updateHoliday = async (id: number, data: any): Promise<any> => {
+  let user_id = localStorage.getItem("user_id");
+  return await Instance.put(`/api/public-holiday/${id}?user_id=${user_id}`, data);
+}
+
+
+// delete :- http://192.168.11.245:4000/api/public-holiday/70?user_id=3145
+export const deleteHoliday = async (id: number): Promise<any> => {
+  let user_id = localStorage.getItem("user_id");
+  return await Instance.delete(`/api/public-holiday/${id}?user_id=${user_id}`);
+
+}

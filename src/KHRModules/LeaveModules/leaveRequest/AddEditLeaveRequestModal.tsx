@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+import CommonSelect from "../../../core/common/commonSelect";
+import CommonAlertCard from "@/CommonComponent/AlertKHR/CommonAlertCard";
 import {
   addAttendancePolicy,
-  AttendancePolicy,
+  LeaveRequest,
   getEmployeesForLeaveRequest,
+  updateLeaveRequest,
 } from "./LeaveRequestServices";
 import moment from "moment";
 import { DatePicker, Radio, Checkbox } from "antd";
@@ -10,7 +14,7 @@ import dayjs from "dayjs";
 
 interface Props {
   onSuccess: () => void;
-  data: AttendancePolicy | null;
+  data: LeaveRequest | null;
 }
 
 const AddEditLeaveRequestModal: React.FC<Props> = ({ onSuccess, data }) => {
@@ -22,8 +26,8 @@ const AddEditLeaveRequestModal: React.FC<Props> = ({ onSuccess, data }) => {
     from_date: "",
     to_date: "",
     no_of_days: "",
-    // removed remaining_days in favor of `requested` and `leave_balance`
-    leave_balance: "",
+    // removed remaining_days in favor of `requested` and `holiday_status_id`
+    holiday_status_id: "",
     requested: "",
     company: "",
     department: "",
@@ -37,43 +41,47 @@ const AddEditLeaveRequestModal: React.FC<Props> = ({ onSuccess, data }) => {
   const [employeesOptions, setEmployeesOptions] = useState<any[]>([]);
   const [departmentsOptions, setDepartmentsOptions] = useState<any[]>([]);
   const [companyName, setCompanyName] = useState<string>("");
-   const [isSubmitted, setIsSubmitted] = useState(false);
-     const [errors, setErrors] = useState<any>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errors, setErrors] = useState<any>({});
+  const [showErrorAlert, setShowErrorAlert] = useState(false);
 
   // 1. DATA SYNC: Populate form when editing
   useEffect(() => {
-    if (data) {
-      // Map incoming `data` to the new form shape.
-      let employees: any[] = [];
-      if (Array.isArray((data as any).employees_selection)) {
-        employees = (data as any).employees_selection;
-      } else if (typeof (data as any).employees_selection === "string") {
-        try {
-          const parsed = JSON.parse((data as any).employees_selection);
-          if (Array.isArray(parsed)) employees = parsed;
-        } catch (e) {
-          employees = [];
+  if (data) {
+    setFormData({
+      employees_selection: [],
+      type: data.leave_type || "",
+      from_date: data.from_date || "",
+      to_date: data.to_date || "",
+      no_of_days: data.no_of_days || "",
+      holiday_status_id: data.holiday_status_id || "",
+      requested: data.requested || "",
+      company: data.company_name || "",
+      department: data.department_name || "",
+      payslip_state: data.payslip_state || "",
+      hod_document: null,
+      reason: data.reason || "",
+    });
+  }
+}, [data]);
+
+
+  // Update employee selection when employeesOptions are loaded
+  useEffect(() => {
+    if (data && employeesOptions.length > 0 && formData.employees_selection.length > 0) {
+      const employeeId = (data as any).employee_id || (data as any).employee_name;
+      if (employeeId) {
+        const foundEmployee = employeesOptions.find(emp => String(emp.id) === String(employeeId) || emp.name === employeeId);
+        if (foundEmployee && String(foundEmployee.id) !== String(formData.employees_selection[0]?.id)) {
+          setFormData((prev: any) => ({
+            ...prev,
+            employees_selection: [foundEmployee]
+          }));
         }
       }
-
-      setFormData({
-        employees_selection: employees,
-        type: (data as any).type ?? "",
-        from_date: (data as any).from_date ?? (data as any).start_date ?? "",
-        to_date: (data as any).to_date ?? (data as any).end_date ?? "",
-        no_of_days: (data as any).no_of_days ?? "",
-          leave_balance: (data as any).leave_balance ?? "",
-          requested: (data as any).requested ?? "",
-          company: (data as any).company ?? "",
-          department: (data as any).department ?? "",
-          payslip_state: (data as any).payslip_state ?? "",
-          hod_document: (data as any).hod_document ?? null,
-        reason: (data as any).reason ?? "",
-      });
-    } else {
-      setFormData(initialFormState);
     }
-  }, [data]);
+  }, [employeesOptions, data]);
 
   // Fetch employee list for the Employee Name select
   useEffect(() => {
@@ -97,8 +105,7 @@ const AddEditLeaveRequestModal: React.FC<Props> = ({ onSuccess, data }) => {
   useEffect(() => {
     const modalElement = document.getElementById("add_leave_request");
     const handleModalClose = () => {
-      setValidated(false);
-      setFormData(initialFormState);
+      resetForm();
     };
     if (modalElement) {
       modalElement.addEventListener("hidden.bs.modal", handleModalClose);
@@ -162,7 +169,7 @@ const AddEditLeaveRequestModal: React.FC<Props> = ({ onSuccess, data }) => {
     // no geo numeric fields handled here anymore
 
     // numeric fields for leave
-    if (name === "no_of_days" || name === "leave_balance" || name === "requested") {
+    if (name === "no_of_days" || name === "holiday_status_id" || name === "requested") {
       setFormData((prev: any) => ({ ...prev, [name]: value }));
       return;
     }
@@ -186,56 +193,88 @@ const AddEditLeaveRequestModal: React.FC<Props> = ({ onSuccess, data }) => {
     }
   }, [formData.from_date, formData.to_date]);
 
+  const resetForm = () => {
+    setFormData(initialFormState);
+    setErrors({});
+    setIsSubmitted(false);
+    setShowErrorAlert(false);
+  };
+
+  const validateForm = () => {
+    let tempErrors: any = {};
+    let isValid = true;
+
+    if (!formData.employees_selection || formData.employees_selection.length === 0) {
+      tempErrors.employees_selection = "Employee is required.";
+      isValid = false;
+    }
+    if (!formData.holiday_status_id) {
+      tempErrors.holiday_status_id = "Holiday status is required.";
+      isValid = false;
+    }
+    if (!formData.from_date) {
+      tempErrors.from_date = "From date is required.";
+      isValid = false;
+    }
+    if (!formData.to_date) {
+      tempErrors.to_date = "To date is required.";
+      isValid = false;
+    }
+    if (!formData.reason?.trim()) {
+      tempErrors.reason = "Reason is required.";
+      isValid = false;
+    }
+
+    setErrors(tempErrors);
+    return isValid;
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    e.stopPropagation();
+    setIsSubmitted(true);
 
-    const form = e.currentTarget;
-    setValidated(true);
-
-    if (form.checkValidity() === false) {
+    if (!validateForm()) {
+      setShowErrorAlert(true);
       return;
     }
 
-    // Prepare Payload: convert numeric fields and ensure employees_selection is an array
-    const apiPayload: any = { ...formData };
-
-    // geo fields removed
-
-    // ensure employees_selection is array of objects
-    if (!Array.isArray(apiPayload.employees_selection)) {
-      apiPayload.employees_selection = [];
-    }
-
-    // convert numeric leave fields
-    apiPayload.no_of_days = apiPayload.no_of_days === "" ? null : Number(apiPayload.no_of_days);
-    apiPayload.leave_balance = apiPayload.leave_balance === "" ? null : Number(apiPayload.leave_balance);
-    apiPayload.requested = apiPayload.requested === "" ? null : Number(apiPayload.requested);
-
-    // ensure simple scalar fields
-    apiPayload.company = apiPayload.company || companyName || null;
-    apiPayload.department = apiPayload.department || null;
-    apiPayload.payslip_state = apiPayload.payslip_state || null;
-
-    // hod document: include file object if provided (backend must support multipart)
-    // We'll include as-is; the service may need to use FormData when sending if file is present.
-    if (apiPayload.hod_document && apiPayload.hod_document instanceof File) {
-      // leave it in payload; caller/service should handle file uploads
-    }
-
-
+    setIsSubmitting(true);
     try {
-      if (data && data.id) {
-        // await updateAttendancePolicy(data.id, apiPayload);
+      // Prepare Payload: convert numeric fields and ensure employees_selection is an array
+      const apiPayload: any = { ...formData };
+
+      // ensure employees_selection is array of objects
+      if (!Array.isArray(apiPayload.employees_selection)) {
+        apiPayload.employees_selection = [];
+      }
+
+      // convert numeric leave fields
+      apiPayload.no_of_days = apiPayload.no_of_days === "" ? null : Number(apiPayload.no_of_days);
+      apiPayload.holiday_status_id = apiPayload.holiday_status_id === "" ? null : Number(apiPayload.holiday_status_id);
+      apiPayload.requested = apiPayload.requested === "" ? null : Number(apiPayload.requested);
+
+      // ensure simple scalar fields
+      apiPayload.company = apiPayload.company || companyName || null;
+      apiPayload.department = apiPayload.department || null;
+      apiPayload.payslip_state = apiPayload.payslip_state || null;
+
+      if (data?.id) {
+        const updatePayload = {
+          ...apiPayload,
+          user_id: localStorage.getItem("user_id") || localStorage.getItem("userId") || localStorage.getItem("id")
+        };
+        await updateLeaveRequest(Number(data.id), updatePayload);
+        toast.success("Leave request updated!");
       } else {
         await addAttendancePolicy(apiPayload);
+        toast.success("Leave request created!");
       }
-      const closeBtn = document.getElementById("close-btn-policy");
-      closeBtn?.click();
       onSuccess();
-    } catch (error) {
-      console.error("Failed to save policy", error);
-      alert("Error saving data.");
+      document.getElementById("close-btn-leave")?.click();
+    } catch (err: any) {
+      toast.error("Error saving leave request");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -262,6 +301,14 @@ const AddEditLeaveRequestModal: React.FC<Props> = ({ onSuccess, data }) => {
             </button>
           </div>
           <div className="modal-body">
+            {showErrorAlert && Object.keys(errors).length > 0 && (
+              <CommonAlertCard
+                alertType="danger"
+                message={Object.values(errors).join(', ')}
+                iconClass="ti ti-alert-circle"
+                title="Validation Error"
+              />
+            )}
             <form
               className={`needs-validation ${validated ? "was-validated" : ""}`}
               noValidate
@@ -287,17 +334,17 @@ const AddEditLeaveRequestModal: React.FC<Props> = ({ onSuccess, data }) => {
                   )}
                 </div>
 
-                {/* Leave Balance */}
+                {/* Holiday Status ID */}
                 <div className="col-md-6 mb-3">
                   <label className="form-label">Holiday status</label>
                   <input
                     type="number"
-                    name="Holiday_status_id"
-                    className={`form-control ${formData.leave_balance !== "" && formData.leave_balance !== null && formData.leave_balance !== undefined ? 'is-valid' : (validated ? 'is-invalid' : '')}`}
-                    value={formData.leave_balance ?? ""}
+                    name="holiday_status_id"
+                    className={`form-control ${formData.holiday_status_id !== "" && formData.holiday_status_id !== null && formData.holiday_status_id !== undefined ? 'is-valid' : (validated ? 'is-invalid' : '')}`}
+                    value={formData.holiday_status_id ?? ""}
                     onChange={handleChange}
                   />
-                  {validated && (formData.leave_balance === "" || formData.leave_balance === null || formData.leave_balance === undefined) && (
+                  {validated && (formData.holiday_status_id === "" || formData.holiday_status_id === null || formData.holiday_status_id === undefined) && (
                     <span className="text-danger small">Required — enter Holiday status </span>
                   )}
                 </div>
@@ -306,29 +353,19 @@ const AddEditLeaveRequestModal: React.FC<Props> = ({ onSuccess, data }) => {
                 {/* From */}
                 <div className="col-md-3 mb-3">
                   <label className="form-label">From</label>
-                                                <DatePicker
-                                className={`form-control w-100 ${
-                                  isSubmitted
-                                    ? errors.date_of_marriage
-                                      ? "is-invalid"
-                                      : formData.date_of_marriage
-                                      ? "is-valid"
-                                      : ""
-                                    : ""
-                                }`}
-                                value={
-                                  formData.date_of_marriage
-                                    ? dayjs(formData.date_of_marriage)
-                                    : null
-                                }
-                                onChange={(_, dateStr) =>
-                                  setFormData({
-                                    ...formData,
-                                    date_of_marriage: dateStr,
-                                  })
-                                }
-                              />
-                                                {validated && !(formData.to_date) && (
+                  <DatePicker
+                    className={`form-control w-100 ${
+                      formData.from_date ? 'is-valid' : (validated ? 'is-invalid' : '')
+                    }`}
+                    value={formData.from_date ? dayjs(formData.from_date) : null}
+                    onChange={(_, dateStr) =>
+                      setFormData({
+                        ...formData,
+                        from_date: dateStr,
+                      })
+                    }
+                  />
+                  {validated && !formData.from_date && (
                     <span className="text-danger small">Required — select start date</span>
                   )}
                 </div>
@@ -336,29 +373,19 @@ const AddEditLeaveRequestModal: React.FC<Props> = ({ onSuccess, data }) => {
                 {/* To */}
                 <div className="col-md-3 mb-3">
                   <label className="form-label">To</label>
-                          <DatePicker
-                                className={`form-control w-100 ${
-                                  isSubmitted
-                                    ? errors.date_of_marriage
-                                      ? "is-invalid"
-                                      : formData.date_of_marriage
-                                      ? "is-valid"
-                                      : ""
-                                    : ""
-                                }`}
-                                value={
-                                  formData.date_of_marriage
-                                    ? dayjs(formData.date_of_marriage)
-                                    : null
-                                }
-                                onChange={(_, dateStr) =>
-                                  setFormData({
-                                    ...formData,
-                                    date_of_marriage: dateStr,
-                                  })
-                                }
-                              />
-                  {validated && !(formData.to_date) && (
+                  <DatePicker
+                    className={`form-control w-100 ${
+                      formData.to_date ? 'is-valid' : (validated ? 'is-invalid' : '')
+                    }`}
+                    value={formData.to_date ? dayjs(formData.to_date) : null}
+                    onChange={(_, dateStr) =>
+                      setFormData({
+                        ...formData,
+                        to_date: dateStr,
+                      })
+                    }
+                  />
+                  {validated && !formData.to_date && (
                     <span className="text-danger small">Required — select end date</span>
                   )}
                 </div>
@@ -390,8 +417,12 @@ const AddEditLeaveRequestModal: React.FC<Props> = ({ onSuccess, data }) => {
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary">
-                  {data ? "Update Changes" : "Save Policy"}
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Processing..." : (data ? "Update Changes" : "Save Policy")}
                 </button>
               </div>
             </form>

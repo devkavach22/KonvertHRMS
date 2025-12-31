@@ -3,19 +3,19 @@ import { Link } from "react-router-dom";
 import { all_routes } from "../../../router/all_routes";
 import DatatableKHR from "../../../CommonComponent/DataTableKHR/DatatableKHR";
 import CommonHeader from "../../../CommonComponent/HeaderKHR/HeaderKHR";
-import AddEditAttendancePolicyModal from "./AddEditLeaveRequestModal";
+import AddEditLeaveRequestModal from "./AddEditLeaveRequestModal";
 import moment from "moment";
 
 import {
-  getLeaveRequests
+  getLeaveRequests,
+  deleteLeaveRequest
 } from "./LeaveRequestServices";
 
 const LeaveAdminKHR = () => {
   const routes = all_routes;
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [selectedPolicy, setSelectedPolicy] =
-    useState<any | null>(null);
+  const [selectedPolicy, setSelectedPolicy] = useState<any | null>(null);
   const [employeesOptions, setEmployeesOptions] = useState<Array<{id:any;name:string}>>([]);
   // New form state for Leave Type settings
   const [leaveName, setLeaveName] = useState<string>("");
@@ -164,10 +164,15 @@ const LeaveAdminKHR = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [employeesOptions.length]);
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this policy?")) {
-      // await deleteAttendancePolicy(id);
-      fetchData();
+  const handleDelete = async (id: string | number) => {
+    if (window.confirm("Are you sure you want to delete this leave request?")) {
+      try {
+        await deleteLeaveRequest(Number(id));
+        fetchData(); // Refresh the list after successful deletion
+      } catch (error) {
+        console.error("Error deleting leave request:", error);
+        alert("Failed to delete leave request.");
+      }
     }
   };
 
@@ -237,13 +242,13 @@ const LeaveAdminKHR = () => {
                 to="#"
                 className="me-2"
                 data-bs-toggle="modal"
-                data-bs-target="#add_department"
-  onClick={() => {
+                data-bs-target="#add_leave_request"
+              onClick={() => {
               setSelectedPolicy(record);
               const jq = (window as any).jQuery || (window as any).$;
-              if (jq && typeof jq === "function" && jq("#add_attendance_policy").modal) {
+              if (jq && typeof jq === "function" && jq("#add_leave_request").modal) {
                 try {
-                  jq("#add_attendance_policy").modal("show");
+                  jq("#add_leave_request").modal("show");
                 } catch (e) {
                   // ignore if modal call fails
                 }
@@ -251,10 +256,10 @@ const LeaveAdminKHR = () => {
             }}              >
                 <i className="ti ti-edit text-blue" />
               </Link>
-              <Link to="#" 
-              // onClick={() => 
-              //   handleDelete(record.id!)}
-                >
+              <Link
+                to="#"
+                onClick={() => handleDelete(record.id)}
+              >
                 <i className="ti ti-trash text-danger" />
               </Link>
             </div>
@@ -304,7 +309,7 @@ const LeaveAdminKHR = () => {
           
         </div>
 
-        <AddEditAttendancePolicyModal
+        <AddEditLeaveRequestModal
           onSuccess={fetchData}
           data={selectedPolicy}
         />

@@ -9,6 +9,7 @@ import moment from "moment";
 import {
   AttendancePolicy as AttendancePolicyType,
   getLeaveAllocations,
+  deleteLeaveAllocation,
 } from "./LeaveAllocationServices";
 import { toast } from "react-toastify";
 
@@ -96,6 +97,12 @@ const LeaveAdminKHR = () => {
           to_date: item.date_to ?? item.to_date ?? null,
           allocation_date: item.number_of_days ?? null,
           status: item.status ?? item.state ?? item.approval_status ?? null,
+
+          // Raw fields for editing
+          holiday_status_id: item.holiday_status_id ?? null,
+          allocation_type: item.allocation_type ?? null,
+          number_of_days: item.number_of_days ?? null,
+          description: item.description ?? null,
 
           // keep some legacy fields
           approved_by: item.approved_by ?? item.created_by ?? null,
@@ -189,9 +196,16 @@ const LeaveAdminKHR = () => {
   }, [employeesOptions.length]);
 
   const handleDelete = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this policy?")) {
-      // await deleteAttendancePolicy(id);
-      fetchData();
+    if (window.confirm("Are you sure you want to delete this leave allocation?")) {
+      try {
+        // console.log("Deleting leave allocation with ID:", id);
+        await deleteLeaveAllocation(Number(id));
+        // console.log("Leave allocation deleted successfully")
+        fetchData();
+      } catch (error) {
+        console.error("Error deleting leave allocation:", error);
+        toast.error("Failed to delete leave allocation.");
+      }
     }
   };
 
@@ -258,28 +272,16 @@ const LeaveAdminKHR = () => {
           dataIndex: "id",
           render: (_: any, record: any) => (
             <div className="action-icon d-inline-flex">
-              <Link
-                to="#"
-                className="me-2"
-                data-bs-toggle="modal"
-                data-bs-target="#add_department"
-  onClick={() => {
-              setSelectedPolicy(record);
-              const jq = (window as any).jQuery || (window as any).$;
-              if (jq && typeof jq === "function" && jq("#add_attendance_policy").modal) {
-                try {
-                  jq("#add_attendance_policy").modal("show");
-                } catch (e) {
-                  // ignore if modal call fails
-                }
-              }
-            }}              >
+          <Link
+            to="#"
+            className="me-2"
+            data-bs-toggle="modal"
+            data-bs-target="#add_attendance_policy"
+            onClick={() => setSelectedPolicy({ ...record })}
+          >
                 <i className="ti ti-edit text-blue" />
               </Link>
-              <Link to="#" 
-              // onClick={() => 
-              //   handleDelete(record.id!)}
-                >
+              <Link to="#" onClick={() => handleDelete(record.id!)}>
                 <i className="ti ti-trash text-danger" />
               </Link>
             </div>
@@ -317,6 +319,7 @@ const LeaveAdminKHR = () => {
         <AddEditAttendancePolicyModal
           onSuccess={fetchData}
           data={selectedPolicy}
+          
         />
       </div>
     </>

@@ -3,6 +3,7 @@ import {
   addAttendancePolicy,
   AttendancePolicy,
   createLeaveAllocation,
+  updateLeaveAllocation,
 } from "./LeaveAllocationServices";
 import toast from 'react-hot-toast';
 import moment from "moment";
@@ -179,20 +180,20 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
 
 
     try {
+      // Map form fields to API expected payload
+      const allocationPayload: any = {
+        holiday_status_id: apiPayload.leave_type && !isNaN(Number(apiPayload.leave_type)) ? Number(apiPayload.leave_type) : undefined,
+        allocation_type: apiPayload.allocation_type || undefined,
+        date_from: apiPayload.date_from || undefined,
+        date_to: apiPayload.date_to || undefined,
+        number_of_days: apiPayload.allocation_days === null ? undefined : Number(apiPayload.allocation_days),
+        description: apiPayload.description || undefined,
+      };
+
       if (data && data.id) {
-        // await updateAttendancePolicy(data.id, apiPayload);
+        await updateLeaveAllocation(Number(data.id), allocationPayload);
         toast.success("Leave allocation updated.");
       } else {
-        // Map form fields to API expected payload
-        const allocationPayload: any = {
-          holiday_status_id: apiPayload.leave_type && !isNaN(Number(apiPayload.leave_type)) ? Number(apiPayload.leave_type) : undefined,
-          allocation_type: apiPayload.allocation_type || undefined,
-          date_from: apiPayload.date_from || undefined,
-          date_to: apiPayload.date_to || undefined,
-          number_of_days: apiPayload.allocation_days === null ? undefined : Number(apiPayload.allocation_days),
-          description: apiPayload.description || undefined,
-        };
-
         await createLeaveAllocation(allocationPayload);
         toast.success("Leave allocation created.");
       }

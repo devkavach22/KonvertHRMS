@@ -1,22 +1,28 @@
 import Instance from "../../../api/axiosInstance";
 import { getEmployees } from "../../EmployeModules/Employee/EmployeeServices";
 
-// 1. UI Interface
-export interface AttendancePolicy {
-  id?: string;
-  name: string;
+// 1. UI Interface for Leave Request
+export interface LeaveRequest {
+  id?: string | number;
+  employees_selection: Array<{id: string | number; name: string}>;
   type: string;
-  absent_if: string;
-  // Store other fields if you want to show them in the table,
-  // otherwise we just need them for the Edit form.
-  day_after: number;
-  grace_minutes: number;
-  no_pay_minutes: number;
-  half_day_minutes: number;
-  early_grace_minutes: number;
-  late_beyond_days: number;
-  late_beyond_time: number;
-  created_date?: string; // Optional: for display in table
+  from_date: string;
+  to_date: string;
+  no_of_days: string | number;
+  holiday_status_id: string | number;
+  requested: string | number;
+  company: string;
+  department: string;
+  payslip_state: string;
+  hod_document: File | null;
+  reason: string;
+  employee_id?: string | number;
+  employee_name?: string;
+  company_name?: string;
+  department_name?: string;
+  leave_type?: string;
+  leave_type_name?: string;
+  status?: string;
 }
 
 // 2. API Interface (Matches the structure of data sent/received)
@@ -60,3 +66,21 @@ export const createLeaveRequest = async (data: any) => {
 export const getEmployeesForLeaveRequest = async () => {
   return await getEmployees();
 };
+
+
+// put :- http://192.168.11.245:4000/api/leave-request/129?user_id=3145
+// update leave request
+export const updateLeaveRequest = async (id: number, data: any) => {
+  let user_id = localStorage.getItem("user_id");
+  return await Instance.put(`/api/leave-request/${id}?user_id=${user_id}`, data);
+}
+
+
+// delete :- http://192.168.11.245:4000/api/leave-request/129?user_id=3145
+// delete leave request
+export const deleteLeaveRequest = async (id: number) => {
+  let user_id = localStorage.getItem("user_id");
+  return await Instance.delete(`/api/leave-request/${id}?user_id=${user_id}`);
+}
+
+

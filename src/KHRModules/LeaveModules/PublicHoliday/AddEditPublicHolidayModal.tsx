@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import {
   AttendancePolicy,
-  createHoliday
+  createHoliday,
+  updateHoliday
 } from "./PublicHolidayServices";
 import { DatePicker, Radio, Checkbox } from "antd";
 import dayjs from "dayjs";
@@ -24,6 +25,8 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
   const [validated, setValidated] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<any>({});
+
+  console.log("data", data)
 
   useEffect(() => {
     if (data) {
@@ -75,8 +78,11 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
     };
 
     try {
-      await createHoliday(payload);
-      // console.log("done here")
+      if (data && data.id) {
+        await updateHoliday(Number(data.id), payload);
+      } else {
+        await createHoliday(payload);
+      }
       const closeBtn = document.getElementById("close-btn-policy");
       closeBtn?.click();
       onSuccess();

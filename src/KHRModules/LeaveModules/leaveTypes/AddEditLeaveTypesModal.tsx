@@ -92,6 +92,38 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
     return () => { mounted = false; };
   }, []);
 
+  // Populate form when data is provided (for edit)
+  useEffect(() => {
+    if (data) {
+      setLeaveName(data.name || "");
+      setLeaveValidationType(data.leave_validation_type || "");
+      setAllocationValidationType(data.allocation_validation_type || "");
+      setRequiresAllocation(data.requires_allocation || "");
+      setEmployeeRequests(data.employee_requests || "");
+      setResponsibleIds(data.responsible_ids || []);
+      setLeaveTypeCode(data.leave_type_code || "");
+      setLeaveCategory(data.leave_category || "");
+      setRequestUnit(data.request_unit || "half_day");
+      setIncludePublicHolidaysInDuration(data.include_public_holidays_in_duration ?? true);
+      setOvertimeDeductible(data.overtime_deductible ?? false);
+      setIsEarnedLeave(data.is_earned_leave ?? true);
+    } else {
+      // Reset for add
+      setLeaveName("");
+      setLeaveValidationType("");
+      setAllocationValidationType("");
+      setRequiresAllocation("");
+      setEmployeeRequests("");
+      setResponsibleIds([]);
+      setLeaveTypeCode("");
+      setLeaveCategory("");
+      setRequestUnit("half_day");
+      setIncludePublicHolidaysInDuration(true);
+      setOvertimeDeductible(false);
+      setIsEarnedLeave(true);
+    }
+  }, [data]);
+
   // Reset logic on modal close
   useEffect(() => {
     const modalElement = document.getElementById("add_leave_type_modal");
