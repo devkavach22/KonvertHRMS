@@ -40,6 +40,64 @@ const LeaveAdminKHR = () => {
     fetchData();
   }, []);
 
+  // update displayed columns/data when a section is selected or when data changes
+  useEffect(() => {
+    if (!selectedSection) {
+      setDisplayedColumns(null);
+      setDisplayedData(null);
+      return;
+    }
+
+    const buildSection = (section: string, src: any[]) => {
+      // define column subsets for each card section
+      const columnSets: Record<string, any[]> = {
+        total_present: [
+          columns[0], // Employee
+          columns[2], // From
+          columns[3], // To
+          columns[4], // No of Days
+        ],
+        planned_leaves: [
+          columns[1], // Leave Type
+          columns[2], // From
+          columns[3], // To
+          columns[4], // No of Days
+        ],
+        unplanned_leaves: [
+          columns[0], // Employee
+          columns[1], // Leave Type
+          columns[2], // From
+          columns[3], // To
+          columns[5], // Remaining Days
+        ],
+        pending_requests: [
+          columns[0], // Employee
+          columns[1], // Leave Type
+          columns[8], // Reason
+          columns[columns.length - 1], // Actions
+        ],
+      };
+
+      // basic heuristics to filter rows by section using available fields
+      const filters: Record<string, (r: any) => boolean> = {
+        total_present: (r: any) => (r.type && String(r.type).toLowerCase().includes("present")) || (r.remaining_days && Number(r.remaining_days) > 0),
+        planned_leaves: (r: any) => (r.type && String(r.type).toLowerCase().includes("planned")) || false,
+        unplanned_leaves: (r: any) => (r.type && String(r.type).toLowerCase().includes("unplanned")) || false,
+        pending_requests: (r: any) => (r.reason && String(r.reason).toLowerCase().includes("pending")) || false,
+      };
+
+      const cols = columnSets[section] ?? columns;
+      const predicate = filters[section] ?? (() => true);
+      const rows = Array.isArray(src) ? src.filter(predicate) : src;
+      // fallback: if filter produced no rows, show all rows
+      return { cols, rows: rows.length ? rows : src };
+    };
+
+    const { cols, rows } = buildSection(selectedSection, data);
+    setDisplayedColumns(cols);
+    setDisplayedData(rows);
+  }, [selectedSection, data]);
+
   const columns = [
     {
       title: "Employee",

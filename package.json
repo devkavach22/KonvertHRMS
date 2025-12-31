@@ -22,11 +22,13 @@
     "@hello-pangea/dnd": "^18.0.1",
     "@jridgewell/sourcemap-codec": "^1.5.4",
     "axios": "^1.13.2",
+    "dayjs": "^1.11.19",
     "lucide-react": "^0.555.0",
     "react": "^19.1.1",
     "react-apexcharts": "^1.7.0",
     "react-dom": "^19.1.1",
     "react-error-boundary": "^6.0.0",
+    "react-hot-toast": "^2.6.0",
     "react-perfect-scrollbar": "^1.5.8",
     "react-toastify": "^11.0.5",
     "rollup-plugin-node-polyfills": "^0.2.1"

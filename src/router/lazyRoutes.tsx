@@ -441,6 +441,30 @@ export const LeaveEmployeeKHR = createLazyComponent(
 export const LeaveSettingsKHR = createLazyComponent(
   () => import("../KHRModules/LeaveModules/LeaveSettings/LeaveSettingKHR")
 );
+export const LeaveTypesKHR = createLazyComponent(
+  () => import("../KHRModules/LeaveModules/leaveTypes/LeaveTypesKHR")
+);
+
+export const LeaveAllocationKHR = createLazyComponent(
+  () => import("../KHRModules/LeaveModules/leaveAllocation/LeaveAllocationKHR")
+);
+
+export const LeaveRequestKHR = createLazyComponent(
+  () => import("../KHRModules/LeaveModules/leaveRequest/LeaveRequestKHR")
+);
+
+export const AccuralPlanKHR = createLazyComponent(
+  () => import("../KHRModules/LeaveModules/AccuralPlan/AccuralPlanKHR")
+);
+
+export const PublicHolidayKHR = createLazyComponent(
+  () => import("../KHRModules/LeaveModules/PublicHoliday/PublicHolidayKHR")
+);
+
+export const MendetoryDaysKHR = createLazyComponent(
+  () => import("../KHRModules/LeaveModules/MendetoryDays/mendetoryDaysKHR")
+);
+
 
 export const Designations = createLazyComponent(
   () => import("../feature-module/hrm/employees/designations")

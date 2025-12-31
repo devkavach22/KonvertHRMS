@@ -26,6 +26,13 @@ export const all_routes = {
   leaveAdminKHR: "/KHR-leave-admin",
   leaveEmployeeKHR: "/KHR-leave-employee",
   leaveSettingsKHR: "/KHR-leave-settings",
+  leaveTypesKHR: "/KHR-leave-types",
+  leaveAllocationKHR: "/KHR-leave-allocation",
+  leaveRequestKHR: "/KHR-leave-request",
+  accuralPlanKHR: "/KHR-accrual-plan",
+  publicHolidayKHR: "/KHR-public-holiday",
+  mendetoryDaysKHR: "/KHR-mendetory-days",
+
   employeeSalaryKHR:"/KHR-employee-salary",
 
   //Attendance Modules
