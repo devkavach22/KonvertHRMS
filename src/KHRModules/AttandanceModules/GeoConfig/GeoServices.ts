@@ -1,13 +1,24 @@
 import Instance from "../../../api/axiosInstance";
 
-// 1. UI Interface
-export interface AttendancePolicy {
+/* =====================
+   AUTH HELPER
+===================== */
+const getAuthDetails = () => {
+  const user_id = localStorage.getItem("user_id");
+  return {
+    user_id: user_id ? Number(user_id) : null,
+  };
+};
+
+/* =====================
+   UI INTERFACE
+===================== */
+export interface GeoConfig {
   id?: string;
+  key?: string;
   name: string;
   type: string;
   absent_if: string;
-  // Store other fields if you want to show them in the table,
-  // otherwise we just need them for the Edit form.
   day_after: number;
   grace_minutes: number;
   no_pay_minutes: number;
@@ -15,11 +26,17 @@ export interface AttendancePolicy {
   early_grace_minutes: number;
   late_beyond_days: number;
   late_beyond_time: number;
-  created_date?: string; // Optional: for display in table
+  latitude?: number | null;
+  longitude?: number | null;
+  radius_km?: number | null;
+  employees_selection?: any[];
+  created_date?: string;
 }
 
-// 2. API Interface (Matches the structure of data sent/received)
-export interface APIAttendancePolicy {
+/* =====================
+   API INTERFACE
+===================== */
+export interface APIGeoConfig {
   id: number;
   name: string | false;
   type: string;
@@ -31,35 +48,55 @@ export interface APIAttendancePolicy {
   early_grace_minutes: number;
   late_beyond_days: number;
   late_beyond_time: number;
+  latitude?: number | string | null;
+  longitude?: number | string | null;
+  radius_km?: number | string | null;
+  employees_selection?: any[] | string;
   create_date?: string;
 }
 
-// 3. SERVICE FUNCTIONS
-
-// GET: /employee/attendance-policies
-export const getAttendancePolicies = async (): Promise<
-  APIAttendancePolicy[]
-> => {
+/* =====================
+   GET GEO CONFIG
+   GET /api/geoLocation?user_id=XXX
+===================== */
+export const getGeoConfigs = async (): Promise<APIGeoConfig[]> => {
   try {
-    const response = await Instance.get("/employee/attendance-policies");
-    return response.data.data || [];
+    const { user_id } = getAuthDetails();
+
+    const response = await Instance.get("/api/geoLocation", {
+      params: {
+        user_id,
+      },
+    });
+
+    return response.data?.data || [];
   } catch (error) {
-    console.error("Error fetching attendance policies:", error);
+    console.error("Error fetching geo configs:", error);
     return [];
   }
 };
 
-// POST: /employee/create/attendance-policy
-export const addAttendancePolicy = async (data: any) => {
-  return await Instance.post("/employee/create/attendance-policy", data);
+/* =====================
+   CREATE GEO CONFIG
+===================== */
+export const addGeoConfig = async (data: any) => {
+  const { user_id } = getAuthDetails();
+  return await Instance.post(`/api/create/geoLocation?user_id=${user_id}`, data);
 };
-
-// PUT: /employee/attendance-policy/:id
-export const updateAttendancePolicy = async (id: string, data: any) => {
-  return await Instance.put(`/employee/attendance-policy/${id}`, data);
+/* =====================
+   UPDATE GEO CONFIG
+===================== */
+export const updateGeoConfig = async (id: string, data: any) => {
+  const { user_id } = getAuthDetails();
+  return await Instance.put(`/api/geoLocation/${id}?user_id=${user_id}`, data);
 };
+/* =====================
+   DELETE GEO CONFIG
+===================== */
+export const deleteGeoConfig = async (id: string) => {
+    const { user_id } = getAuthDetails();
 
-// DELETE: /employee/attendance-policy/:id
-export const deleteAttendancePolicy = async (id: string) => {
-  return await Instance.delete(`/employee/attendance-policy/${id}`);
+  return await Instance.delete(`/api/geoLocation/${id}`, {
+    params: { user_id },
+  });
 };

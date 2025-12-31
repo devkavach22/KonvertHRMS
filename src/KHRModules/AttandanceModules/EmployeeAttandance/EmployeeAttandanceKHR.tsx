@@ -26,6 +26,9 @@ import AttendanceQueryModal from "./AttendanceQueryModal";
 
 // Define a type for attendance admin data
 interface AttendanceAdminData {
+  EndDate: any;
+  StartDate: any;
+  attendance_id: number;
   Employee: string;
   Image: string;
   Role: string;
@@ -35,6 +38,8 @@ interface AttendanceAdminData {
   Break: string;
   Late: string;
   ProductionHours: string;
+  employeeId:number;
+  
 }
 
 // Define a type for employee attendance
@@ -89,6 +94,8 @@ const EmployeeAttendanceKHR = () => {
   // const [data, setData] = useState<EmployeeAttendance[]>([]);
   const [data, setData] = useState<AttendanceAdminData[]>([]);
   const [showQueryModal, setShowQueryModal] = useState(false);
+  const [employeeId, setEmployeeId] = useState<string | null>(null);
+
   const [selectedAttendancee, setSelectedAttendancee] = useState<any>(null);
 
   const [loading, setLoading] = useState<boolean>(true);
@@ -97,13 +104,18 @@ const EmployeeAttendanceKHR = () => {
 
   // Dummy async function for fetching employee attendance
 
-
+  const formatDateOnly = (dateTime: string | false) => {
+    if (!dateTime) return "-";
+    const date = new Date(dateTime.replace(" ", "T"));
+    return date.toISOString().split("T")[0]; // YYYY-MM-DD
+  };
 
   const formatTime = (dateTime: string | false) => {
     if (!dateTime) return "-";
     const date = new Date(dateTime.replace(" ", "T"));
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
+  console.log(selectedAttendancee, "selectedAttendancee");
 
   // 1. Fetch & Map Data
   const fetchData = async () => {
@@ -119,13 +131,21 @@ const EmployeeAttendanceKHR = () => {
           ? response.data
           : [];
 
+      const empId = response?.meta?.employee_id || null;
+      setEmployeeId(empId);
+
       // const meta = response?.meta || response?.data?.meta || {};
 
       const mappedData: AttendanceAdminData[] = attendanceArray.map((item: any) => ({
         // Employee: meta?.employee_name || "Employee",
+
         Image: item.employee?.avatar || "avatar-1.jpg",
         Role: item.employee?.role || "Employee",
         Status: item.status_code ? "Present" : "Absent",
+        StartDate: formatDateOnly(item.check_in),
+        EndDate: item.check_out
+          ? formatDateOnly(item.check_out)
+          : "-",
         CheckIn: formatTime(item.check_in),
         CheckOut: formatTime(item.check_out),
         LateTime: item.late_time_display,
@@ -180,6 +200,18 @@ const EmployeeAttendanceKHR = () => {
     //   sorter: (a: AttendanceAdminData, b: AttendanceAdminData) =>
     //     a.Employee.length - b.Employee.length,
     // },
+    {
+      title: "Start Date",
+      dataIndex: "StartDate",
+      sorter: (a: AttendanceAdminData, b: AttendanceAdminData) =>
+        a.StartDate.localeCompare(b.StartDate),
+    },
+    {
+      title: "End Date",
+      dataIndex: "EndDate",
+      sorter: (a: AttendanceAdminData, b: AttendanceAdminData) =>
+        a.EndDate.localeCompare(b.EndDate),
+    },
 
     {
       title: "Check In",
@@ -465,6 +497,7 @@ Punch In at 10.00 AM
       {showQueryModal && selectedAttendancee && (
         <AttendanceQueryModal
           attendance={selectedAttendancee}
+          employeeId={employeeId}
           onClose={() => setShowQueryModal(false)}
         />
       )}

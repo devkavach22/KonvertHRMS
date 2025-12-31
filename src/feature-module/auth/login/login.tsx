@@ -44,6 +44,7 @@ const Login = () => {
       const response = await Instance.post("/api/login", {
         email: email,
         password: password,
+        is_plan_login: true,
       });
 
       console.log("Login Response:", response.data);

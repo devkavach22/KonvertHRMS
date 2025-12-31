@@ -30,11 +30,11 @@ import {
 } from "./AdminAttandanceServices";
 import Link from "antd/es/typography/Link";
 import CommonAttendanceStatus from "@/CommonComponent/CommonAttendanceStatus/CommonAttendanceStatus";
-import { useDispatch, useSelector } from "react-redux";
-import { AttendancesApi, TBSelector, updateState } from "@/Store/Reducers/TBSlice";
+import EditAttendanceModal from "./EditAdminAttendance";
 
 // Define a type for attendance admin data
 interface AttendanceAdminData {
+  id: number;
   Employee: string;
   Image: string;
   Role: string;
@@ -46,50 +46,27 @@ interface AttendanceAdminData {
   ProductionHours: string;
 }
 
-const AdminAttandanceKHR = () => {
-  const attendanceTableDummyData: AttendanceAdminData[] = [
-    {
-      Employee: "John Doe",
-      Image: "avatar-1.jpg",
-      Role: "Developer",
-      Status: "Present",
-      CheckIn: "09:30 AM",
-      CheckOut: "06:30 PM",
-      Break: "45 min",
-      Late: "No",
-      ProductionHours: "8.5",
-    },
-    {
-      Employee: "Sarah Smith",
-      Image: "avatar-2.jpg",
-      Role: "Designer",
-      Status: "Absent",
-      CheckIn: "-",
-      CheckOut: "-",
-      Break: "-",
-      Late: "Yes",
-      ProductionHours: "0",
-    },
-    {
-      Employee: "Rahul Patel",
-      Image: "avatar-3.jpg",
-      Role: "HR",
-      Status: "Present",
-      CheckIn: "10:00 AM",
-      CheckOut: "07:00 PM",
-      Break: "30 min",
-      Late: "No",
-      ProductionHours: "9",
-    },
-  ];
-  const { isAttendancesApiFetching, isAttendancesApi, AttendancesApiData } = useSelector(TBSelector);
+// Define a type for AttendanceCard
+type AttendanceCard = {
+  id: number;
+  title: string;
+  count: number;
+  badgeType: string;
+  icon: string;
+  percentage: string;
+};
 
-  const dispatch = useDispatch<any>()
+const AdminAttandanceKHR = () => {
+
 
   const routes = all_routes;
 
   // const [data, setData] = useState<EmployeeAttendance[]>([]);
   const [data, setData] = useState<AttendanceAdminData[]>([]);
+  const [attendanceCards, setAttendanceCards] = useState<any[]>([]);
+
+  const [selectedAttendanceeEditModal, setSelectedAttendanceeEditModal] = useState<any>(null);
+
 
   const formatTime = (dateTime: string | false) => {
     if (!dateTime) return "-";
@@ -127,24 +104,107 @@ const AdminAttandanceKHR = () => {
           ? response.data
           : [];
 
-      const mappedData: AttendanceAdminData[] = rawArray.map((item: any) => ({
-        Employee: Array.isArray(item.employee_id) ? item.employee_id[1] : "Employee",
-        Image: item.employee?.avatar || "avatar-1.jpg",
-        Role: item.job_name || "Employee",
-        Status: item.status_code ? "Present" : "Absent",
-        CheckIn: formatTime(item.check_in),
-        CheckOut: formatTime(item.check_out),
-        Break: item.break_time_display || "-",
-        Late: item.is_late_in ? "Yes" : "No",
-        ProductionHours:
-          typeof item.worked_hours === "number"
-            ? item.worked_hours.toFixed(2)
-            : item.worked_hours
-              ? String(item.worked_hours)
-              : "0",
-      }));
+      // const mappedData: AttendanceAdminData[] = rawArray.map((item: any) => ({
+      //   Employee: Array.isArray(item.employee_id) ? item.employee_id[1] : "Employee",
+      //   Image: item.employee?.avatar || "avatar-1.jpg",
+      //   Role: item.job_name || "Employee",
+      //   Status: item.check_in ? "Present" : "Absent",
+      //   CheckIn: formatTime(item.check_in),
+      //   CheckOut: formatTime(item.check_out),
+      //   Break: item.break_time_display || "-",
+      //   Late: item.is_late_in ? "Yes" : "No",
+      //   ProductionHours:
+      //     typeof item.worked_hours === "number"
+      //       ? item.worked_hours.toFixed(2)
+      //       : item.worked_hours
+      //         ? String(item.worked_hours)
+      //         : "0",
+      // }));
+
+      const mappedData: AttendanceAdminData[] = rawArray.map((item: any) => {
+        const isPresent = !!item.check_in;
+
+        return {
+          id: item.id,
+          Employee: Array.isArray(item.employee_id)
+            ? item.employee_id[1]
+            : "Employee",
+
+          // Image: item.employee?.avatar || "avatar-1.jpg",
+
+          Role: item.job_name || "Employee",
+
+          Status: isPresent ? "Present" : "Absent",
+
+          CheckIn: isPresent ? formatTime(item.check_in) : "-",
+
+          CheckOut: isPresent ? formatTime(item.check_out) : "-",
+
+          Break: isPresent ? item.break_time_display || "-" : "-",
+
+          Late: isPresent ? (item.late_time_display ? item.late_time_display : "-") : "-",
+
+          ProductionHours: isPresent
+            ? typeof item.worked_hours === "number"
+              ? item.worked_hours.toFixed(2)
+              : item.worked_hours
+                ? String(item.worked_hours)
+                : "0"
+            : "0",
+        };
+      });
+
 
       setData(mappedData);
+
+      const meta = response?.meta;
+
+      if (meta) {
+        const cards: AttendanceCard[] = [
+          {
+            id: 1,
+            title: "Total Employees",
+            count: meta.TotalEmployee ?? 0,
+            badgeType: "info",
+            icon: "ti-users",
+            percentage: "",
+          },
+          {
+            id: 2,
+            title: "Present Today",
+            count: meta.Presentemployee ?? 0,
+            badgeType: "success",
+            icon: "ti-arrow-wave-right-down",
+            percentage: "",
+          },
+          {
+            id: 3,
+            title: "Absent Today",
+            count: meta.TodayAbsetEmployee ?? 0,
+            badgeType: "danger",
+            icon: "ti-arrow-wave-right-down",
+            percentage: "",
+          },
+          {
+            id: 4,
+            title: "Late Login",
+            count: meta.TotalLateemployee ?? 0,
+            badgeType: "danger",
+            icon: "ti-arrow-wave-right-down",
+            percentage: "",
+          },
+          {
+            id: 5,
+            title: "Ununiformed",
+            count: meta.Ununiformendemployee ?? 0,
+            badgeType: "danger",
+            icon: "ti-arrow-wave-right-down",
+            percentage: "",
+          },
+        ];
+
+        setAttendanceCards(cards);
+      }
     } catch (error) {
       console.error("Failed to load employee attendance", error);
       toast.error("Failed to load employee attendance list");
@@ -154,32 +214,8 @@ const AdminAttandanceKHR = () => {
   };
 
   useEffect(() => {
-    // fetchData();
-    dispatch(AttendancesApi())
+    fetchData();
   }, []);
-  useEffect(() => {
-    if (isAttendancesApi) {
-      const mappedData: AttendanceAdminData[] = AttendancesApiData?.map((item: any) => ({
-        Employee: Array.isArray(item.employee_id) ? item.employee_id[1] : "Employee",
-        Image: item.employee?.avatar || "avatar-1.jpg",
-        Role: item.job_name || "Employee",
-        Status: item.status_code ? "Present" : "Absent",
-        CheckIn: formatTime(item.check_in),
-        CheckOut: formatTime(item.check_out),
-        Break: item.break_time_display || "-",
-        Late: item.is_late_in ? "Yes" : "No",
-        ProductionHours:
-          typeof item.worked_hours === "number"
-            ? item.worked_hours.toFixed(2)
-            : item.worked_hours
-              ? String(item.worked_hours)
-              : "0",
-      }));
-      setData(mappedData);
-      dispatch(updateState({ isAttendancesApi: false }))
-    }
-  }, [isAttendancesApi]);
-
 
   const columns = [
     {
@@ -187,13 +223,7 @@ const AdminAttandanceKHR = () => {
       dataIndex: "Employee",
       render: (_text: string, record: AttendanceAdminData) => (
         <div className="d-flex align-items-center file-name-icon">
-          <span className="avatar avatar-md border avatar-rounded">
-            <ImageWithBasePath
-              src={`assets/img/users/${record.Image}`}
-              className="img-fluid"
-              alt={`${record.Employee} Profile`}
-            />
-          </span>
+
           <div className="ms-2">
             <h6 className="fw-medium">{record.Employee}</h6>
             <span className="fs-12 fw-normal ">{record.Role}</span>
@@ -267,20 +297,30 @@ const AdminAttandanceKHR = () => {
     {
       title: "",
       dataIndex: "actions",
-      render: () => (
-        <div className="action-icon d-inline-flex">
-          <button
-            type="button"
-            className="me-2"
-            data-bs-toggle="modal"
-            data-bs-target="#edit_attendance"
-            aria-label="Edit attendance"
-          >
-            <i className="ti ti-edit" />
-          </button>
-        </div>
-      ),
-    },
+      render: (_: any, record: AttendanceAdminData) => {
+        const canEdit = record.Status === "Present" && record.id;
+
+        if (!canEdit) return null;
+
+        return (
+          <div className="action-icon d-inline-flex">
+            <button
+              type="button"
+              className="me-2"
+              data-bs-toggle="modal"
+              data-bs-target="#edit_attendance"
+              aria-label="Edit attendance"
+              onClick={() => {
+                setSelectedAttendanceeEditModal(record);
+              }}
+            >
+              <i className="ti ti-edit" />
+            </button>
+          </div>
+        );
+      },
+    }
+
   ];
 
   const statusChoose = [
@@ -425,7 +465,7 @@ const AdminAttandanceKHR = () => {
               </div>
               <div className="border rounded">
                 <div className="row flex-fill">
-                  <CommonAttendanceStatus cards={attendanceData.summaryCards} />
+                  <CommonAttendanceStatus cards={attendanceCards} />
                 </div>
               </div>
             </div>
@@ -434,7 +474,7 @@ const AdminAttandanceKHR = () => {
           <div className="card">
             <div className="card-body p-0">
               {" "}
-              {isAttendancesApiFetching ? (
+              {loading ? (
                 <div className="text-center p-5">
                   <div
                     className="spinner-border text-primary"
@@ -458,6 +498,18 @@ const AdminAttandanceKHR = () => {
 
       {/* Modal Component */}
       {/* <AddDepartmentModal onSuccess={fetchData} data={selectedDepartment} /> */}
+
+      {selectedAttendanceeEditModal && (
+        <EditAttendanceModal
+          attendance={selectedAttendanceeEditModal}
+          onClose={() => setSelectedAttendanceeEditModal(null)}
+          onSuccess={() => {
+            setSelectedAttendanceeEditModal(null);
+            fetchData();
+          }}
+        />
+      )}
+
     </>
   );
 };

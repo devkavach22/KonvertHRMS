@@ -3,18 +3,27 @@ import { useFormValidation } from "@/KHRModules/commanForm/FormValidation";
 import FormInput from "@/KHRModules/commanForm/inputComman/FormInput";
 import MultiSelect from "@/KHRModules/commanForm/inputComman/MultiSelect";
 import React, { useEffect, useState } from "react";
+import { addGeoConfig, updateGeoConfig } from "./GeoServices";
+import { getEmployees } from "@/KHRModules/EmployeModules/Employee/EmployeeServices";
 
 const employeesList = [
-  { id: 1, name: "John Doe", role: "Developer" },
-  { id: 2, name: "Jane Smith", role: "UI/UX Designer" },
+  { id: 16674, name: "John Doe", role: "Developer" },
+  { id: 16675, name: "Jane Smith", role: "UI/UX Designer" },
 ];
 
+interface Props {
+  data: any | null; // null for add, object for edit
+  onSuccess: () => void; // refresh parent table
+  onClose?: () => void;
+}
 
+interface Option {
+  id: number;
+  name: string;
+  role: string;
+}
 
-
-const AddEditAttendancePolicyModal = ({ onSubmit }: any) => {
-  const [isSubmitted, setIsSubmitted] = useState(false);
-
+const AddEditGeoModal: React.FC<Props> = ({ data, onSuccess, onClose }) => {
   const [formData, setFormData] = useState<any>({
     name: "",
     latitude: "",
@@ -22,41 +31,112 @@ const AddEditAttendancePolicyModal = ({ onSubmit }: any) => {
     radius_km: "",
     employees_selection: [],
   });
-
-
-  console.log(formData, "formDaaatttaa");
-
   const [errors, setErrors] = useState<any>({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const { validateAttendancePolicy } = useFormValidation();
+  const [employeesList, setEmployeeList] = useState<Option[]>();
+  const user_id = Number(localStorage.getItem("user_id") || 0);
 
-  const handleSubmit = () => {
+    useEffect(() => {
+    const fetchEmploymentData = async () => {
+      try {
+        const employees = await getEmployees(); 
+        setEmployeeList(employees || []);
+      } catch (error) {
+        console.error("Error loading employees:", error);
+      }
+    };
+    fetchEmploymentData();
+  }, []);
+
+  useEffect(() => {
+    if (data) {
+      // Prefill for edit
+      setFormData({
+        name: data.name || "",
+        latitude: data.latitude || "",
+        longitude: data.longitude || "",
+        radius_km: data.radius_km || "",
+        employees_selection: data.employees_selection || [],
+      });
+    } else {
+      // Reset for add
+      setFormData({
+        name: "",
+        latitude: "",
+        longitude: "",
+        radius_km: "",
+        employees_selection: [],
+      });
+      setErrors({});
+      setIsSubmitted(false);
+    }
+  }, [data]);
+
+
+  
+
+  const handleSubmit = async () => {
     setIsSubmitted(true);
+
     const validationErrors = validateAttendancePolicy(formData);
     if (Object.keys(validationErrors).length) {
       setErrors(validationErrors);
       return;
     }
 
-    // ✅ API CALL IS OUTSIDE
-    onSubmit(formData);
+    // Payload
+    const payload: any = {
+      name: formData.name,
+      latitude: Number(formData.latitude),
+      longitude: Number(formData.longitude),
+      radius_km: Number(formData.radius_km),
+      hr_employee_ids: formData.employees_selection.map((e: any) => e.id),
 
+    };
 
+    try {
+      if (data && data.id) {
+        await updateGeoConfig(data.id, payload);
+      } else {
+        await addGeoConfig(payload);
+      }
+      const modalElement = document.getElementById("add_geo_config");
+      if (modalElement) {
+        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+        if (modalInstance) {
+          modalInstance.hide();
+        }
+      }
 
-
-
+      onSuccess();
+      handleClose();
+    } catch (error) {
+      console.error("Error saving geo config:", error);
+    }
   };
 
-  useEffect(() => {
-    setIsSubmitted(false);
+  const handleClose = () => {
+    setFormData({
+      name: "",
+      latitude: "",
+      longitude: "",
+      radius_km: "",
+      employees_selection: [],
+    });
     setErrors({});
-  }, []);
+    setIsSubmitted(false);
+    onClose && onClose();
+  };
+
 
 
   return (
     <CommonModal
-      id="add_attendance_policy"
-      title="Add Attendance Policy"
+      id="add_geo_config"
+      title={data ? "Edit Geo Configuration" : "Add Geo Configuration"}
       onSubmit={handleSubmit}
+      onClose={handleClose}
     >
       <FormInput
         label="Name"
@@ -64,11 +144,8 @@ const AddEditAttendancePolicyModal = ({ onSubmit }: any) => {
         value={formData.name}
         error={errors.name}
         isSubmitted={isSubmitted}
-        onChange={(e) =>
-          setFormData({ ...formData, name: e.target.value })
-        }
+        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
       />
-
 
       <div className="row">
         <div className="col-md-4">
@@ -83,7 +160,6 @@ const AddEditAttendancePolicyModal = ({ onSubmit }: any) => {
               setFormData({ ...formData, latitude: e.target.value })
             }
           />
-
         </div>
         <div className="col-md-4">
           <FormInput
@@ -110,18 +186,13 @@ const AddEditAttendancePolicyModal = ({ onSubmit }: any) => {
               setFormData({ ...formData, radius_km: e.target.value })
             }
           />
-
         </div>
       </div>
 
-      {errors.location && (
-        <div className="text-danger mb-2">{errors.location}</div>
-      )}
-
-      <MultiSelect
+      {/* <MultiSelect
         label="Employees"
         value={formData.employees_selection.map((e: any) => e.id)}
-        options={employeesList}
+        options={employeesList || []}
         isSubmitted={isSubmitted}
         error={errors.employees_selection}
         onChange={(ids) =>
@@ -132,9 +203,25 @@ const AddEditAttendancePolicyModal = ({ onSubmit }: any) => {
             ),
           })
         }
-      />
+      /> */}
+   <MultiSelect
+      label="Employees"
+      value={formData.employees_selection.map((e: { id: any; }) => e.id)}
+      options={employeesList || []} // always defined as array
+      isSubmitted={false}
+      error={""}
+      onChange={(selectedIds: number[]) =>
+        setFormData({
+          ...formData,
+          employees_selection: employeesList?.filter((e) =>
+            selectedIds.includes(e.id)
+          ),
+        })
+      }
+    />
+
     </CommonModal>
   );
 };
 
-export default AddEditAttendancePolicyModal;
+export default AddEditGeoModal;

@@ -116,6 +116,60 @@ export const useFormValidation = () => {
   return errors;
 };
 
+  const EmpAttendancevalidateForm = (data: any) => {
+    let temp: any = {};
+    let valid = true;
 
-  return { validateAttendancePolicy, validateEmployeeContract };
+    if (!data.from_date) {
+      temp.from_date = "Date is required";
+      valid = false;
+    }
+
+    if (!data.reg_category) {
+      temp.reg_category = "Category is required";
+      valid = false;
+    }
+
+    if (!data.reg_reason || data.reg_reason.length < 5) {
+      temp.reg_reason = "Reason must be at least 5 characters";
+      valid = false;
+    }
+
+    return valid;
+  };
+
+const validateStructureType = (data: any) => {
+    const errors: any = {};
+
+    if (!data.name || !data.name.trim()) {
+      errors.name = "Structure Type is required";
+    }
+
+    if (!data.country) {
+      errors.country = "Country is required";
+    }
+
+    if (!data.default_wage_type) {
+      errors.default_wage_type = "Default Wage Type is required";
+    }
+
+    if (!data.default_schedule_pay) {
+      errors.default_schedule_pay = "Default Scheduled Pay is required";
+    }
+
+    if (!data.default_working_hours) {
+      errors.default_working_hours = "Default Working Hours is required";
+    }
+
+    if (!data.regular_pay_structure) {
+      errors.regular_pay_structure = "Regular Pay Structure is required";
+    }
+
+    if (!data.default_work_entry_type) {
+      errors.default_work_entry_type = "Default Work Entry Type is required";
+    }
+
+    return errors;
+  };
+  return { validateAttendancePolicy, validateEmployeeContract, EmpAttendancevalidateForm,validateStructureType };
 };
