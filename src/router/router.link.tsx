@@ -297,11 +297,11 @@ import {
   AdminAttandanceKHR,
   EmployeeAttandanceKHR,
   ShiftModulesKHR,
-  LeaveEmployeeKHR,
   LeaveSettingsKHR,
   LeaveAdminKHR,
   BanksKHR,
   GeoKHR,
+  LeaveEmployeeKHR,
 } from "./lazyRoutes";
 
 // Import third-party components
@@ -376,8 +376,8 @@ export const publicRoutes = [
     element: <TrainingType />,
     route: Route,
   },
-  
-   {
+
+  {
     path: routes.employeeContract,
     element: <EmployeeContractKHR />,
     route: Route,

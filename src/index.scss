@@ -1,6 +1,7 @@
 @use "../src/assets/scss/main.scss";
 @use "../src/assets/css/performance-dashboard.scss";
 @use "../src/assets/css/debounce-throttle.scss";
+@use "sass:color";
 
 a {
   text-decoration: none;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Select from "react-select";
+import Select, { MultiValue, SingleValue, ActionMeta } from "react-select";
 
 export type Option = {
   value: string;
@@ -8,25 +8,31 @@ export type Option = {
 
 export interface SelectProps {
   options: Option[];
-  defaultValue?: Option;
+  defaultValue?: Option | Option[]; // Updated to support array for multi-select
+  value?: Option | Option[] | null; // Added value for controlled component usage
   className?: string;
-  placeholder?: string; // Added placeholder here
+  placeholder?: string;
   styles?: any;
-  onChange?: (option: Option | null) => void;
-  disabled?: boolean; // Helpful for your "Next Shift Changes" logic
+  isMulti?: boolean; // Added isMulti prop
+  // Updated onChange to handle SingleValue or MultiValue
+  onChange?: (option: any, actionMeta?: ActionMeta<Option>) => void;
+  disabled?: boolean;
 }
 
 const CommonSelect: React.FC<SelectProps> = ({
   options,
   defaultValue,
+  value,
   className,
-  placeholder = "Select", // Default value if not provided
+  placeholder = "Select",
   onChange,
-  disabled = false, // Destructure disabled
+  isMulti = false, // Default to false
+  disabled = false,
 }) => {
-  const [selectedOption, setSelectedOption] = useState<Option | undefined>(
-    defaultValue
-  );
+  // Local state needs to handle Option | Option[] | undefined
+  const [selectedOption, setSelectedOption] = useState<
+    Option | Option[] | undefined
+  >(value || defaultValue || undefined);
 
   const customStyles = {
     option: (base: any, state: any) => ({
@@ -39,19 +45,44 @@ const CommonSelect: React.FC<SelectProps> = ({
         color: state.isFocused ? "#fff" : "#2e37a4",
       },
     }),
+    // Optional: Add styles for multi-select tags (multiValue)
+    multiValue: (base: any) => ({
+      ...base,
+      backgroundColor: "rgba(46, 55, 164, 0.1)",
+      borderRadius: "4px",
+    }),
+    multiValueLabel: (base: any) => ({
+      ...base,
+      color: "#2e37a4",
+      fontWeight: "500",
+    }),
+    multiValueRemove: (base: any) => ({
+      ...base,
+      color: "#2e37a4",
+      ":hover": {
+        backgroundColor: "#2e37a4",
+        color: "white",
+      },
+    }),
   };
 
-  const handleChange = (option: Option | null) => {
-    setSelectedOption(option || undefined);
-    if (onChange) onChange(option);
+  const handleChange = (
+    newValue: MultiValue<Option> | SingleValue<Option>,
+    actionMeta: ActionMeta<Option>
+  ) => {
+    // Cast newValue to any for internal state to avoid strict TS array vs object conflicts
+    setSelectedOption(newValue as any);
+    if (onChange) onChange(newValue, actionMeta);
   };
 
+  // Sync state if defaultValue or value props change externally
   useEffect(() => {
-    setSelectedOption(defaultValue || undefined);
-  }, [defaultValue]);
+    setSelectedOption(value || defaultValue || undefined);
+  }, [defaultValue, value]);
 
   return (
     <Select
+      isMulti={isMulti} // Enable/Disable multi-select
       classNamePrefix="react-select"
       className={className}
       styles={customStyles}
@@ -59,7 +90,7 @@ const CommonSelect: React.FC<SelectProps> = ({
       value={selectedOption}
       onChange={handleChange}
       placeholder={placeholder}
-      isDisabled={disabled} // Pass disabled state to react-select
+      isDisabled={disabled}
     />
   );
 };
