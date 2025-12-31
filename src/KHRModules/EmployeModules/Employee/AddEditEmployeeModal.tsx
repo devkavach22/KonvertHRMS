@@ -151,6 +151,13 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
     in_notice_period: false,
     notice_period_end_date: null,
 
+    device_id: "",
+    device_name: "",
+    device_platform: "",
+    device_unique_id: "",
+    ip_address: "",
+    random_code_for_reg: "",
+    system_version: "",
     // 9. Setting
     pin: "",
   });
@@ -461,6 +468,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
     setErrors((prev: any) => ({ ...prev, ...tempErrors }));
     return isValid;
   };
+
   const validateEmploymentTab = () => {
     let tempErrors: any = {};
     let isValid = true;
@@ -505,6 +513,22 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
     setErrors((prev: any) => ({ ...prev, ...tempErrors }));
     return isValid;
   };
+
+  const validateDeviceTab = () => {
+    let tempErrors: any = {};
+    let isValid = true;
+
+    // You can make these mandatory or optional.
+    // Example: Mandatory Device Unique ID
+    if (!formData.device_unique_id?.trim()) {
+      tempErrors.device_unique_id = "Device Unique ID is required.";
+      isValid = false;
+    }
+
+    setErrors((prev: any) => ({ ...prev, ...tempErrors }));
+    return isValid;
+  };
+
   const validateNoticeTab = () => {
     let tempErrors: any = {};
     let isValid = true;
@@ -950,6 +974,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
       ],
       banking: ["bank_account_id"],
       setting: ["pin"],
+      device: ["device_id", "device_unique_id", "device_name"],
     };
 
     return errorKeys.some((key) => tabFields[tabName]?.includes(key));
@@ -1160,6 +1185,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
       banking: validateBankingTab(),
       notice: validateNoticeTab(),
       settings: validateSettingsTab(),
+      device: validateDeviceTab(), // Add this
     };
 
     // Check if every single tab is valid
@@ -1281,6 +1307,14 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
         image_1920: imageBase64, // Update with base64 string
         name_of_site: Number(formData.name_of_client), // Specific API mapping
         Spouse_name: formData.spouse_name, // Capitalized as per your requirements
+
+        device_id: formData.device_id,
+        device_name: formData.device_name,
+        device_platform: formData.device_platform,
+        device_unique_id: formData.device_unique_id,
+        ip_address: formData.ip_address,
+        random_code_for_reg: formData.random_code_for_reg,
+        system_version: formData.system_version,
       };
 
       let response;
@@ -1641,6 +1675,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                     "Banking",
                     "Notice",
                     "Setting",
+                    "Device",
                   ].map((tab) => (
                     <li className="nav-item" key={tab}>
                       <button
@@ -3366,6 +3401,155 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                     setFormData({ ...formData, bank_account_id: newId });
                   }}
                 />
+                {/* 7.Device */}
+                {activeTab === "device" && (
+                  <div className="device-info-wrapper animate__animated animate__fadeIn">
+                    <div className="form-section mb-4">
+                      <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
+                        <i className="ti ti-device-mobile fs-18 me-2"></i>{" "}
+                        Registered Device Details
+                      </h6>
+                      <div className="row g-3">
+                        {/* Device Unique ID */}
+                        <div className="col-md-4">
+                          <label className="form-label fs-13">
+                            Device Unique ID{" "}
+                            <span className="text-danger">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            className={`form-control ${
+                              isSubmitted && errors.device_unique_id
+                                ? "is-invalid"
+                                : ""
+                            }`}
+                            value={formData.device_unique_id}
+                            placeholder="e.g. 3d60c7079ea1ea51"
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                device_unique_id: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+
+                        {/* Device Name */}
+                        <div className="col-md-4">
+                          <label className="form-label fs-13">
+                            Device Name
+                          </label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={formData.device_name}
+                            placeholder="e.g. Pixel 6 Pro"
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                device_name: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+
+                        {/* Device ID */}
+                        <div className="col-md-4">
+                          <label className="form-label fs-13">Device ID</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={formData.device_id}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                device_id: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+
+                        {/* Platform & Version */}
+                        <div className="col-md-3">
+                          <label className="form-label fs-13">Platform</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={formData.device_platform}
+                            placeholder="Android / iOS"
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                device_platform: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+
+                        <div className="col-md-3">
+                          <label className="form-label fs-13">
+                            System Version
+                          </label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={formData.system_version}
+                            placeholder="e.g. 15"
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                system_version: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+
+                        {/* IP Address */}
+                        <div className="col-md-3">
+                          <label className="form-label fs-13">IP Address</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={formData.ip_address}
+                            placeholder="0.0.0.0"
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                ip_address: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+
+                        {/* Random Registration Code */}
+                        <div className="col-md-3">
+                          <label className="form-label fs-13">Reg. Code</label>
+                          <input
+                            type="text"
+                            className="form-control bg-light"
+                            value={formData.random_code_for_reg}
+                            placeholder="!gGzd!"
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                random_code_for_reg: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="alert alert-soft-info d-flex align-items-center border-0 p-2 shadow-sm">
+                      <i className="ti ti-info-circle-filled fs-20 me-2 text-info"></i>
+                      <div className="fs-11">
+                        This information is typically captured automatically
+                        when an employee logs into the mobile app for the first
+                        time.
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {/* 7. Notice Information */}
                 {activeTab === "notice" && (
                   <div className="notice-info-wrapper animate__animated animate__fadeIn">

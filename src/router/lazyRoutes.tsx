@@ -79,7 +79,7 @@ export const Login = createLazyComponent(
 );
 
 export const GeoKHR = createLazyComponent(
-  () => import("../KHRModules/AttandanceModules/GeoConfig/GeoKHR"),
+  () => import("../KHRModules/AttandanceModules/GeoConfig/GeoKHR")
 );
 export const EmployeeContractKHR = createLazyComponent(
   () => import("../KHRModules/EmployeeContract/EmployeeContractKHR"),

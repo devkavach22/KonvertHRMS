@@ -1,6 +1,7 @@
 export const all_routes = {
   //Development Routes
   planActivationKHR: "/KHR-plan-activation",
+  
   // Master's Modules
   departmentsKHR: "/KHR-departments",
   jobPositionsKHR: "/KHR-job-positions",

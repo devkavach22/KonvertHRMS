@@ -16,13 +16,25 @@ const BanksKHR = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await getBanks();
-      const mappedData = response.map((item: any) => ({
+      const response: any = await getBanks();
+
+      /** * FIX: Extracting the array from the "banks" key as per your JSON structure.
+       * We also check for fallback keys to ensure the component doesn't crash.
+       */
+      const rawArray =
+        response?.banks ||
+        response?.data ||
+        (Array.isArray(response) ? response : []);
+
+      const mappedData = rawArray.map((item: any) => ({
         ...item,
+        id: String(item.id),
         key: String(item.id), // Unique key for AntDesign table logic
       }));
+
       setData(mappedData);
     } catch (error) {
+      console.error("Fetch error:", error);
       toast.error("Failed to load bank list");
     } finally {
       setLoading(false);
@@ -50,21 +62,42 @@ const BanksKHR = () => {
       title: "Bank Name",
       dataIndex: "name",
       render: (text: string) => (
-        <span className="fs-14 fw-medium text-dark">{text}</span>
+        <span className="fs-14 fw-bold text-dark">{text}</span>
       ),
       sorter: (a: Bank, b: Bank) => a.name.localeCompare(b.name),
     },
     {
-      title: "BIC",
+      title: "BIC (IFSC)",
       dataIndex: "bic",
+      render: (text: string) => (
+        <span className="badge bg-soft-info text-info">{text || "-"}</span>
+      ),
     },
     {
-      title: "Phone",
+      title: "Swift Code",
+      dataIndex: "swift_code",
+      render: (text: string) => text || "-",
+    },
+    {
+      title: "MICR Code",
+      dataIndex: "micr_code",
+      render: (text: string) => text || "-",
+    },
+    {
+      title: "Contact",
       dataIndex: "phone",
-    },
-    {
-      title: "Email",
-      dataIndex: "email",
+      render: (_: any, record: Bank) => (
+        <div className="d-flex flex-column">
+          <span className="fs-12">
+            <i className="ti ti-phone me-1"></i>
+            {record.phone}
+          </span>
+          <span className="fs-12 text-muted">
+            <i className="ti ti-mail me-1"></i>
+            {record.email}
+          </span>
+        </div>
+      ),
     },
     {
       title: "Actions",
@@ -94,7 +127,7 @@ const BanksKHR = () => {
         <div className="content">
           <div onClick={() => setSelectedBank(null)}>
             <CommonHeader
-              title="Bank"
+              title="Bank Master"
               parentMenu="HR"
               activeMenu="Banks"
               routes={routes}
@@ -111,15 +144,10 @@ const BanksKHR = () => {
                     className="spinner-border text-primary"
                     role="status"
                   ></div>
-                  <div className="mt-2">Loading Banks...</div>
+                  <div className="mt-2">Fetching Bank Records...</div>
                 </div>
               ) : (
-                <DatatableKHR
-                  data={data}
-                  columns={columns}
-                  selection={true}
-                  textKey="name"
-                />
+                <DatatableKHR data={data} columns={columns} selection={true} />
               )}
             </div>
           </div>
