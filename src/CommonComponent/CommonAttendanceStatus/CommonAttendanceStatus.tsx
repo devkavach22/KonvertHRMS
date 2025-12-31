@@ -16,7 +16,7 @@ const CommonAttendanceStatus: React.FC<CommonAttendanceStatusProps> = ({
 }) => {
   return (
     <div className="row gx-0">
-      {cards.map((item: AttendanceCard, index: number) => (
+      {cards.map((item, index) => (
         <div
           key={item.id}
           className={`col-md col-sm-4 ${

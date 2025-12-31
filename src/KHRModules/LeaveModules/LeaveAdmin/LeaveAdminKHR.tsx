@@ -1,63 +1,39 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { all_routes } from "../../../router/all_routes";
+import moment from "moment";
 import DatatableKHR from "../../../CommonComponent/DataTableKHR/DatatableKHR";
 import CommonHeader from "../../../CommonComponent/HeaderKHR/HeaderKHR";
-import AddEditAttendancePolicyModal from "./AddEditLeaveModal";
-import moment from "moment";
-
 import {
   getLeaveDashboard,
-  AttendancePolicy as AttendancePolicyType,
-  APIAttendancePolicy,
-} from "./LeaveServices";
+  LeaveDashboardRecord,
+  LeaveDashboardMeta,
+} from "./LeaveAdminServices";
+import { all_routes } from "@/router/all_routes";
 
 const LeaveAdminKHR = () => {
   const routes = all_routes;
-  const [data, setData] = useState<any[]>([]);
+  const [records, setRecords] = useState<LeaveDashboardRecord[]>([]);
+  const [meta, setMeta] = useState<LeaveDashboardMeta | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [selectedPolicy, setSelectedPolicy] =
-    useState<AttendancePolicyType | null>(null);
-  const [employeesOptions, setEmployeesOptions] = useState<Array<{id:any;name:string}>>([]);
-  const [selectedSection, setSelectedSection] = useState<string | null>(null);
-  const [displayedColumns, setDisplayedColumns] = useState<any[] | null>(null);
-  const [displayedData, setDisplayedData] = useState<any[] | null>(null);
 
   const fetchData = async () => {
-    setLoading(false);
-    try {
-      const result = await getLeaveDashboard();
-      console.log(result,"result");
-      
-      const safeResult = Array.isArray(result.data) ? result?.data : [];
+    setLoading(true);
+    const response = await getLeaveDashboard();
 
-      // Build a lookup map of employees by id if we fetched options earlier
-      const empMap: Record<string,string> = {};
-      employeesOptions.forEach((e) => { empMap[String(e.id)] = e.name; });
+    if (response && response.status === "success") {
+      // 1. Set the Counts (Meta)
+      setMeta(response.meta);
 
-      const mappedData = safeResult.map((item: any) => ({
-        id: item.id,
-        employee_name: Array.isArray(item.employee_id) ? item.employee_id[1] : item.employee_id,
-        check_in: item.check_in,
-        check_out: item.check_out,
-        worked_hours: item.worked_hours,
-        early_out_minutes: item.early_out_minutes,
-        overtime_hours: item.overtime_hours,
-        validated_overtime_hours: item.validated_overtime_hours,
-        is_late_in: item.is_late_in,
-        late_time_display: item.late_time_display,
-        is_early_out: item.is_early_out,
-        status_code: item.status_code,
-        job_name: Array.isArray(item.job_id) ? item.job_id[1] : item.job_name,
+      // 2. Map the Table Records (Data)
+      const mapped = response.data.map((item: any, index: number) => ({
+        ...item,
+        // Use ID if exists, otherwise use index for uniqueness
+        key: item.id ? String(item.id) : `row-${index}`,
+        // Extract name from the [id, name] array
+        emp_name: item.employee_id ? item.employee_id[1] : "N/A",
       }));
-
-      setData(mappedData);
-    } catch (error) {
-      console.error("Failed to load policies", error);
-      setLoading(false);
-    } finally {
-      setLoading(false);
+      setRecords(mapped);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -122,260 +98,96 @@ const LeaveAdminKHR = () => {
     setDisplayedData(rows);
   }, [selectedSection, data]);
 
-  // fetch employees list for name lookup
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const endpoints = ["/api/employees", "/api/users", "/employees", "/users"];
-        let result: any = null;
-        for (const ep of endpoints) {
-          try {
-            const res = await fetch(ep);
-            if (!res.ok) continue;
-            const json = await res.json();
-            if (Array.isArray(json)) {
-              result = json; break;
-            }
-            if (json && Array.isArray(json.data)) { result = json.data; break; }
-          } catch (e) {
-            // continue
-          }
-        }
-        if (mounted && Array.isArray(result)) {
-          const opts = result.map((r: any) => ({ id: r.id ?? r.user_id ?? r.value, name: r.name ?? r.full_name ?? r.label ?? r.username ?? String(r.id) }));
-          setEmployeesOptions(opts);
-        }
-      } catch (e) {
-        // ignore
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
-
-  // re-fetch policies after employee names are loaded so we can map ids to names
-  useEffect(() => {
-    if (employeesOptions.length > 0) fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [employeesOptions.length]);
-
-  const handleDelete = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this policy?")) {
-      // await deleteAttendancePolicy(id);
-      fetchData();
-    }
-  };
-
-  const columns: any[] = [
+  const columns = [
     {
-      title: "ID",
-      dataIndex: "id",
-      render: (val: any) => <span>{val || "-"}</span>,
-      sorter: (a: any, b: any) => (a.id || 0) - (b.id || 0),
-    },
-    {
-      title: "Employee Name",
-      dataIndex: "employee_name",
-      render: (val: any) => <span>{val || "-"}</span>,
-      sorter: (a: any, b: any) => String(a.employee_name || "").localeCompare(String(b.employee_name || "")),
+      title: "Employee",
+      dataIndex: "emp_name",
+      render: (text: string, record: any) => (
+        <div>
+          <span className="fw-bold text-dark">{text}</span>
+          <br />
+          <span className="fs-12 text-muted">{record.job_name || "---"}</span>
+        </div>
+      ),
     },
     {
       title: "Check In",
       dataIndex: "check_in",
-      render: (val: any) => <span>{val ? moment(val).format("YYYY-MM-DD HH:mm") : "-"}</span>,
-      sorter: (a: any, b: any) => {
-        const aDate = moment(a.check_in);
-        const bDate = moment(b.check_in);
-        return aDate.isValid() && bDate.isValid() ? aDate.valueOf() - bDate.valueOf() : 0;
-      },
+      render: (text: string) => (text ? moment(text).format("hh:mm A") : "---"),
     },
     {
       title: "Check Out",
       dataIndex: "check_out",
-      render: (val: any) => <span>{val ? moment(val).format("YYYY-MM-DD HH:mm") : "-"}</span>,
-      sorter: (a: any, b: any) => {
-        const aDate = moment(a.check_out);
-        const bDate = moment(b.check_out);
-        return aDate.isValid() && bDate.isValid() ? aDate.valueOf() - bDate.valueOf() : 0;
-      },
+      render: (text: string) => (text ? moment(text).format("hh:mm A") : "---"),
     },
     {
       title: "Worked Hours",
       dataIndex: "worked_hours",
-      render: (val: any) => <span>{val || "-"}</span>,
-      sorter: (a: any, b: any) => (a.worked_hours || 0) - (b.worked_hours || 0),
+      render: (val: number) =>
+        val ? (
+          <span className="badge bg-soft-info text-info">{val} hrs</span>
+        ) : (
+          "---"
+        ),
     },
     {
-      title: "Early Out Minutes",
-      dataIndex: "early_out_minutes",
-      render: (val: any) => <span>{val || "-"}</span>,
-      sorter: (a: any, b: any) => (a.early_out_minutes || 0) - (b.early_out_minutes || 0),
-    },
-    {
-      title: "Overtime Hours",
-      dataIndex: "overtime_hours",
-      render: (val: any) => <span>{val || "-"}</span>,
-      sorter: (a: any, b: any) => (a.overtime_hours || 0) - (b.overtime_hours || 0),
-    },
-    {
-      title: "Validated Overtime Hours",
-      dataIndex: "validated_overtime_hours",
-      render: (val: any) => <span>{val || "-"}</span>,
-      sorter: (a: any, b: any) => (a.validated_overtime_hours || 0) - (b.validated_overtime_hours || 0),
-    },
-    {
-      title: "Is Late In",
-      dataIndex: "is_late_in",
-      render: (val: any) => <span>{val ? "Yes" : "No"}</span>,
-      sorter: (a: any, b: any) => (a.is_late_in ? 1 : 0) - (b.is_late_in ? 1 : 0),
-    },
-    {
-      title: "Late Time Display",
+      title: "Late In",
       dataIndex: "late_time_display",
-      render: (val: any) => <span>{val || "-"}</span>,
-      sorter: (a: any, b: any) => String(a.late_time_display || "").localeCompare(String(b.late_time_display || "")),
+      render: (text: string, record: any) => (
+        <span className={record.is_late_in ? "text-danger" : "text-success"}>
+          {text || "On Time"}
+        </span>
+      ),
     },
-    {
-      title: "Is Early Out",
-      dataIndex: "is_early_out",
-      render: (val: any) => <span>{val ? "Yes" : "No"}</span>,
-      sorter: (a: any, b: any) => (a.is_early_out ? 1 : 0) - (b.is_early_out ? 1 : 0),
-    },
-    {
-      title: "Status Code",
-      dataIndex: "status_code",
-      render: (val: any) => <span>{val || "-"}</span>,
-      sorter: (a: any, b: any) => String(a.status_code || "").localeCompare(String(b.status_code || "")),
-    },
-    {
-      title: "Job Name",
-      dataIndex: "job_name",
-      render: (val: any) => <span>{val || "-"}</span>,
-      sorter: (a: any, b: any) => String(a.job_name || "").localeCompare(String(b.job_name || "")),
-    }
   ];
 
   return (
-    <>
-      <div className="main-wrapper">
-        <div className="page-wrapper">
-          <div className="content">
-            <div onClick={() => setSelectedPolicy(null)}>
-              <CommonHeader
-                title="Leave "
-                parentMenu="HR"
-                activeMenu="Leave Admin"
-                routes={routes}
-                buttonText="Add Leave"
-                modalTarget="#add_attendance_policy"
-              />
-            </div>
-          
-          {/* Leaves Info */}
-          <div className="row">
-            <div className="col-xl-3 col-md-6">
-              <div className="card bg-green-img">
-                <div className="card-body">
-                  <div className="d-flex align-items-center justify-content-between">
-                    <div className="d-flex align-items-center">
-                      <div className="flex-shrink-0 me-2">
-                        <span className="avatar avatar-md rounded-circle bg-white d-flex align-items-center justify-content-center">
-                          <i className="ti ti-user-check text-success fs-18" />
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-end">
-                      <p className="mb-1">Total Present</p>
-                      <h4>180/200</h4>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-xl-3 col-md-6">
-              <div className="card bg-pink-img">
-                <div className="card-body">
-                  <div className="d-flex align-items-center justify-content-between">
-                    <div className="d-flex align-items-center">
-                      <div className="flex-shrink-0 me-2">
-                        <span className="avatar avatar-md rounded-circle bg-white d-flex align-items-center justify-content-center">
-                          <i className="ti ti-user-edit text-pink fs-18" />
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-end">
-                      <p className="mb-1">Planned Leaves</p>
-                      <h4>10</h4>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-xl-3 col-md-6">
-              <div className="card bg-yellow-img">
-                <div className="card-body">
-                  <div className="d-flex align-items-center justify-content-between">
-                    <div className="d-flex align-items-center">
-                      <div className="flex-shrink-0 me-2">
-                        <span className="avatar avatar-md rounded-circle bg-white d-flex align-items-center justify-content-center">
-                          <i className="ti ti-user-exclamation text-warning fs-18" />
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-end">
-                      <p className="mb-1">Unplanned Leaves</p>
-                      <h4>10</h4>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-xl-3 col-md-6">
-              <div className="card bg-blue-img">
-                <div className="card-body">
-                  <div className="d-flex align-items-center justify-content-between">
-                    <div className="d-flex align-items-center">
-                      <div className="flex-shrink-0 me-2">
-                        <span className="avatar avatar-md rounded-circle bg-white d-flex align-items-center justify-content-center">
-                          <i className="ti ti-user-question text-info fs-18" />
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-end">
-                      <p className="mb-1">Pending Requests</p>
-                      <h4>15</h4>
-                    </div>
-                  </div>
-                </div>
-              </div>
+    <div className="page-wrapper">
+      <div className="content">
+        <CommonHeader
+          title="Leave Admin Dashboard"
+          parentMenu="HR"
+          activeMenu="Leaves"
+          routes={routes}
+          buttonText="Add Leave"
+          modalTarget="#add_leave_modal"
+        />
+        {/* Dashboard Cards using META object */}
+        <div className="row mb-4">
+          <div className="col-xl-3 col-md-6">
+            <div className="card bg-blue-img text-white p-3 border-0">
+              <h6>Total Employees</h6>
+              <h3>{meta?.TotalEmployee || 0}</h3>
             </div>
           </div>
-            <div className="card">
-              <div className="card-body">
-                {loading ? (
-                  <div className="text-center p-4">Loading data...</div>
-                ) : (
-                  <DatatableKHR
-                    data={data}
-                    columns={columns}
-                    selection={true}
-                    // textKey="employees_selection"
-                    title="Leave List"
-                    showSortFilter={true}
-                    showStatusFilter={true}
-                  />
-                )}
-              </div>
+          <div className="col-xl-3 col-md-6">
+            <div className="card bg-green-img text-white p-3 border-0">
+              <h6>Present</h6>
+              <h3>{meta?.Presentemployee || 0}</h3>
+            </div>
+          </div>
+          <div className="col-xl-3 col-md-6">
+            <div className="card bg-pink-img text-white p-3 border-0">
+              <h6>Planned Leaves</h6>
+              <h3>{meta?.plannedLeaves || 0}</h3>
+            </div>
+          </div>
+          <div className="col-xl-3 col-md-6">
+            <div className="card bg-yellow-img text-white p-3 border-0">
+              <h6>Pending Requests</h6>
+              <h3>{meta?.pendingRequests || 0}</h3>
             </div>
           </div>
         </div>
 
-        <AddEditAttendancePolicyModal
-          onSuccess={fetchData}
-          data={selectedPolicy}
-        />
+        {/* Table using DATA array */}
+        <div className="card">
+          <div className="card-body">
+            <DatatableKHR data={records} columns={columns} selection={true} />
+          </div>
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 

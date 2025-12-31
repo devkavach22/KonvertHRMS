@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from "react";
 import { Route, Routes } from "react-router";
 import { authRoutes, publicRoutes } from "./router.link";
 import { LoadingSpinner } from "../core/common/LoadingSpinner";
+import { ProtectedRoute, GuestRoute } from "./RouteGuards";
 
 // Lazy load the main feature components
 const LazyFeature = lazy(() => import("../feature-module/feature"));
@@ -13,11 +14,13 @@ const ALLRoutes: React.FC = () => {
       <Routes>
         <Route
           element={
-            <Suspense
-              fallback={<LoadingSpinner text="Loading application..." />}
-            >
-              <LazyFeature />
-            </Suspense>
+            <ProtectedRoute>
+              <Suspense
+                fallback={<LoadingSpinner text="Loading application..." />}
+              >
+                <LazyFeature />
+              </Suspense>
+            </ProtectedRoute>
           }
         >
           {publicRoutes.map((route, idx) => (
@@ -35,11 +38,13 @@ const ALLRoutes: React.FC = () => {
 
         <Route
           element={
-            <Suspense
-              fallback={<LoadingSpinner text="Loading authentication..." />}
-            >
-              <LazyAuthFeature />
-            </Suspense>
+            <GuestRoute>
+              <Suspense
+                fallback={<LoadingSpinner text="Loading authentication..." />}
+              >
+                <LazyAuthFeature />
+              </Suspense>
+            </GuestRoute>
           }
         >
           {authRoutes.map((route, idx) => (

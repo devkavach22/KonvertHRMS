@@ -5,6 +5,7 @@ import "../src/assets/css/bootstrap.min.css";
 import "../src/assets/css/feather.css";
 import "../src/index.scss";
 import store from "./core/data/redux/store";
+import Store from "./Store";
 import { Provider } from "react-redux";
 import "../src/assets/icon/boxicons/boxicons/css/boxicons.min.css";
 import "../src/assets/icon/weather/weathericons.css";
@@ -27,7 +28,7 @@ initializePreloading();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <React.StrictMode>
+    <Provider store={Store}>
       <Provider store={store}>
         <PerformanceProvider enableVirtualization={true}>
           <BrowserRouter basename={base_path}>
@@ -39,6 +40,6 @@ createRoot(document.getElementById("root")!).render(
           </BrowserRouter>
         </PerformanceProvider>
       </Provider>
-    </React.StrictMode>
+    </Provider>
   </StrictMode>
 );

@@ -28,7 +28,9 @@ export const SidebarDataTest = [
           { label: "Work Entry Type", link: routes.workEntryTypeKHR },
           { label: "Skills", link: routes.skillsKHR },
           { label: "Industries", link: routes.industriesKHR },
+          { label: "Bank", link: routes.banksKHR },
           { label: "HR Contract Type ", link: routes.hrContractTypeKHR },
+          { label: "Geo Configurations", link: routes.geoKHR },
 
           // { label: "Country", link: routes.dealsDashboard },
           // { label: "State", link: routes.leadsDashboard },
@@ -52,7 +54,8 @@ export const SidebarDataTest = [
         materialicons: "start",
         dot: false,
         submenuItems: [
-          { label: "Employees", link: routes.employeeKHR },
+            { label: "Employees", link: routes.employeeKHR },
+            { label: "Employee Contract", link: routes.employeeContract },
           // { label: "Attendance", link: routes.attendanceadmin },
           // { label: "Leave Management", link: routes.leaveadmin },
           // { label: "Holidays", link: routes.holidays },
@@ -124,6 +127,30 @@ export const SidebarDataTest = [
     ],
   },
 
+
+   {
+    tittle: "Finance & Accounts",
+    icon: "payroll",
+    showAsTab: true,
+    separateRoute: false,
+    submenuItems: [
+      {
+        label: "payroll",
+        link: "index",
+        submenu: true,
+        showSubRoute: false,
+        icon: "users",
+        base: "dashboard",
+        materialicons: "start",
+        dot: false,
+        submenuItems: [
+          { label: "Structure Types", link: routes.employeeSalaryKHR },
+          { label: "Salary Rules", link: routes.SalaryRuleKHR },
+       
+        ],
+      },
+    ],
+  },
   // {
   //   tittle: "Main Menu",
   //   icon: "airplay",

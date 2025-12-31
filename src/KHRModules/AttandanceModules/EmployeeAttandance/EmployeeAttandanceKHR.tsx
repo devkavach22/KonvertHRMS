@@ -21,9 +21,14 @@ import WorkStatsWithTimeline from "./WorksWithTimeline";
 // import { all } from 'node_modules/axios/index.d.cts';
 import { attendance_admin_details } from "@/core/data/json/attendanceadmin";
 import { attendance_employee_details } from "@/core/data/json/attendanceemployee";
+import { getAttendance } from "./EmployeeAttandanceServices";
+import AttendanceQueryModal from "./AttendanceQueryModal";
 
 // Define a type for attendance admin data
 interface AttendanceAdminData {
+  EndDate: any;
+  StartDate: any;
+  attendance_id: number;
   Employee: string;
   Image: string;
   Role: string;
@@ -33,6 +38,8 @@ interface AttendanceAdminData {
   Break: string;
   Late: string;
   ProductionHours: string;
+  employeeId:number;
+  
 }
 
 // Define a type for employee attendance
@@ -46,81 +53,118 @@ interface EmployeeAttendance {
 }
 
 const EmployeeAttendanceKHR = () => {
-  const attendanceTableDummyData: AttendanceAdminData[] = [
-    {
-      Employee: "John Doe",
-      Image: "avatar-1.jpg",
-      Role: "Developer",
-      Status: "Present",
-      CheckIn: "09:30 AM",
-      CheckOut: "06:30 PM",
-      Break: "45 min",
-      Late: "No",
-      ProductionHours: "8.5",
-    },
-    {
-      Employee: "Sarah Smith",
-      Image: "avatar-2.jpg",
-      Role: "Designer",
-      Status: "Absent",
-      CheckIn: "-",
-      CheckOut: "-",
-      Break: "-",
-      Late: "Yes",
-      ProductionHours: "0",
-    },
-    {
-      Employee: "Rahul Patel",
-      Image: "avatar-3.jpg",
-      Role: "HR",
-      Status: "Present",
-      CheckIn: "10:00 AM",
-      CheckOut: "07:00 PM",
-      Break: "30 min",
-      Late: "No",
-      ProductionHours: "9",
-    },
-  ];
+  // const attendanceTableDummyData: AttendanceAdminData[] = [
+  //   {
+  //     Employee: "John Doe",
+  //     Image: "avatar-1.jpg",
+  //     Role: "Developer",
+  //     Status: "Present",
+  //     CheckIn: "09:30 AM",
+  //     CheckOut: "06:30 PM",
+  //     Break: "45 min",
+  //     Late: "No",
+  //     ProductionHours: "8.5",
+  //   },
+  //   {
+  //     Employee: "Sarah Smith",
+  //     Image: "avatar-2.jpg",
+  //     Role: "Designer",
+  //     Status: "Absent",
+  //     CheckIn: "-",
+  //     CheckOut: "-",
+  //     Break: "-",
+  //     Late: "Yes",
+  //     ProductionHours: "0",
+  //   },
+  //   {
+  //     Employee: "Rahul Patel",
+  //     Image: "avatar-3.jpg",
+  //     Role: "HR",
+  //     Status: "Present",
+  //     CheckIn: "10:00 AM",
+  //     CheckOut: "07:00 PM",
+  //     Break: "30 min",
+  //     Late: "No",
+  //     ProductionHours: "9",
+  //   },
+  // ];
 
   const routes = all_routes;
 
   // const [data, setData] = useState<EmployeeAttendance[]>([]);
   const [data, setData] = useState<AttendanceAdminData[]>([]);
+  const [showQueryModal, setShowQueryModal] = useState(false);
+  const [employeeId, setEmployeeId] = useState<string | null>(null);
+
+  const [selectedAttendancee, setSelectedAttendancee] = useState<any>(null);
 
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedAttendance, setSelectedAttendance] =
     useState<EmployeeAttendance | null>(null);
 
   // Dummy async function for fetching employee attendance
-  const getEmployeeAttendance = async () => {
-    // Replace this with actual API call
-    return [];
+
+  const formatDateOnly = (dateTime: string | false) => {
+    if (!dateTime) return "-";
+    const date = new Date(dateTime.replace(" ", "T"));
+    return date.toISOString().split("T")[0]; // YYYY-MM-DD
   };
+
+  const formatTime = (dateTime: string | false) => {
+    if (!dateTime) return "-";
+    const date = new Date(dateTime.replace(" ", "T"));
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+  console.log(selectedAttendancee, "selectedAttendancee");
 
   // 1. Fetch & Map Data
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response: any = await getEmployeeAttendance();
+      const response: any = await getAttendance();
+      console.log(response, "responce");
 
-      // Safety Check: Backend might return { data: [...] } or just [...]
-      const rawArray = Array.isArray(response)
+      // Support both: service returning the array directly, or an object with `.data`
+      const attendanceArray = Array.isArray(response)
         ? response
-        : response?.data && Array.isArray(response.data)
-        ? response.data
-        : [];
+        : Array.isArray(response.data)
+          ? response.data
+          : [];
 
-      const mappedData: EmployeeAttendance[] = rawArray.map((item: any) => ({
-        id: String(item.id),
-        key: String(item.id), // Datatable unique key
-        Employee_Name: item.employee?.name || "-",
-        Attendance_Date: item.date || "-",
-        Created_Date: item.created_at || "-",
-        Status: item.status || "Absent",
+      const empId = response?.meta?.employee_id || null;
+      setEmployeeId(empId);
+
+      // const meta = response?.meta || response?.data?.meta || {};
+
+      const mappedData: AttendanceAdminData[] = attendanceArray.map((item: any) => ({
+        // Employee: meta?.employee_name || "Employee",
+
+        Image: item.employee?.avatar || "avatar-1.jpg",
+        Role: item.employee?.role || "Employee",
+        Status: item.status_code ? "Present" : "Absent",
+        StartDate: formatDateOnly(item.check_in),
+        EndDate: item.check_out
+          ? formatDateOnly(item.check_out)
+          : "-",
+        CheckIn: formatTime(item.check_in),
+        CheckOut: formatTime(item.check_out),
+        LateTime: item.late_time_display,
+        Late: item.is_late_in ? "Yes" : "No",
+        Overtime:
+          typeof item.overtime_hours === "number"
+            ? item.overtime_hours.toFixed(2)
+            : item.overtime_hours
+              ? String(item.overtime_hours)
+              : "0",
+        ProductionHours:
+          typeof item.worked_hours === "number"
+            ? item.worked_hours.toFixed(2)
+            : item.worked_hours
+              ? String(item.worked_hours)
+              : "0",
       }));
 
-      // setData(mappedData);
-      setData(attendanceTableDummyData);
+      setData(mappedData);
     } catch (error) {
       console.error("Failed to load employee attendance", error);
       toast.error("Failed to load employee attendance list");
@@ -129,42 +173,61 @@ const EmployeeAttendanceKHR = () => {
     }
   };
 
+
   useEffect(() => {
     fetchData();
   }, []);
 
   const columns = [
+    // {
+    //   title: "Employee",
+    //   dataIndex: "Employee",
+    //   render: (_text: string, record: AttendanceAdminData) => (
+    //     <div className="d-flex align-items-center file-name-icon">
+    //       <span className="avatar avatar-md border avatar-rounded">
+    //         <ImageWithBasePath
+    //           src={`assets/img/users/${record.Image}`}
+    //           className="img-fluid"
+    //           alt={`${record.Employee} Profile`}
+    //         />
+    //       </span>
+    //       <div className="ms-2">
+    //         <h6 className="fw-medium">{record.Employee}</h6>
+    //         <span className="fs-12 fw-normal ">{record.Role}</span>
+    //       </div>
+    //     </div>
+    //   ),
+    //   sorter: (a: AttendanceAdminData, b: AttendanceAdminData) =>
+    //     a.Employee.length - b.Employee.length,
+    // },
     {
-      title: "Employee",
-      dataIndex: "Employee",
-      render: (_text: string, record: AttendanceAdminData) => (
-        <div className="d-flex align-items-center file-name-icon">
-          <span className="avatar avatar-md border avatar-rounded">
-            <ImageWithBasePath
-              src={`assets/img/users/${record.Image}`}
-              className="img-fluid"
-              alt={`${record.Employee} Profile`}
-            />
-          </span>
-          <div className="ms-2">
-            <h6 className="fw-medium">{record.Employee}</h6>
-            <span className="fs-12 fw-normal ">{record.Role}</span>
-          </div>
-        </div>
-      ),
+      title: "Start Date",
+      dataIndex: "StartDate",
       sorter: (a: AttendanceAdminData, b: AttendanceAdminData) =>
-        a.Employee.length - b.Employee.length,
+        a.StartDate.localeCompare(b.StartDate),
+    },
+    {
+      title: "End Date",
+      dataIndex: "EndDate",
+      sorter: (a: AttendanceAdminData, b: AttendanceAdminData) =>
+        a.EndDate.localeCompare(b.EndDate),
+    },
+
+    {
+      title: "Check In",
+      dataIndex: "CheckIn",
+      sorter: (a: AttendanceAdminData, b: AttendanceAdminData) =>
+        a.CheckIn.length - b.CheckIn.length,
     },
     {
       title: "Status",
       dataIndex: "Status",
       render: (text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge ${
-            text === "Present"
-              ? "badge-success-transparent"
-              : "badge-danger-transparent"
-          } d-inline-flex align-items-center`}
+          className={`badge ${text === "Present"
+            ? "badge-success-transparent"
+            : "badge-danger-transparent"
+            } d-inline-flex align-items-center`}
         >
           <i className="ti ti-point-filled me-1" />
           {record.Status}
@@ -174,22 +237,10 @@ const EmployeeAttendanceKHR = () => {
         a.Status.length - b.Status.length,
     },
     {
-      title: "Check In",
-      dataIndex: "CheckIn",
-      sorter: (a: AttendanceAdminData, b: AttendanceAdminData) =>
-        a.CheckIn.length - b.CheckIn.length,
-    },
-    {
       title: "Check Out",
       dataIndex: "CheckOut",
       sorter: (a: AttendanceAdminData, b: AttendanceAdminData) =>
         a.CheckOut.length - b.CheckOut.length,
-    },
-    {
-      title: "Break",
-      dataIndex: "Break",
-      sorter: (a: AttendanceAdminData, b: AttendanceAdminData) =>
-        a.Break.length - b.Break.length,
     },
     {
       title: "Late",
@@ -198,18 +249,29 @@ const EmployeeAttendanceKHR = () => {
         a.Late.length - b.Late.length,
     },
     {
+      title: "Late Time",
+      dataIndex: "LateTime",
+      // sorter: (a: AttendanceAdminData, b: AttendanceAdminData) =>
+      //   a.Late Time.length - b.Late Time.length,
+    },
+    {
+      title: "Overtime",
+      dataIndex: "Overtime",
+      // sorter: (a: AttendanceAdminData, b: AttendanceAdminData) => a.Overtime.length - b.Overtime.length,
+    },
+
+    {
       title: "Production Hours",
       dataIndex: "ProductionHours",
       render: (_text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge d-inline-flex align-items-center badge-sm ${
-            parseFloat(record.ProductionHours) < 8
-              ? "badge-danger"
-              : parseFloat(record.ProductionHours) >= 8 &&
-                parseFloat(record.ProductionHours) <= 9
+          className={`badge d-inline-flex align-items-center badge-sm ${parseFloat(record.ProductionHours) < 8
+            ? "badge-danger"
+            : parseFloat(record.ProductionHours) >= 8 &&
+              parseFloat(record.ProductionHours) <= 9
               ? "badge-success"
               : "badge-info"
-          }`}
+            }`}
         >
           <i className="ti ti-clock-hour-11 me-1"></i>
           {record.ProductionHours}
@@ -235,6 +297,21 @@ const EmployeeAttendanceKHR = () => {
         </div>
       ),
     },
+    {
+      title: "Action",
+      dataIndex: "actions",
+      render: (_: any, record: AttendanceAdminData) => (
+        <button
+          className="btn btn-sm btn-outline-primary"
+          onClick={() => {
+            setSelectedAttendancee(record);
+            setShowQueryModal(true);
+          }}
+        >
+          Raise Query
+        </button>
+      ),
+    }
   ];
 
   const statusChoose = [
@@ -271,13 +348,13 @@ const EmployeeAttendanceKHR = () => {
                   {/* View Switch */}
                   <div className="d-flex border bg-white rounded p-1">
                     <Link
-                      to={all_routes.attendanceemployee}
+                      to={all_routes.attendaceEmployeeKHR}
                       className="btn btn-icon btn-sm me-1"
                     >
                       <i className="ti ti-brand-days-counter" />
                     </Link>
                     <Link
-                      to={all_routes.attendanceadmin}
+                      to={all_routes.attendanceAdminKHR}
                       className="btn btn-icon btn-sm active bg-primary text-white"
                     >
                       <i className="ti ti-calendar-event" />
@@ -398,15 +475,15 @@ Punch In at 10.00 AM
                     className="spinner-border text-primary"
                     role="status"
                   ></div>
-                  <div className="mt-2">Loading Departments...</div>
+                  <div className="mt-2">Loading Attendence...</div>
                 </div>
               ) : (
                 <DatatableKHR
                   data={data}
                   columns={columns}
                   selection={true}
-                  // Ensure these keys match what DatatableKHR expects
-                  // textKey="Department_Name"
+                // Ensure these keys match what DatatableKHR expects
+                // textKey="Department_Name"
                 />
               )}
             </div>
@@ -416,6 +493,15 @@ Punch In at 10.00 AM
 
       {/* Modal Component */}
       {/* <AddDepartmentModal onSuccess={fetchData} data={selectedDepartment} /> */}
+
+      {showQueryModal && selectedAttendancee && (
+        <AttendanceQueryModal
+          attendance={selectedAttendancee}
+          employeeId={employeeId}
+          onClose={() => setShowQueryModal(false)}
+        />
+      )}
+
     </>
   );
 };

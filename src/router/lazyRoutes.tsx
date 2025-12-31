@@ -77,6 +77,18 @@ export const Login = createLazyComponent(
   <LoadingSpinner text="Loading login..." />,
   true
 );
+
+export const GeoKHR = createLazyComponent(
+  () => import("../KHRModules/AttandanceModules/GeoConfig/GeoKHR")
+);
+export const EmployeeContractKHR = createLazyComponent(
+  () => import("../KHRModules/EmployeeContract/EmployeeContractKHR"),
+  <LoadingSpinner text="Loading employee contract..." />
+);
+export const employeeSalaryKHR = createLazyComponent(
+  () => import("../KHRModules/payRollModules/structureTypes/StructureTypes"),
+  <LoadingSpinner text="Loading employee salary..." />
+);
 export const SecurityKeyLogin = createLazyComponent(
   () => import("../feature-module/auth/login/SecretKeyLogin"),
   <LoadingSpinner text="Loading login..." />,
@@ -387,6 +399,10 @@ export const HrContractTypeKHR = createLazyComponent(
   () => import("../KHRModules/Master Modules/HRContractType/HRContractTypeKHR")
 );
 
+export const SalaryRuleKHR = createLazyComponent(
+  () => import("../KHRModules/payRollModules/SalaryRule/SalaryRule")
+);
+
 export const IndustriesKHR = createLazyComponent(
   () => import("../KHRModules/Master Modules/Industries/IndustriesKHR")
 );
@@ -405,6 +421,9 @@ export const EmployeeAttandanceKHR = createLazyComponent(
     import(
       "../KHRModules/AttandanceModules/EmployeeAttandance/EmployeeAttandanceKHR"
     )
+);
+export const BanksKHR = createLazyComponent(
+  () => import("../KHRModules/Master Modules/BanksKHR/BanksKHR")
 );
 
 export const ShiftModulesKHR = createLazyComponent(

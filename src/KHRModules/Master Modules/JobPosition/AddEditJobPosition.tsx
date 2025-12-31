@@ -1,298 +1,352 @@
 import React, { useEffect, useState } from "react";
-import //   addDepartment,
-//   updateDepartment,
-// Department,
-"./JobPosition";
-import {
-  addDepartment,
-  updateDepartment,
-} from "../Department/departmentService";
-
-// Define the interface locally if not exported from service
-interface Department {
-  id?: string | number;
-  name: string;
-  parent_id: number | null;
-  color: number;
-  unit_code: string;
-  range_start: number;
-  range_end: number;
-  is_no_range: boolean;
-  is_lapse_allocation: boolean;
-  wage: number;
-  // UI legacy fields
-  Department_Head?: string;
-  Status?: string;
-}
+import { toast } from "react-toastify";
+import CommonSelect from "../../../core/common/commonSelect";
+import CommonAlertCard from "@/CommonComponent/AlertKHR/CommonAlertCard";
+import { addJob, updateJob, JobPosition, getContractTypes } from "./jobService";
+import Instance from "../../../api/axiosInstance";
+import { getSkills } from "../Skills/SkillServices";
 
 interface Props {
   onSuccess: () => void;
-  data: Department | null; // Receive selected department data
+  data: JobPosition | null;
 }
 
-const AddDepartmentModal: React.FC<Props> = ({ onSuccess, data }) => {
-  // Initialize state with all fields from your JSON payload
-  const [formData, setFormData] = useState({
-    name: "",
-    unit_code: "",
-    Department_Head: "", // Kept for UI, though payload uses parent_id
-    color: 0,
-    wage: 0,
-    range_start: 0,
-    range_end: 0,
-    is_no_range: false,
-    is_lapse_allocation: false,
-    Status: "Active",
-  });
+interface DropdownOption {
+  value: string;
+  label: string;
+}
 
-  // 1. WATCH FOR DATA CHANGES: Populate form if editing, reset if adding
+const AddEditJobPositionModal: React.FC<Props> = ({ onSuccess, data }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errors, setErrors] = useState<any>({});
+  const [showErrorAlert, setShowErrorAlert] = useState(false);
+
+  // Dropdown States
+  const [departments, setDepartments] = useState<DropdownOption[]>([]);
+  const [industries, setIndustries] = useState<DropdownOption[]>([]);
+  const [contractTypes, setContractTypes] = useState<DropdownOption[]>([]); // New state
+  const [availableSkills, setAvailableSkills] = useState<DropdownOption[]>([]);
+
+  const initialFormState = {
+    name: "",
+    department_id: "",
+    industry_id: "",
+    no_of_recruitment: 1,
+    skill_ids: [] as string[], // Will store array of strings
+    contract_type_id: "",
+  };
+
+  const [formData, setFormData] = useState(initialFormState);
+
+  // Fetch Dropdowns on Mount
+  useEffect(() => {
+    const fetchDropdowns = async () => {
+      const user_id = localStorage.getItem("user_id") || "219";
+      try {
+        const [deptRes, indRes, skillData, contractRes] = await Promise.all([
+          Instance.get(`/api/department?user_id=${user_id}`),
+          Instance.get(`/api/industries?user_id=${user_id}`),
+          getSkills(),
+          getContractTypes(),
+        ]);
+
+        // Fix 1: Properly extract arrays from responses
+        const deptList = deptRes.data.data || deptRes.data || [];
+        const indList = indRes.data.data || indRes.data || [];
+
+        // Fix 2: Handle the contractRes properly (if it's a direct array or wrapped in .data)
+        const contractList = Array.isArray(contractRes)
+          ? contractRes
+          : contractRes.data?.data || contractRes.data || [];
+
+        // Extract individual skill names
+        const allSkillNames: string[] = [];
+        const skillOptions: DropdownOption[] = [];
+        skillData.forEach((group: any) => {
+          // Check for 'skills' array (objects with id/name)
+          if (Array.isArray(group.skills)) {
+            group.skills.forEach((s: any) => {
+              if (!skillOptions.find((opt) => opt.value === String(s.id))) {
+                skillOptions.push({ value: String(s.id), label: s.name });
+              }
+            });
+          }
+          // Check for direct 'skill_ids' (if your API returns names only in some cases)
+          else if (Array.isArray(group.skill_ids)) {
+            group.skill_ids.forEach((name: string, index: number) => {
+              skillOptions.push({ value: name, label: name });
+            });
+          }
+        });
+
+        // Set states with mapped values
+        setDepartments(
+          deptList.map((d: any) => ({ value: String(d.id), label: d.name }))
+        );
+        setIndustries(
+          indList.map((i: any) => ({ value: String(i.id), label: i.name }))
+        );
+        setAvailableSkills(skillOptions);
+
+        // Fix 3: Ensure contractTypes state is set correctly
+        setContractTypes(
+          contractList.map((c: any) => ({ value: String(c.id), label: c.name }))
+        );
+      } catch (error) {
+        console.error("Error fetching dropdowns", error);
+      }
+    };
+    fetchDropdowns();
+  }, []);
+
   useEffect(() => {
     if (data) {
-      // Edit Mode: Fill form from selected row
       setFormData({
         name: data.name || "",
-        unit_code: data.unit_code || "",
-        Department_Head: data.Department_Head || "",
-        color: data.color || 0,
-        wage: data.wage || 0,
-        range_start: data.range_start || 0,
-        range_end: data.range_end || 0,
-        is_no_range: data.is_no_range || false,
-        is_lapse_allocation: data.is_lapse_allocation || false,
-        Status: (data.Status as string) || "Active",
+        department_id: String(data.department_id || ""),
+        industry_id: data.industry_id ? String(data.industry_id) : "",
+        no_of_recruitment: data.no_of_recruitment || 1,
+        // skill_ids: data.skill_ids || [],
+        skill_ids: data.skill_ids ? data.skill_ids.map((id) => String(id)) : [],
+        contract_type_id: data.contract_type_id
+          ? String(data.contract_type_id)
+          : "",
       });
     } else {
-      // Add Mode: Reset form
-      setFormData({
-        name: "",
-        unit_code: "",
-        Department_Head: "",
-        color: 0,
-        wage: 0,
-        range_start: 0,
-        range_end: 0,
-        is_no_range: false,
-        is_lapse_allocation: false,
-        Status: "Active",
-      });
+      resetForm();
     }
   }, [data]);
 
-  // Helper to handle input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+  const resetForm = () => {
+    setFormData(initialFormState);
+    setErrors({});
+    setIsSubmitted(false);
+    setShowErrorAlert(false);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const validateForm = () => {
+    let tempErrors: any = {};
+    let isValid = true;
+
+    if (!formData.name?.trim()) {
+      tempErrors.name = "Job Title is required.";
+      isValid = false;
+    }
+    if (!formData.department_id) {
+      tempErrors.department_id = "Department is required.";
+      isValid = false;
+    }
+    if (formData.skill_ids.length === 0) {
+      tempErrors.skill_ids = "At least one skill is required.";
+      isValid = false;
+    }
+
+    setErrors(tempErrors);
+    return isValid;
+  };
+
+  // --- Multi-Select Skill Handler ---
+  // const handleSkillChange = (selectedOptions: any) => {
+  //   const values = selectedOptions
+  //     ? selectedOptions.map((opt: any) => opt.value)
+  //     : [];
+  //   setFormData({ ...formData, skill_ids: values });
+  //   if (errors.skill_ids) setErrors({ ...errors, skill_ids: "" });
+  // };
+
+  const handleSkillChange = (selectedOptions: any) => {
+    const values = selectedOptions
+      ? selectedOptions.map((opt: any) => opt.value)
+      : [];
+    setFormData({ ...formData, skill_ids: values });
+    if (errors.skill_ids) setErrors({ ...errors, skill_ids: "" });
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsSubmitted(true);
 
-    // PREPARE PAYLOAD: Map State to specific API JSON structure
-    const apiPayload = {
-      name: formData.name,
-      parent_id: null, // You can map Department_Head logic here if needed
-      color: Number(formData.color), // Ensure number
-      unit_code: formData.unit_code,
-      range_start: Number(formData.range_start),
-      range_end: Number(formData.range_end),
-      is_no_range: formData.is_no_range,
-      is_lapse_allocation: formData.is_lapse_allocation,
-      wage: Number(formData.wage),
-      // status: formData.Status, // Add if API supports it
-    };
+    if (!validateForm()) {
+      setShowErrorAlert(true);
+      return;
+    }
 
+    setIsSubmitting(true);
     try {
-      if (data && data.id) {
-        // 2. EDIT LOGIC
-        // await updateDepartment(data.id, apiPayload);
-      } else {
-        // 3. ADD LOGIC
-        await addDepartment(apiPayload);
-      }
+      const payload: Partial<JobPosition> = {
+        name: formData.name,
+        department_id: Number(formData.department_id),
+        industry_id: formData.industry_id
+          ? Number(formData.industry_id)
+          : undefined,
+        no_of_recruitment: Number(formData.no_of_recruitment),
+        // skill_ids: formData.skill_ids, // Sending array of strings
+        skill_ids: formData.skill_ids.map((id) => Number(id)),
+        // skill_ids: formData.contract_type_id,
+        contract_type_id: formData.contract_type_id
+          ? Number(formData.contract_type_id)
+          : undefined,
+      };
 
-      // Close modal & Refresh
-      const closeBtn = document.getElementById("close-btn-dept");
-      closeBtn?.click();
+      if (data?.id) {
+        await updateJob(data.id, payload);
+        toast.success("Job Position updated!");
+      } else {
+        await addJob(payload);
+        toast.success("Job Position created!");
+      }
       onSuccess();
-    } catch (error) {
-      console.error("Failed to save department", error);
-      alert("Error saving data. Check console.");
+      document.getElementById("close-job-modal")?.click();
+    } catch (err: any) {
+      toast.error("Error saving job position");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div
-      className="modal custom-modal fade"
-      id="job_PositionsModal"
-      role="dialog"
-    >
+    <div className="modal fade" id="add_job_modal" role="dialog">
       <div className="modal-dialog modal-dialog-centered modal-lg">
-        {" "}
-        {/* Increased width to modal-lg */}
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">
-              {data ? "Edit Department" : "Add Department"}
-            </h5>
+        <div className="modal-content bg-white border-0">
+          <div className="modal-header border-0 bg-white pb-0">
+            <h4 className="modal-title fw-bold">Job Position Master Entry</h4>
             <button
               type="button"
+              id="close-job-modal"
               className="btn-close"
               data-bs-dismiss="modal"
-              id="close-btn-dept"
-              aria-label="Close"
-            >
-              <span aria-hidden="true">×</span>
-            </button>
+              onClick={resetForm}
+            ></button>
           </div>
+
           <div className="modal-body">
-            <form onSubmit={handleSubmit}>
-              <div className="row">
-                {/* Department Name */}
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Department Name</label>
+            <form noValidate onSubmit={handleSubmit}>
+              {/* Header Info */}
+              <div className="row g-3 mb-4 bg-light p-3 rounded mx-0 align-items-center border shadow-sm">
+                <div className="col-md-6">
+                  <label className="form-label fs-13 fw-bold">
+                    Job Title *
+                  </label>
                   <input
-                    type="text"
-                    name="name"
-                    className="form-control"
-                    required
+                    className={`form-control ${
+                      isSubmitted && errors.name ? "is-invalid" : ""
+                    }`}
                     value={formData.name}
-                    onChange={handleChange}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                   />
                 </div>
-
-                {/* Unit Code */}
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Unit Code</label>
-                  <input
-                    type="text"
-                    name="unit_code"
-                    className="form-control"
-                    required
-                    value={formData.unit_code}
-                    onChange={handleChange}
+                <div className="col-md-6">
+                  <label className="form-label fs-13 fw-bold">
+                    Department *
+                  </label>
+                  <CommonSelect
+                    options={departments}
+                    defaultValue={departments.find(
+                      (d) => d.value === formData.department_id
+                    )}
+                    onChange={(opt) =>
+                      setFormData({
+                        ...formData,
+                        department_id: opt?.value || "",
+                      })
+                    }
                   />
-                </div>
-
-                {/* Department Head */}
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Department Head</label>
-                  <input
-                    type="text"
-                    name="Department_Head"
-                    className="form-control"
-                    value={formData.Department_Head}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                {/* Wage */}
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Wage</label>
-                  <input
-                    type="number"
-                    name="wage"
-                    className="form-control"
-                    value={formData.wage}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                {/* Color Code */}
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Color ID</label>
-                  <input
-                    type="number"
-                    name="color"
-                    className="form-control"
-                    value={formData.color}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                {/* Empty Col for spacing if needed */}
-                <div className="col-md-6 mb-3"></div>
-
-                <div className="col-12">
-                  <hr />
-                </div>
-
-                {/* Range Section */}
-                <div className="col-md-12 mb-3">
-                  <div className="form-check form-switch">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      name="is_no_range"
-                      id="is_no_range"
-                      checked={formData.is_no_range}
-                      onChange={handleChange}
-                    />
-                    <label className="form-check-label" htmlFor="is_no_range">
-                      Is No Range?
-                    </label>
-                  </div>
-                </div>
-
-                {/* Show Ranges only if 'is_no_range' is false */}
-                {!formData.is_no_range && (
-                  <>
-                    <div className="col-md-6 mb-3">
-                      <label className="form-label">Range Start</label>
-                      <input
-                        type="number"
-                        name="range_start"
-                        className="form-control"
-                        value={formData.range_start}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div className="col-md-6 mb-3">
-                      <label className="form-label">Range End</label>
-                      <input
-                        type="number"
-                        name="range_end"
-                        className="form-control"
-                        value={formData.range_end}
-                        onChange={handleChange}
-                      />
-                    </div>
-                  </>
-                )}
-
-                {/* Lapse Allocation */}
-                <div className="col-md-12 mb-3">
-                  <div className="form-check form-switch">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      name="is_lapse_allocation"
-                      id="is_lapse_allocation"
-                      checked={formData.is_lapse_allocation}
-                      onChange={handleChange}
-                    />
-                    <label
-                      className="form-check-label"
-                      htmlFor="is_lapse_allocation"
-                    >
-                      Is Lapse Allocation?
-                    </label>
-                  </div>
                 </div>
               </div>
 
-              <div className="modal-footer">
+              {/* Body Info */}
+              <div className="row g-3">
+                <div className="col-md-4">
+                  <label className="form-label fs-13">Industry</label>
+                  <CommonSelect
+                    options={industries}
+                    defaultValue={industries.find(
+                      (i) => i.value === formData.industry_id
+                    )}
+                    onChange={(opt) =>
+                      setFormData({
+                        ...formData,
+                        industry_id: opt?.value || "",
+                      })
+                    }
+                  />
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label fs-13">Contract Type</label>
+                  <CommonSelect
+                    options={contractTypes}
+                    defaultValue={contractTypes.find(
+                      (i) => i.value === formData.contract_type_id
+                    )}
+                    onChange={(opt) =>
+                      setFormData({
+                        ...formData,
+                        contract_type_id: opt?.value || "",
+                      })
+                    }
+                  />
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label fs-13">Recruitments</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={formData.no_of_recruitment}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        no_of_recruitment: Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+
+                <hr className="my-4 opacity-25" />
+
+                {/* --- MULTI-SELECT SKILLS --- */}
+                <div className="col-md-12">
+                  <label className="form-label fs-13 fw-bold">
+                    Required Skills *
+                  </label>
+                  <CommonSelect
+                    isMulti={true}
+                    options={availableSkills}
+                    placeholder="Search and select multiple skills..."
+                    // Matches the string IDs stored in skill_ids to the available options
+                    value={availableSkills.filter((opt) =>
+                      formData.skill_ids.includes(opt.value)
+                    )}
+                    className={
+                      isSubmitted && errors.skill_ids ? "border-danger" : ""
+                    }
+                    onChange={handleSkillChange}
+                  />
+                  {isSubmitted && errors.skill_ids && (
+                    <div className="text-danger fs-11 mt-1">
+                      {errors.skill_ids}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="modal-footer border-0 bg-white px-0 mt-4">
                 <button
                   type="button"
                   className="btn btn-light"
                   data-bs-dismiss="modal"
+                  onClick={resetForm}
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary">
-                  {data ? "Update Changes" : "Save Department"}
+                <button
+                  type="submit"
+                  className="btn btn-primary px-5"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Processing..." : "Save Job Position"}
                 </button>
               </div>
             </form>
@@ -303,4 +357,4 @@ const AddDepartmentModal: React.FC<Props> = ({ onSuccess, data }) => {
   );
 };
 
-export default AddDepartmentModal;
+export default AddEditJobPositionModal;
