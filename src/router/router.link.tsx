@@ -309,6 +309,7 @@ import { Offcanvas, Spinner } from "react-bootstrap";
 import { Video } from "react-feather";
 import EmployeeContractKHR from "@/KHRModules/EmployeeContract/EmployeeContractKHR";
 import StructureTypeKHR from "@/KHRModules/payRollModules/structureTypes/StructureTypes";
+import SalaryRuleKHR from "@/KHRModules/payRollModules/SalaryRule/SalaryRule";
 
 const routes = all_routes;
 
@@ -1653,6 +1654,11 @@ export const publicRoutes = [
     {
     path: routes.employeeSalaryKHR,
     element: <StructureTypeKHR />,
+    route: Route,
+  },
+     {
+    path: routes.SalaryRuleKHR,
+    element: <SalaryRuleKHR />,
     route: Route,
   },
   {

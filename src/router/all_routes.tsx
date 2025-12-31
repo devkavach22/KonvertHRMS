@@ -15,6 +15,7 @@ export const all_routes = {
   hrContractTypeKHR: "/KHR-hr-contract-type",
   geoConfigKHR: "/KHR-geo-configurations",
   geoKHR: "/KHR-geo-configurations",
+  SalaryRuleKHR:"/KHR-salary-rules",
 
   //Employee Modules
   employeeKHR: "/KHR-employees",

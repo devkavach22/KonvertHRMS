@@ -399,6 +399,10 @@ export const HrContractTypeKHR = createLazyComponent(
   () => import("../KHRModules/Master Modules/HRContractType/HRContractTypeKHR")
 );
 
+export const SalaryRuleKHR = createLazyComponent(
+  () => import("../KHRModules/payRollModules/SalaryRule/SalaryRule")
+);
+
 export const IndustriesKHR = createLazyComponent(
   () => import("../KHRModules/Master Modules/Industries/IndustriesKHR")
 );

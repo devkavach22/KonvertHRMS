@@ -138,6 +138,7 @@ export const SidebarDataTest = [
         dot: false,
         submenuItems: [
           { label: "Structure Types", link: routes.employeeSalaryKHR },
+          { label: "Salary Rules", link: routes.SalaryRuleKHR },
        
         ],
       },
