@@ -7,18 +7,15 @@ import AddEditAttendancePolicyModal from "./AddEditLeaveRequestModal";
 import moment from "moment";
 
 import {
-  getAttendancePolicies,
-  deleteAttendancePolicy,
-  AttendancePolicy as AttendancePolicyType,
-  APIAttendancePolicy,
+  getLeaveRequests
 } from "./LeaveRequestServices";
 
 const LeaveAdminKHR = () => {
   const routes = all_routes;
-  const [data, setData] = useState<AttendancePolicyType[]>([]);
+  const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedPolicy, setSelectedPolicy] =
-    useState<AttendancePolicyType | null>(null);
+    useState<any | null>(null);
   const [employeesOptions, setEmployeesOptions] = useState<Array<{id:any;name:string}>>([]);
   // New form state for Leave Type settings
   const [leaveName, setLeaveName] = useState<string>("");
@@ -67,54 +64,24 @@ const LeaveAdminKHR = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const result = await getAttendancePolicies();
-      const safeResult = Array.isArray(result) ? result : [];
+      const result = await getLeaveRequests();
+      const safeResult = Array.isArray(result.data.data) ? result.data?.data : [];
 
-      // Build a lookup map of employees by id if we fetched options earlier
-      const empMap: Record<string,string> = {};
-      employeesOptions.forEach((e) => { empMap[String(e.id)] = e.name; });
 
-      const mappedData: AttendancePolicyType[] = safeResult.map((item: APIAttendancePolicy) => {
-        // normalize employees selection to array of objects with id/name
-        let employees_selection: any[] = [];
-        const raw = (item as any).employees_selection ?? (item as any).employees ?? [];
-        if (Array.isArray(raw)) {
-          employees_selection = raw.map((v: any) => {
-            if (v && typeof v === "object") return v;
-            const id = v;
-            return { id, name: empMap[String(id)] ?? String(id) };
-          });
-        } else if (typeof raw === "string") {
-          try {
-            const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed)) {
-              employees_selection = parsed.map((v: any) => (v && typeof v === "object") ? v : { id: v, name: empMap[String(v)] ?? String(v) });
-            }
-          } catch (e) {
-            employees_selection = [];
-          }
-        }
-
-        return {
-          id: String(item.id),
-          key: String(item.id),
-          employees_selection,
-          type: item.type ?? "",
-          from_date: (item as any).from_date ?? (item as any).start_date ?? null,
-          to_date: (item as any).to_date ?? (item as any).end_date ?? null,
-          no_of_days: (item as any).no_of_days ?? null,
-          remaining_days: (item as any).remaining_days ?? null,
-          reason: (item as any).reason ?? "",
-          // include approved_by and status fields so columns map correctly
-          approved_by: (item as any).approved_by ?? (item as any).approver ?? (item as any).approved_by_name ?? null,
-          status: (item as any).status ?? (item as any).approval_status ?? (item as any).state ?? null,
-          created_date: item.create_date ?? "-",
-        } as any;
-      });
+      const mappedData = safeResult.map((item: any) => ({
+        id: item.id,
+        employee_name: item.employee_name || item.employee_id,
+        company_name: item.company_name || item.company_id,
+        department_name: item.department_name || item.department_id,
+        leave_type: item.leave_type_name,
+        from_date: item.from_date,
+        to_date: item.to_date,
+        status: item.status,
+      }));
 
       setData(mappedData);
     } catch (error) {
-      console.error("Failed to load policies", error);
+      console.error("Failed to load leave requests", error);
     } finally {
       setLoading(false);
     }
@@ -199,111 +166,79 @@ const LeaveAdminKHR = () => {
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this policy?")) {
-      await deleteAttendancePolicy(id);
+      // await deleteAttendancePolicy(id);
       fetchData();
     }
   };
 
   const columns: any[] = [
     {
-      title: "Leave ",
-      dataIndex: "type",
-      render: (val: any) => <span>{typeof val === "string" && val ? String(val).replace(/_/g, " ") : "-"}</span>,
-      sorter: (a: any, b: any) => String(a?.type ?? "").localeCompare(String(b?.type ?? "")),
+      title: "ID",
+      dataIndex: "id",
+      render: (val: any) => <span>{val || "-"}</span>,
+      sorter: (a: any, b: any) => (a.id || 0) - (b.id || 0),
     },
     {
-      title: "From",
+      title: "Employee Name",
+      dataIndex: "employee_name",
+      render: (val: any) => <span>{val || "-"}</span>,
+      sorter: (a: any, b: any) => String(a.employee_name || "").localeCompare(String(b.employee_name || "")),
+    },
+    {
+      title: "Company Name",
+      dataIndex: "company_name",
+      render: (val: any) => <span>{val || "-"}</span>,
+      sorter: (a: any, b: any) => String(a.company_name || "").localeCompare(String(b.company_name || "")),
+    },
+    {
+      title: "Department Name",
+      dataIndex: "department_name",
+      render: (val: any) => <span>{val || "-"}</span>,
+      sorter: (a: any, b: any) => String(a.department_name || "").localeCompare(String(b.department_name || "")),
+    },
+    {
+      title: "Leave Type",
+      dataIndex: "leave_type",
+      render: (val: any) => <span>{val || "-"}</span>,
+      sorter: (a: any, b: any) => String(a.leave_type || "").localeCompare(String(b.leave_type || "")),
+    },
+    {
+      title: "From Date",
       dataIndex: "from_date",
-      render: (val: any, record: any) => {
-        const date = val ?? record.start_date ?? record.created_date ?? null;
-        return <span>{date && moment(date).isValid() ? moment(date).format("YYYY-MM-DD") : "-"}</span>;
-      },
+      render: (val: any) => <span>{val ? moment(val).format("YYYY-MM-DD") : "-"}</span>,
       sorter: (a: any, b: any) => {
-        const aDate = a?.from_date ?? a?.start_date ?? a?.created_date ?? null;
-        const bDate = b?.from_date ?? b?.start_date ?? b?.created_date ?? null;
-        const ad = moment(aDate);
-        const bd = moment(bDate);
-        if (ad.isValid() && bd.isValid()) return ad.valueOf() - bd.valueOf();
-        if (ad.isValid()) return -1;
-        if (bd.isValid()) return 1;
-        return 0;
+        const aDate = moment(a.from_date);
+        const bDate = moment(b.from_date);
+        return aDate.isValid() && bDate.isValid() ? aDate.valueOf() - bDate.valueOf() : 0;
       },
     },
     {
-      title: "Approved By",
-      dataIndex: "approved_by",
-      render: (_: any, record: any) => {
-        const ap = (record.approved_by && (record.approved_by.name || record.approved_by)) || record.approver || record.approved_by_name || null;
-        if (!ap) return <span>-</span>;
-        return <span>{typeof ap === 'string' ? ap : String(ap)}</span>;
-      },
-      sorter: (a: any, b: any) => {
-        const A = (a?.approved_by && (a.approved_by.name || a.approved_by)) || a?.approver || a?.approved_by_name || "";
-        const B = (b?.approved_by && (b.approved_by.name || b.approved_by)) || b?.approver || b?.approved_by_name || "";
-        return String(A).localeCompare(String(B));
-      },
-    },
-    {
-      title: "To",
+      title: "To Date",
       dataIndex: "to_date",
-      render: (val: any, record: any) => {
-        const date = val ?? record.end_date ?? null;
-        return <span>{date && moment(date).isValid() ? moment(date).format("YYYY-MM-DD") : "-"}</span>;
-      },
+      render: (val: any) => <span>{val ? moment(val).format("YYYY-MM-DD") : "-"}</span>,
       sorter: (a: any, b: any) => {
-        const aDate = a?.to_date ?? a?.end_date ?? null;
-        const bDate = b?.to_date ?? b?.end_date ?? null;
-        const ad = moment(aDate);
-        const bd = moment(bDate);
-        if (ad.isValid() && bd.isValid()) return ad.valueOf() - bd.valueOf();
-        if (ad.isValid()) return -1;
-        if (bd.isValid()) return 1;
-        return 0;
-      },
-    },
-    {
-      title: "No of Days",
-      dataIndex: "no_of_days",
-      render: (val: any, record: any) => {
-        if (val !== undefined && val !== null) return <span>{Number(val)}</span>;
-        const start = record.from_date ?? record.start_date ?? record.created_date ?? null;
-        const end = record.to_date ?? record.end_date ?? null;
-        if (start && end && moment(start).isValid() && moment(end).isValid()) {
-          const diff = moment(end).endOf("day").diff(moment(start).startOf("day"), "days") + 1;
-          return <span>{diff}</span>;
-        }
-        return <span>-</span>;
-      },
-      sorter: (a: any, b: any) => {
-        const getDays = (r: any) => {
-          if (r?.no_of_days !== undefined && r?.no_of_days !== null) return Number(r.no_of_days);
-          const s = r?.from_date ?? r?.start_date ?? r?.created_date ?? null;
-          const e = r?.to_date ?? r?.end_date ?? null;
-          if (s && e && moment(s).isValid() && moment(e).isValid()) {
-            return moment(e).endOf("day").diff(moment(s).startOf("day"), "days") + 1;
-          }
-          return 0;
-        };
-        return getDays(a) - getDays(b);
+        const aDate = moment(a.to_date);
+        const bDate = moment(b.to_date);
+        return aDate.isValid() && bDate.isValid() ? aDate.valueOf() - bDate.valueOf() : 0;
       },
     },
     {
       title: "Status",
       dataIndex: "status",
-      render: (val: any, record: any) => {
-        const s = val ?? record.approval_status ?? record.state ?? record.status ?? null;
-        return <span>{s ? String(s) : "-"}</span>;
-      },
-      sorter: (a: any, b: any) => String(a?.status ?? a?.approval_status ?? a?.state ?? "").localeCompare(String(b?.status ?? b?.approval_status ?? b?.state ?? "")),
+      render: (val: any) => <span>{val || "-"}</span>,
+      sorter: (a: any, b: any) => String(a.status || "").localeCompare(String(b.status || "")),
     },
-    {
-      title: "Actions",
-      key: "actions",
-      render: (_: any, record: any) => (
-        <div>
-          <button
-            className="btn btn-sm btn-primary me-2"
-            onClick={() => {
+     {
+          title: "Actions",
+          dataIndex: "id",
+          render: (_: any, record: any) => (
+            <div className="action-icon d-inline-flex">
+              <Link
+                to="#"
+                className="me-2"
+                data-bs-toggle="modal"
+                data-bs-target="#add_department"
+  onClick={() => {
               setSelectedPolicy(record);
               const jq = (window as any).jQuery || (window as any).$;
               if (jq && typeof jq === "function" && jq("#add_attendance_policy").modal) {
@@ -313,19 +248,19 @@ const LeaveAdminKHR = () => {
                   // ignore if modal call fails
                 }
               }
-            }}
-          >
-            Edit
-          </button>
-          <button
-            className="btn btn-sm btn-danger"
-            onClick={() => handleDelete(String(record.id))}
-          >
-            Delete
-          </button>
-        </div>
-      ),
-    },
+            }}              >
+                <i className="ti ti-edit text-blue" />
+              </Link>
+              <Link to="#" 
+              // onClick={() => 
+              //   handleDelete(record.id!)}
+                >
+                <i className="ti ti-trash text-danger" />
+              </Link>
+            </div>
+          ),
+        },
+
   ];
 
   return (
@@ -340,7 +275,7 @@ const LeaveAdminKHR = () => {
                 activeMenu="Leave List"
                 routes={routes}
                 buttonText="Add leave Request"
-                modalTarget="#add_attendance_policy"
+                modalTarget="#add_leave_request"
               />
             </div>
 

@@ -49,17 +49,16 @@ export const getAttendancePolicies = async (): Promise<
   }
 };
 
-// POST: /employee/create/attendance-policy
-export const addAttendancePolicy = async (data: any) => {
-  return await Instance.post("/employee/create/attendance-policy", data);
-};
+// POST :- http://192.168.11.245:4000/api/create/accural-plan?user_id=219
+// Create a Accutal plan 
+export const createAccuralPlan = async (data: any): Promise<any> => {
+  let user_id = localStorage.getItem("user_id");
+  return await Instance.post(`/api/create/accural-plan?user_id=${user_id}`, data);
+}
 
-// PUT: /employee/attendance-policy/:id
-export const updateAttendancePolicy = async (id: string, data: any) => {
-  return await Instance.put(`/employee/attendance-policy/${id}`, data);
-};
-
-// DELETE: /employee/attendance-policy/:id
-export const deleteAttendancePolicy = async (id: string) => {
-  return await Instance.delete(`/employee/attendance-policy/${id}`);
-};
+// GET :- http://192.168.11.245:4000/api/accural-plan?user_id=219
+// Get all Accutal plan
+export const getAllAccuralPlan = async (): Promise<any> => {
+  let user_id = localStorage.getItem("user_id");
+  return await Instance.get(`api/accural-plan?user_id=${user_id}`);
+}

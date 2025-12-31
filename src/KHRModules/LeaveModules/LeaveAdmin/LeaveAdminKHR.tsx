@@ -7,15 +7,14 @@ import AddEditAttendancePolicyModal from "./AddEditLeaveModal";
 import moment from "moment";
 
 import {
-  getAttendancePolicies,
-  deleteAttendancePolicy,
+  getLeaveDashboard,
   AttendancePolicy as AttendancePolicyType,
   APIAttendancePolicy,
 } from "./LeaveServices";
 
 const LeaveAdminKHR = () => {
   const routes = all_routes;
-  const [data, setData] = useState<AttendancePolicyType[]>([]);
+  const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedPolicy, setSelectedPolicy] =
     useState<AttendancePolicyType | null>(null);
@@ -27,47 +26,30 @@ const LeaveAdminKHR = () => {
   const fetchData = async () => {
     setLoading(false);
     try {
-      const result = await getAttendancePolicies();
-      const safeResult = Array.isArray(result) ? result : [];
+      const result = await getLeaveDashboard();
+      console.log(result,"result");
+      
+      const safeResult = Array.isArray(result.data) ? result?.data : [];
 
       // Build a lookup map of employees by id if we fetched options earlier
       const empMap: Record<string,string> = {};
       employeesOptions.forEach((e) => { empMap[String(e.id)] = e.name; });
 
-      const mappedData: AttendancePolicyType[] = safeResult.map((item: APIAttendancePolicy) => {
-        // normalize employees selection to array of objects with id/name
-        let employees_selection: any[] = [];
-        const raw = (item as any).employees_selection ?? (item as any).employees ?? [];
-        if (Array.isArray(raw)) {
-          employees_selection = raw.map((v: any) => {
-            if (v && typeof v === "object") return v;
-            const id = v;
-            return { id, name: empMap[String(id)] ?? String(id) };
-          });
-        } else if (typeof raw === "string") {
-          try {
-            const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed)) {
-              employees_selection = parsed.map((v: any) => (v && typeof v === "object") ? v : { id: v, name: empMap[String(v)] ?? String(v) });
-            }
-          } catch (e) {
-            employees_selection = [];
-          }
-        }
-
-        return {
-          id: String(item.id),
-          key: String(item.id),
-          employees_selection,
-          type: item.type ?? "",
-          from_date: (item as any).from_date ?? (item as any).start_date ?? null,
-          to_date: (item as any).to_date ?? (item as any).end_date ?? null,
-          no_of_days: (item as any).no_of_days ?? null,
-          remaining_days: (item as any).remaining_days ?? null,
-          reason: (item as any).reason ?? "",
-          created_date: item.create_date ?? "-",
-        } as any;
-      });
+      const mappedData = safeResult.map((item: any) => ({
+        id: item.id,
+        employee_name: Array.isArray(item.employee_id) ? item.employee_id[1] : item.employee_id,
+        check_in: item.check_in,
+        check_out: item.check_out,
+        worked_hours: item.worked_hours,
+        early_out_minutes: item.early_out_minutes,
+        overtime_hours: item.overtime_hours,
+        validated_overtime_hours: item.validated_overtime_hours,
+        is_late_in: item.is_late_in,
+        late_time_display: item.late_time_display,
+        is_early_out: item.is_early_out,
+        status_code: item.status_code,
+        job_name: Array.isArray(item.job_id) ? item.job_id[1] : item.job_name,
+      }));
 
       setData(mappedData);
     } catch (error) {
@@ -179,142 +161,98 @@ const LeaveAdminKHR = () => {
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this policy?")) {
-      await deleteAttendancePolicy(id);
+      // await deleteAttendancePolicy(id);
       fetchData();
     }
   };
 
   const columns: any[] = [
     {
-      title: "Employee",
-      dataIndex: "employees_selection",
-      render: (employees: any) => {
-        if (!Array.isArray(employees) || employees.length === 0) return <span>-</span>;
-        const names = employees
-          .map((e: any) => e?.name || e?.label || e?.full_name || e?.employee_name || "")
-          .filter((n: string) => !!n);
-        return <span>{names.length ? names.join(", ") : `${employees.length} employees`}</span>;
-      },
+      title: "ID",
+      dataIndex: "id",
+      render: (val: any) => <span>{val || "-"}</span>,
+      sorter: (a: any, b: any) => (a.id || 0) - (b.id || 0),
+    },
+    {
+      title: "Employee Name",
+      dataIndex: "employee_name",
+      render: (val: any) => <span>{val || "-"}</span>,
+      sorter: (a: any, b: any) => String(a.employee_name || "").localeCompare(String(b.employee_name || "")),
+    },
+    {
+      title: "Check In",
+      dataIndex: "check_in",
+      render: (val: any) => <span>{val ? moment(val).format("YYYY-MM-DD HH:mm") : "-"}</span>,
       sorter: (a: any, b: any) => {
-        const aName = Array.isArray(a?.employees_selection) && a.employees_selection[0]
-          ? String(a.employees_selection[0].name || a.employees_selection[0].label || "")
-          : "";
-        const bName = Array.isArray(b?.employees_selection) && b.employees_selection[0]
-          ? String(b.employees_selection[0].name || b.employees_selection[0].label || "")
-          : "";
-        return aName.localeCompare(bName);
+        const aDate = moment(a.check_in);
+        const bDate = moment(b.check_in);
+        return aDate.isValid() && bDate.isValid() ? aDate.valueOf() - bDate.valueOf() : 0;
       },
     },
     {
-      title: "Leave Type",
-      dataIndex: "type",
-      render: (val: any) => <span>{typeof val === "string" && val ? String(val).replace(/_/g, " ") : "-"}</span>,
-      sorter: (a: any, b: any) => String(a?.type ?? "").localeCompare(String(b?.type ?? "")),
-    },
-    {
-      title: "From",
-      dataIndex: "from_date",
-      render: (val: any, record: any) => {
-        const date = val ?? record.start_date ?? record.created_date ?? null;
-        return <span>{date && moment(date).isValid() ? moment(date).format("YYYY-MM-DD") : "-"}</span>;
-      },
+      title: "Check Out",
+      dataIndex: "check_out",
+      render: (val: any) => <span>{val ? moment(val).format("YYYY-MM-DD HH:mm") : "-"}</span>,
       sorter: (a: any, b: any) => {
-        const aDate = a?.from_date ?? a?.start_date ?? a?.created_date ?? null;
-        const bDate = b?.from_date ?? b?.start_date ?? b?.created_date ?? null;
-        const ad = moment(aDate);
-        const bd = moment(bDate);
-        if (ad.isValid() && bd.isValid()) return ad.valueOf() - bd.valueOf();
-        if (ad.isValid()) return -1;
-        if (bd.isValid()) return 1;
-        return 0;
+        const aDate = moment(a.check_out);
+        const bDate = moment(b.check_out);
+        return aDate.isValid() && bDate.isValid() ? aDate.valueOf() - bDate.valueOf() : 0;
       },
     },
     {
-      title: "To",
-      dataIndex: "to_date",
-      render: (val: any, record: any) => {
-        const date = val ?? record.end_date ?? null;
-        return <span>{date && moment(date).isValid() ? moment(date).format("YYYY-MM-DD") : "-"}</span>;
-      },
-      sorter: (a: any, b: any) => {
-        const aDate = a?.to_date ?? a?.end_date ?? null;
-        const bDate = b?.to_date ?? b?.end_date ?? null;
-        const ad = moment(aDate);
-        const bd = moment(bDate);
-        if (ad.isValid() && bd.isValid()) return ad.valueOf() - bd.valueOf();
-        if (ad.isValid()) return -1;
-        if (bd.isValid()) return 1;
-        return 0;
-      },
+      title: "Worked Hours",
+      dataIndex: "worked_hours",
+      render: (val: any) => <span>{val || "-"}</span>,
+      sorter: (a: any, b: any) => (a.worked_hours || 0) - (b.worked_hours || 0),
     },
     {
-      title: "No of Days",
-      dataIndex: "no_of_days",
-      render: (val: any, record: any) => {
-        if (val !== undefined && val !== null) return <span>{Number(val)}</span>;
-        const start = record.from_date ?? record.start_date ?? record.created_date ?? null;
-        const end = record.to_date ?? record.end_date ?? null;
-        if (start && end && moment(start).isValid() && moment(end).isValid()) {
-          const diff = moment(end).endOf("day").diff(moment(start).startOf("day"), "days") + 1;
-          return <span>{diff}</span>;
-        }
-        return <span>-</span>;
-      },
-      sorter: (a: any, b: any) => {
-        const getDays = (r: any) => {
-          if (r?.no_of_days !== undefined && r?.no_of_days !== null) return Number(r.no_of_days);
-          const s = r?.from_date ?? r?.start_date ?? r?.created_date ?? null;
-          const e = r?.to_date ?? r?.end_date ?? null;
-          if (s && e && moment(s).isValid() && moment(e).isValid()) {
-            return moment(e).endOf("day").diff(moment(s).startOf("day"), "days") + 1;
-          }
-          return 0;
-        };
-        return getDays(a) - getDays(b);
-      },
+      title: "Early Out Minutes",
+      dataIndex: "early_out_minutes",
+      render: (val: any) => <span>{val || "-"}</span>,
+      sorter: (a: any, b: any) => (a.early_out_minutes || 0) - (b.early_out_minutes || 0),
     },
-      {
-        title: "Remaining Days",
-        dataIndex: "remaining_days",
-        render: (val: any) => (val !== undefined && val !== null ? <span>{Number(val)}</span> : <span>-</span>),
-        sorter: (a: any, b: any) => (Number(a?.remaining_days ?? 0) - Number(b?.remaining_days ?? 0)),
-      },
-      {
-        title: "Reason",
-        dataIndex: "reason",
-        render: (val: any) => <span>{val ? String(val) : "-"}</span>,
-        sorter: (a: any, b: any) => String(a?.reason ?? "").localeCompare(String(b?.reason ?? "")),
-      },
     {
-      title: "Actions",
-      key: "actions",
-      render: (_: any, record: any) => (
-        <div>
-          <button
-            className="btn btn-sm btn-primary me-2"
-            onClick={() => {
-              setSelectedPolicy(record);
-              const jq = (window as any).jQuery || (window as any).$;
-              if (jq && typeof jq === "function" && jq("#add_attendance_policy").modal) {
-                try {
-                  jq("#add_attendance_policy").modal("show");
-                } catch (e) {
-                  // ignore if modal call fails
-                }
-              }
-            }}
-          >
-            Edit
-          </button>
-          <button
-            className="btn btn-sm btn-danger"
-            onClick={() => handleDelete(String(record.id))}
-          >
-            Delete
-          </button>
-        </div>
-      ),
+      title: "Overtime Hours",
+      dataIndex: "overtime_hours",
+      render: (val: any) => <span>{val || "-"}</span>,
+      sorter: (a: any, b: any) => (a.overtime_hours || 0) - (b.overtime_hours || 0),
     },
+    {
+      title: "Validated Overtime Hours",
+      dataIndex: "validated_overtime_hours",
+      render: (val: any) => <span>{val || "-"}</span>,
+      sorter: (a: any, b: any) => (a.validated_overtime_hours || 0) - (b.validated_overtime_hours || 0),
+    },
+    {
+      title: "Is Late In",
+      dataIndex: "is_late_in",
+      render: (val: any) => <span>{val ? "Yes" : "No"}</span>,
+      sorter: (a: any, b: any) => (a.is_late_in ? 1 : 0) - (b.is_late_in ? 1 : 0),
+    },
+    {
+      title: "Late Time Display",
+      dataIndex: "late_time_display",
+      render: (val: any) => <span>{val || "-"}</span>,
+      sorter: (a: any, b: any) => String(a.late_time_display || "").localeCompare(String(b.late_time_display || "")),
+    },
+    {
+      title: "Is Early Out",
+      dataIndex: "is_early_out",
+      render: (val: any) => <span>{val ? "Yes" : "No"}</span>,
+      sorter: (a: any, b: any) => (a.is_early_out ? 1 : 0) - (b.is_early_out ? 1 : 0),
+    },
+    {
+      title: "Status Code",
+      dataIndex: "status_code",
+      render: (val: any) => <span>{val || "-"}</span>,
+      sorter: (a: any, b: any) => String(a.status_code || "").localeCompare(String(b.status_code || "")),
+    },
+    {
+      title: "Job Name",
+      dataIndex: "job_name",
+      render: (val: any) => <span>{val || "-"}</span>,
+      sorter: (a: any, b: any) => String(a.job_name || "").localeCompare(String(b.job_name || "")),
+    }
   ];
 
   return (

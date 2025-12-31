@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import {
-  addAttendancePolicy,
-  updateAttendancePolicy,
-  AttendancePolicy,
+  createMandatoryDays
 } from "./mendetoryDaysServices";
+import { DatePicker } from "antd";
+import dayjs from "dayjs";
 
 interface Props {
   onSuccess: () => void;
-  data: AttendancePolicy | null;
+  data: any;
 }
 
 const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
@@ -15,13 +15,12 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
     name: "",
     start_date: "",
     end_date: "",
+    color: "",
     company: ""
   };
 
   const [formData, setFormData] = useState<any>(initialFormState);
   const [validated, setValidated] = useState(false);
-  const [workingOptions, setWorkingOptions] = useState<any[]>([]);
-  const [workEntryTypeOptions, setWorkEntryTypeOptions] = useState<any[]>([]);
 
   useEffect(() => {
     if (data) {
@@ -29,6 +28,7 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
         name: (data as any).name ?? "",
         start_date: (data as any).start_date ?? "",
         end_date: (data as any).end_date ?? "",
+        color: (data as any).color ?? "",
         company: (data as any).company ?? "",
       });
     } else {
@@ -36,65 +36,7 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
     }
   }, [data]);
 
-  // fetch working options
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const endpoints = ["/api/working", "/working", "/api/working-options", "/api/working_statuses"];
-        let result: any = null;
-        for (const ep of endpoints) {
-          try {
-            const res = await fetch(ep);
-            if (!res.ok) continue;
-            const json = await res.json();
-            if (Array.isArray(json)) { result = json; break; }
-            if (json && Array.isArray(json.data)) { result = json.data; break; }
-            if (json && (json.id || json.name)) { result = [json]; break; }
-          } catch (e) {
-            // continue
-          }
-        }
-        if (mounted && Array.isArray(result)) {
-          const opts = result.map((r: any) => ({ id: r.id ?? r.value, name: r.name ?? r.label ?? String(r.id) }));
-          setWorkingOptions(opts);
-        }
-      } catch (e) {
-        // ignore
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
 
-  // fetch work entry type options
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const endpoints = ["/api/work-entry-types", "/work-entry-types", "/api/work_entry_types", "/api/entry-types"];
-        let result: any = null;
-        for (const ep of endpoints) {
-          try {
-            const res = await fetch(ep);
-            if (!res.ok) continue;
-            const json = await res.json();
-            if (Array.isArray(json)) { result = json; break; }
-            if (json && Array.isArray(json.data)) { result = json.data; break; }
-            if (json && (json.id || json.name)) { result = [json]; break; }
-          } catch (e) {
-            // continue
-          }
-        }
-        if (mounted && Array.isArray(result)) {
-          const opts = result.map((r: any) => ({ id: r.id ?? r.value, name: r.name ?? r.label ?? String(r.id) }));
-          setWorkEntryTypeOptions(opts);
-        }
-      } catch (e) {
-        // ignore
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
 
   // reset on modal close
   useEffect(() => {
@@ -121,16 +63,17 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
     const form = e.currentTarget;
     if (form.checkValidity() === false) return;
 
-    const payload: any = {
-      name: formData.name || null,
-      start_date: formData.start_date || null,
-      end_date: formData.end_date || null,
-      company: formData.company || null,
+    const payload = {
+      name: formData.name,
+      start_date: formData.start_date,
+      end_date: formData.end_date,
+      color: parseInt(formData.color),
+      company_id: parseInt(formData.company)
     };
 
     try {
-      if (data && data.id) await updateAttendancePolicy(data.id, payload);
-      else await addAttendancePolicy(payload);
+      await createMandatoryDays(payload);
+      console.log("done here")
       const closeBtn = document.getElementById("close-btn-policy");
       closeBtn?.click();
       onSuccess();
@@ -160,7 +103,7 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
                 </div>
 
                 {/* company field */}
-                <div className="col-md-12 mb-3">
+                <div className="col-md-6 mb-3">
                   <label className="form-label">Company</label>
                   <input type="text" name="company" className="form-control" value={formData.company ?? ""} onChange={handleChange} required />
                   {validated && !(formData.company) && (
@@ -168,9 +111,22 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
                   )}
                 </div>
 
+                {/* color field */}
+                <div className="col-md-6 mb-3">
+                  <label className="form-label">Color</label>
+                  <input type="number" name="color" className="form-control" value={formData.color ?? ""} onChange={handleChange} min="1" required />
+                  {validated && !(formData.color) && (
+                    <span className="text-danger small">Required</span>
+                  )}
+                </div>
+
                 <div className="col-md-6 mb-3">
                   <label className="form-label">Start Date</label>
-                  <input type="date" name="start_date" className="form-control" value={formData.start_date ?? ""} onChange={handleChange} required />
+                  <DatePicker
+                    className={`form-control w-100 ${validated && !formData.start_date ? "is-invalid" : ""}`}
+                    value={formData.start_date ? dayjs(formData.start_date) : null}
+                    onChange={(_, dateStr) => setFormData({ ...formData, start_date: dateStr })}
+                  />
                   {validated && !(formData.start_date) && (
                     <span className="text-danger small">Required</span>
                   )}
@@ -178,7 +134,11 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
 
                 <div className="col-md-6 mb-3">
                   <label className="form-label">End Date</label>
-                  <input type="date" name="end_date" className="form-control" value={formData.end_date ?? ""} onChange={handleChange} required />
+                  <DatePicker
+                    className={`form-control w-100 ${validated && !formData.end_date ? "is-invalid" : ""}`}
+                    value={formData.end_date ? dayjs(formData.end_date) : null}
+                    onChange={(_, dateStr) => setFormData({ ...formData, end_date: dateStr })}
+                  />
                   {validated && !(formData.end_date) && (
                     <span className="text-danger small">Required</span>
                   )}
@@ -202,4 +162,3 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
 };
 
 export default AddEditPublicHolidayModal;
-

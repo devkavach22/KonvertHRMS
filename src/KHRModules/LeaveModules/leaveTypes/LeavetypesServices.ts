@@ -94,33 +94,36 @@ export const createLeaveType = async (data: LeaveTypePayload) => {
 
 // GET: /api/leave-types (expects paginated or list response)
 export const getLeaveTypesCode = async (): Promise<any[]> => {
+  // 1️⃣ Get user_id from localStorage
+  const userId = localStorage.getItem("user_id");
+
+  // 2️⃣ Call API with query param
+  const response = await Instance.get("/api/leave-type", {
+    params: {
+      user_id: userId,
+    },
+  });
+  return response.data?.data;
+}
+
+// put :- http://192.168.11.245:4000/api/leave-type/1?user_id=3145
+// Update a leave type
+export const updateLeaveType = async (id: number, data: any) => {
+  let user_id = localStorage.getItem("user_id");
   try {
-    // 1️⃣ Get user_id from localStorage
-    const userId = localStorage.getItem("user_id");
-
-    if (!userId) {
-      toast.error("User not found. Please login again.");
-      return [];
-    }
-
-    // 2️⃣ Call API with query param
-    const response = await Instance.get("/api/leave-type", {
-      params: {
-        user_id: userId,
-      },
-    });
-
-    // 3️⃣ Return safe data
-    return response?.data?.data ?? [];
+    const response = await Instance.put(`/api/leave-type/${id}?user_id=${user_id}`, data);
+    return response.data;
   } catch (error: any) {
-    console.error("Error fetching leave types:", error);
-
-    if (error.response?.status === 404) {
-      toast.error("Leave types not found");
-    } else {
-      toast.error("Failed to fetch leave types");
-    }
-
-    return [];
+    console.log("error occure",error)
   }
-};
+}
+
+// Get :- http://192.168.11.245:4000/api/leave-type?user_id=3145
+// Get all leave types
+export const getAllLeaveTypes = async () => {
+  let user_id = localStorage.getItem("user_id");
+  const response = await Instance.get(`/api/leave-type?user_id=${user_id}`);
+  return response.data;
+}
+
+

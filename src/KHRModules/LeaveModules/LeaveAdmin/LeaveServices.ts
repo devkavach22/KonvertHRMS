@@ -36,30 +36,16 @@ export interface APIAttendancePolicy {
 
 // 3. SERVICE FUNCTIONS
 
-// GET: /employee/attendance-policies
-export const getAttendancePolicies = async (): Promise<
-  APIAttendancePolicy[]
-> => {
-  try {
-    const response = await Instance.get("/employee/attendance-policies");
-    return response.data.data || [];
-  } catch (error) {
-    console.error("Error fetching attendance policies:", error);
-    return [];
-  }
-};
+
 
 // POST: /employee/create/attendance-policy
 export const addAttendancePolicy = async (data: any) => {
   return await Instance.post("/employee/create/attendance-policy", data);
 };
 
-// PUT: /employee/attendance-policy/:id
-export const updateAttendancePolicy = async (id: string, data: any) => {
-  return await Instance.put(`/employee/attendance-policy/${id}`, data);
-};
 
-// DELETE: /employee/attendance-policy/:id
-export const deleteAttendancePolicy = async (id: string) => {
-  return await Instance.delete(`/employee/attendance-policy/${id}`);
-};
+// GET: http://192.168.11.245:4000/api/admin/leave-dashboard?user_id=219
+export const getLeaveDashboard = async () => {
+  let user_id = localStorage.getItem("user_id") || localStorage.getItem("userId") || localStorage.getItem("id");
+  return await Instance.get(`/api/admin/leave-dashboard?user_id=${user_id}`)
+}

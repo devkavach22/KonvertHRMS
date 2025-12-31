@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import {
   addAttendancePolicy,
-  updateAttendancePolicy,
   AttendancePolicy,
   createLeaveAllocation,
 } from "./LeaveAllocationServices";
 import toast from 'react-hot-toast';
 import moment from "moment";
+import { DatePicker, Radio, Checkbox } from "antd";
+import dayjs from "dayjs";
 
 interface Props {
   onSuccess: () => void;
@@ -18,15 +19,37 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
   const initialFormState = {
     // new simplified allocation form
     leave_type: "",
+    allocation_type: "regular",
     date_from: "",
     date_to: "",
-    allocation_days: "",
+    allocation_days: 0,
     description: "",
   };
 
   const [formData, setFormData] = useState<any>(initialFormState);
   const [validated, setValidated] = useState(false);
   const [employeesOptions, setEmployeesOptions] = useState<any[]>([]);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [errors, setErrors] = useState<any>({});
+
+  const computeAllocationDays = (from?: string | null, to?: string | null): number => {
+    if (!from || !to) return 0;
+    
+    // Parse dates consistently
+    const fromDate = dayjs(from);
+    const toDate = dayjs(to);
+    
+    // Validate both dates
+    if (!fromDate.isValid() || !toDate.isValid()) return 0;
+    
+    // Calculate the difference in days (inclusive)
+    const diffDays = toDate.diff(fromDate, 'day');
+    
+    // Return inclusive count (adding 1 to include both start and end date)
+    // If end date is before start date, return 0
+    return diffDays >= 0 ? diffDays + 1 : 0;
+  };
+
 
   // 1. DATA SYNC: Populate form when editing
   useEffect(() => {
@@ -44,14 +67,22 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
         }
       }
 
-      setFormData({
+      const mapped = {
         // map to new keys
         leave_type: (data as any).holiday_status_id ?? (data as any).leave_type ?? (data as any).type ?? "",
+        allocation_type: (data as any).allocation_type ?? "regular",
         date_from: (data as any).date_from ?? (data as any).from_date ?? (data as any).start_date ?? "",
         date_to: (data as any).date_to ?? (data as any).to_date ?? (data as any).end_date ?? "",
-        allocation_days: (data as any).number_of_days ?? (data as any).allocation ?? (data as any).no_of_days ?? "",
+        allocation_days: (data as any).number_of_days ?? (data as any).allocation ?? (data as any).no_of_days ?? null,
         description: (data as any).description ?? (data as any).reason ?? "",
-      });
+      };
+
+      // If allocation_days not provided, compute from dates
+      if ((mapped.allocation_days === null || mapped.allocation_days === undefined || mapped.allocation_days === "") && mapped.date_from && mapped.date_to) {
+        mapped.allocation_days = computeAllocationDays(mapped.date_from, mapped.date_to);
+      }
+
+      setFormData(mapped as any);
     } else {
       setFormData(initialFormState);
     }
@@ -92,6 +123,8 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
     const handleModalClose = () => {
       setValidated(false);
       setFormData(initialFormState);
+      setIsSubmitted(false);
+      setErrors({});
     };
     if (modalElement) {
       modalElement.addEventListener("hidden.bs.modal", handleModalClose);
@@ -114,6 +147,21 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
     e.preventDefault();
     e.stopPropagation();
 
+    setIsSubmitted(true);
+
+    const newErrors: any = {};
+    if (!formData.leave_type) newErrors.leave_type = "Leave type is required.";
+    if (!formData.allocation_type) newErrors.allocation_type = "Allocation type is required.";
+    if (!formData.date_from) newErrors.date_from = "From date is required.";
+    if (!formData.date_to) newErrors.date_to = "To date is required.";
+    // if (!formData.description) newErrors.description = "Description is required.";
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      return;
+    }
+
     const form = e.currentTarget;
     setValidated(true);
 
@@ -124,19 +172,21 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
     // Prepare Payload: convert and validate fields
     const apiPayload: any = { ...formData };
 
-    // convert numeric allocation_days
-    apiPayload.allocation_days = apiPayload.allocation_days === "" ? null : Number(apiPayload.allocation_days);
+    // convert numeric allocation_days robustly
+    apiPayload.allocation_days = apiPayload.allocation_days === "" || apiPayload.allocation_days === null || apiPayload.allocation_days === undefined
+      ? null
+      : Number(apiPayload.allocation_days);
 
 
     try {
       if (data && data.id) {
-        await updateAttendancePolicy(data.id, apiPayload);
+        // await updateAttendancePolicy(data.id, apiPayload);
         toast.success("Leave allocation updated.");
       } else {
         // Map form fields to API expected payload
         const allocationPayload: any = {
           holiday_status_id: apiPayload.leave_type && !isNaN(Number(apiPayload.leave_type)) ? Number(apiPayload.leave_type) : undefined,
-          allocation_type: "regular",
+          allocation_type: apiPayload.allocation_type || undefined,
           date_from: apiPayload.date_from || undefined,
           date_to: apiPayload.date_to || undefined,
           number_of_days: apiPayload.allocation_days === null ? undefined : Number(apiPayload.allocation_days),
@@ -194,6 +244,7 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
                     className="form-select"
                     value={formData.leave_type ?? ""}
                     onChange={handleChange}
+                    style={{ borderColor: isSubmitted ? (formData.leave_type ? "green" : "red") : undefined }}
                   >
                     <option value="">Select type</option>
                     <option value="1">Paid Time Off</option>
@@ -203,38 +254,85 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
                     <option value="5">Annual Leave</option>
                     <option value="6">Casual Leave (CL)</option>
                   </select>
+                  {isSubmitted && errors.leave_type && (
+                    <span style={{ color: "red", fontSize: 12, display: "block", marginTop: 6 }}>
+                      {errors.leave_type}
+                    </span>
+                  )}
                 </div>
 
-                <div className="col-md-3 mb-3">
+                <div className="col-md-6 mb-3">
+                  <label className="form-label">Allocation Type</label>
+                  <select
+                    name="allocation_type"
+                    className="form-select"
+                    value={formData.allocation_type ?? ""}
+                    onChange={handleChange}
+                    style={{ borderColor: isSubmitted ? (formData.allocation_type ? "green" : "red") : undefined }}
+                  >
+                    <option value="">Select type</option>
+                    <option value="regular">Regular</option>
+                    <option value="annual">Annual</option>
+                    <option value="sick">Sick</option>
+                    <option value="compensatory">Compensatory</option>
+                  </select>
+                  {isSubmitted && errors.allocation_type && (
+                    <span style={{ color: "red", fontSize: 12, display: "block", marginTop: 6 }}>
+                      {errors.allocation_type}
+                    </span>
+                  )}
+                </div>
+
+                <div className="col-md-4 mb-3">
                   <label className="form-label">From Date</label>
-                  <input
-                    type="date"
-                    name="date_from"
-                    className="form-control"
-                    value={formData.date_from ?? ""}
-                    onChange={handleChange}
+                  <DatePicker
+                    className="form-control w-100"
+                    value={formData.date_from ? dayjs(formData.date_from) : null}
+                    onChange={(value, dateStr) => {
+                      const newFrom = (dateStr as string) || "";
+                      setFormData((prev: any) => {
+                        const alloc = computeAllocationDays(newFrom, prev.date_to);
+                        return { ...prev, date_from: newFrom, allocation_days: alloc };
+                      });
+                    }}
+                    style={{ borderColor: isSubmitted ? (formData.date_from ? "green" : "red") : undefined }}
                   />
+                  {isSubmitted && errors.date_from && (
+                    <span style={{ color: "red", fontSize: 12, display: "block", marginTop: 6 }}>
+                      {errors.date_from}
+                    </span>
+                  )}
                 </div>
 
-                <div className="col-md-3 mb-3">
+                <div className="col-md-4 mb-3">
                   <label className="form-label">To Date</label>
-                  <input
-                    type="date"
-                    name="date_to"
-                    className="form-control"
-                    value={formData.date_to ?? ""}
-                    onChange={handleChange}
+                  <DatePicker
+                    className="form-control w-100"
+                    value={formData.date_to ? dayjs(formData.date_to) : null}
+                    onChange={(value, dateStr) => {
+                      const newTo = (dateStr as string) || "";
+                      setFormData((prev: any) => {
+                        const alloc = computeAllocationDays(prev.date_from, newTo);
+                        return { ...prev, date_to: newTo, allocation_days: alloc };
+                      });
+                    }}
+                    style={{ borderColor: isSubmitted ? (formData.date_to ? "green" : "red") : undefined }}
                   />
+                  {isSubmitted && errors.date_to && (
+                    <span style={{ color: "red", fontSize: 12, display: "block", marginTop: 6 }}>
+                      {errors.date_to}
+                    </span>
+                  )}
                 </div>
 
-                <div className="col-md-3 mb-3">
+                <div className="col-md-4 mb-3">
                   <label className="form-label">Allocation Days</label>
                   <input
                     type="number"
                     name="allocation_days"
                     className="form-control"
                     value={formData.allocation_days ?? ""}
-                    onChange={handleChange}
+                    readOnly
                   />
                 </div>
 
@@ -247,7 +345,13 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
                     rows={3}
                     value={formData.description ?? ""}
                     onChange={handleChange}
+                    style={{ borderColor: isSubmitted ? (formData.description ? "green" : "") : undefined }}
                   />
+                  {/* {isSubmitted && errors.description && (
+                    <span style={{ color: "red", fontSize: 12, display: "block", marginTop: 6 }}>
+                      {errors.description}
+                    </span>
+                  )} */}
                 </div>
 
                 {/* removed geo fields and JSON textarea per request */}
@@ -274,5 +378,3 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
 };
 
 export default AddEditAttendancePolicyModal;
-
-

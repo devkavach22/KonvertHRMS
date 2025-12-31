@@ -7,7 +7,6 @@ import AddEditAttendancePolicyModal from "./AddEditLeaveAllocationModal";
 import moment from "moment";
 
 import {
-  deleteAttendancePolicy,
   AttendancePolicy as AttendancePolicyType,
   getLeaveAllocations,
 } from "./LeaveAllocationServices";
@@ -95,7 +94,9 @@ const LeaveAdminKHR = () => {
           leave_type: leaveTypeLabel,
           from_date: item.date_from ?? item.from_date ?? null,
           to_date: item.date_to ?? item.to_date ?? null,
+          allocation_date: item.number_of_days ?? null,
           status: item.status ?? item.state ?? item.approval_status ?? null,
+
           // keep some legacy fields
           approved_by: item.approved_by ?? item.created_by ?? null,
         } as any;
@@ -189,7 +190,7 @@ const LeaveAdminKHR = () => {
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this policy?")) {
-      await deleteAttendancePolicy(id);
+      // await deleteAttendancePolicy(id);
       fetchData();
     }
   };
@@ -237,6 +238,12 @@ const LeaveAdminKHR = () => {
         return 0;
       },
     },
+        // add one more is allocation date
+    {
+      title: "Allocation date",
+      dataIndex: "allocation_date",
+      key: "actions",
+    },
     {
       title: "status",
       dataIndex: "status",
@@ -246,11 +253,40 @@ const LeaveAdminKHR = () => {
       },
       sorter: (a: any, b: any) => String(a?.status ?? a?.approval_status ?? a?.state ?? "").localeCompare(String(b?.status ?? b?.approval_status ?? b?.state ?? "")),
     },
-    // add one more is allocation date
-    // {
-    //   title: "Allocation date",
-    //   dataIndex: "allocation_date"
-    //   key: "actions",
+     {
+          title: "Actions",
+          dataIndex: "id",
+          render: (_: any, record: any) => (
+            <div className="action-icon d-inline-flex">
+              <Link
+                to="#"
+                className="me-2"
+                data-bs-toggle="modal"
+                data-bs-target="#add_department"
+  onClick={() => {
+              setSelectedPolicy(record);
+              const jq = (window as any).jQuery || (window as any).$;
+              if (jq && typeof jq === "function" && jq("#add_attendance_policy").modal) {
+                try {
+                  jq("#add_attendance_policy").modal("show");
+                } catch (e) {
+                  // ignore if modal call fails
+                }
+              }
+            }}              >
+                <i className="ti ti-edit text-blue" />
+              </Link>
+              <Link to="#" 
+              // onClick={() => 
+              //   handleDelete(record.id!)}
+                >
+                <i className="ti ti-trash text-danger" />
+              </Link>
+            </div>
+          ),
+        },
+
+
   ];
 
   return (

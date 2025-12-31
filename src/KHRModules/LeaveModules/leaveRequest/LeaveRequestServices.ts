@@ -1,4 +1,5 @@
 import Instance from "../../../api/axiosInstance";
+import { getEmployees } from "../../EmployeModules/Employee/EmployeeServices";
 
 // 1. UI Interface
 export interface AttendancePolicy {
@@ -36,30 +37,26 @@ export interface APIAttendancePolicy {
 
 // 3. SERVICE FUNCTIONS
 
-// GET: /employee/attendance-policies
-export const getAttendancePolicies = async (): Promise<
-  APIAttendancePolicy[]
-> => {
-  try {
-    const response = await Instance.get("/employee/attendance-policies");
-    return response.data.data || [];
-  } catch (error) {
-    console.error("Error fetching attendance policies:", error);
-    return [];
-  }
-};
 
 // POST: /employee/create/attendance-policy
 export const addAttendancePolicy = async (data: any) => {
   return await Instance.post("/employee/create/attendance-policy", data);
 };
 
-// PUT: /employee/attendance-policy/:id
-export const updateAttendancePolicy = async (id: string, data: any) => {
-  return await Instance.put(`/employee/attendance-policy/${id}`, data);
+// GET: /leave-request
+export const getLeaveRequests = async () => {
+  let user_id = localStorage.getItem("user_id") || localStorage.getItem("userId") || localStorage.getItem("id");
+  return await Instance.get(`/api/leave-request?user_id=${user_id}`)
 };
 
-// DELETE: /employee/attendance-policy/:id
-export const deleteAttendancePolicy = async (id: string) => {
-  return await Instance.delete(`/employee/attendance-policy/${id}`);
+// post: http://192.168.11.245:4000/api/create/leave-request?user_id=3145
+export const createLeaveRequest = async (data: any) => {
+  let user_id = localStorage.getItem("user_id") || localStorage.getItem("userId") || localStorage.getItem("id");
+
+  return await Instance.post(`/api/create/leave-request?user_id=${data.user_id}`, data);
+};
+
+// GET employees for leave request selection
+export const getEmployeesForLeaveRequest = async () => {
+  return await getEmployees();
 };

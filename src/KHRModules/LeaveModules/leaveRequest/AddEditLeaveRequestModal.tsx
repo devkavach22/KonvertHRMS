@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react";
 import {
   addAttendancePolicy,
-  updateAttendancePolicy,
   AttendancePolicy,
+  getEmployeesForLeaveRequest,
 } from "./LeaveRequestServices";
 import moment from "moment";
+import { DatePicker, Radio, Checkbox } from "antd";
+import dayjs from "dayjs";
 
 interface Props {
   onSuccess: () => void;
   data: AttendancePolicy | null;
 }
 
-const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
+const AddEditLeaveRequestModal: React.FC<Props> = ({ onSuccess, data }) => {
   // Initial state for the new geofence-style attendance fields
   const initialFormState = {
     employees_selection: [] as any[],
@@ -35,6 +37,8 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
   const [employeesOptions, setEmployeesOptions] = useState<any[]>([]);
   const [departmentsOptions, setDepartmentsOptions] = useState<any[]>([]);
   const [companyName, setCompanyName] = useState<string>("");
+   const [isSubmitted, setIsSubmitted] = useState(false);
+     const [errors, setErrors] = useState<any>({});
 
   // 1. DATA SYNC: Populate form when editing
   useEffect(() => {
@@ -76,57 +80,14 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
     let mounted = true;
     (async () => {
       try {
-        // try common endpoints; adjust if your API differs
-        const endpoints = ["/api/employees", "/api/users", "/employees", "/users"];
-        let result: any = null;
-        for (const ep of endpoints) {
-          try {
-            const res = await fetch(ep);
-            if (!res.ok) continue;
-            const json = await res.json();
-            if (Array.isArray(json)) {
-              result = json;
-              break;
-            }
-            // some APIs wrap data
-            if (json && Array.isArray(json.data)) {
-              result = json.data;
-              break;
-            }
-          } catch (e) {
-            // continue to next endpoint
-          }
-        }
-        if (mounted && Array.isArray(result)) {
+        const employees = await getEmployeesForLeaveRequest();
+        if (mounted && Array.isArray(employees)) {
           // normalize to objects with id and name
-          const opts = result.map((r: any) => ({ id: r.id ?? r.user_id ?? r.value, name: r.name ?? r.full_name ?? r.label ?? r.username ?? String(r.id) }));
+          const opts = employees.map((emp: any) => ({ id: emp.id ?? emp.user_id, name: emp.name ?? emp.full_name ?? String(emp.id) }));
           setEmployeesOptions(opts);
-          // fetch departments and company (best-effort endpoints)
-          try {
-            const depRes = await fetch('/api/departments');
-            if (depRes.ok) {
-              const depJson = await depRes.json();
-              const deps = Array.isArray(depJson) ? depJson : (Array.isArray(depJson.data) ? depJson.data : []);
-              const depOpts = deps.map((d: any) => ({ id: d.id ?? d.value, name: d.name ?? d.title ?? String(d.id) }));
-              setDepartmentsOptions(depOpts);
-            }
-          } catch (e) {
-            // ignore
-          }
-
-          try {
-            const compRes = await fetch('/api/company');
-            if (compRes.ok) {
-              const compJson = await compRes.json();
-              const comp = compJson && (compJson.name ?? compJson.company_name ?? (compJson.data && compJson.data.name));
-              if (comp) setCompanyName(comp);
-            }
-          } catch (e) {
-            // ignore
-          }
         }
       } catch (e) {
-        // ignore
+        console.error("Error fetching employees:", e);
       }
     })();
     return () => { mounted = false; };
@@ -134,7 +95,7 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
 
   // 2. RESET LOGIC: Listen for Modal Close
   useEffect(() => {
-    const modalElement = document.getElementById("add_attendance_policy");
+    const modalElement = document.getElementById("add_leave_request");
     const handleModalClose = () => {
       setValidated(false);
       setFormData(initialFormState);
@@ -265,7 +226,7 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
 
     try {
       if (data && data.id) {
-        await updateAttendancePolicy(data.id, apiPayload);
+        // await updateAttendancePolicy(data.id, apiPayload);
       } else {
         await addAttendancePolicy(apiPayload);
       }
@@ -281,7 +242,7 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
   return (
     <div
       className="modal custom-modal fade"
-      id="add_attendance_policy"
+      id="add_leave_request"
       role="dialog"
     >
       <div className="modal-dialog modal-dialog-centered modal-lg">
@@ -294,7 +255,7 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
               type="button"
               className="btn-close"
               data-bs-dismiss="modal"
-              id="close-btn-policy"
+              id="close-btn-leave"
               aria-label="Close"
             >
               <span aria-hidden="true">×</span>
@@ -328,83 +289,46 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
 
                 {/* Leave Balance */}
                 <div className="col-md-6 mb-3">
-                  <label className="form-label">Leave Balance</label>
+                  <label className="form-label">Holiday status</label>
                   <input
                     type="number"
-                    name="leave_balance"
+                    name="Holiday_status_id"
                     className={`form-control ${formData.leave_balance !== "" && formData.leave_balance !== null && formData.leave_balance !== undefined ? 'is-valid' : (validated ? 'is-invalid' : '')}`}
                     value={formData.leave_balance ?? ""}
                     onChange={handleChange}
                   />
                   {validated && (formData.leave_balance === "" || formData.leave_balance === null || formData.leave_balance === undefined) && (
-                    <span className="text-danger small">Required — enter leave balance</span>
+                    <span className="text-danger small">Required — enter Holiday status </span>
                   )}
                 </div>
 
-                {/* Company (static from API) */}
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Company</label>
-                  <input
-                    type="text"
-                    name="company"
-                    className={`form-control ${ (formData.company || companyName) ? 'is-valid' : (validated ? 'is-invalid' : '')}`}
-                    value={formData.company ?? companyName ?? ""}
-                    readOnly
-                  />
-                  {validated && !(formData.company || companyName) && (
-                    <span className="text-danger small">Required — company not found</span>
-                  )}
-                </div>
-
-                {/* Department */}
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Department</label>
-                  <select
-                    name="department"
-                    className={`form-select ${formData.department ? 'is-valid' : (validated ? 'is-invalid' : '')}`}
-                    value={formData.department ?? ""}
-                    onChange={handleChange}
-                  >
-                    {/* <option value="">Select department</option>
-                    {departmentsOptions.map((d) => (
-                      <option key={d.id} value={d.id}>{d.name}</option>
-                    ))} */}
-                  </select>
-                  {validated && !(formData.department) && (
-                    <span className="text-danger small">Required — select department</span>
-                  )}
-                </div>
-
-                {/* Leave Type */}
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Leave Type</label>
-                  <select
-                    name="type"
-                    className={`form-select ${formData.type ? 'is-valid' : (validated ? 'is-invalid' : '')}`}
-                    value={formData.type ?? ""}
-                    onChange={handleChange}
-                  >
-                    <option value="">Select type</option>
-                    <option value="sick">Sick Time Off</option>
-                    <option value="unpaid">Unpaid</option>
-                    <option value="extra_hours">Extra Hours</option>
-                  </select>
-                  {validated && !(formData.type) && (
-                    <span className="text-danger small">Required — select leave type</span>
-                  )}
-                </div>
 
                 {/* From */}
                 <div className="col-md-3 mb-3">
                   <label className="form-label">From</label>
-                  <input
-                    type="date"
-                    name="from_date"
-                    className={`form-control ${formData.from_date ? 'is-valid' : (validated ? 'is-invalid' : '')}`}
-                    value={formData.from_date ?? ""}
-                    onChange={handleChange}
-                  />
-                  {validated && !(formData.from_date) && (
+                                                <DatePicker
+                                className={`form-control w-100 ${
+                                  isSubmitted
+                                    ? errors.date_of_marriage
+                                      ? "is-invalid"
+                                      : formData.date_of_marriage
+                                      ? "is-valid"
+                                      : ""
+                                    : ""
+                                }`}
+                                value={
+                                  formData.date_of_marriage
+                                    ? dayjs(formData.date_of_marriage)
+                                    : null
+                                }
+                                onChange={(_, dateStr) =>
+                                  setFormData({
+                                    ...formData,
+                                    date_of_marriage: dateStr,
+                                  })
+                                }
+                              />
+                                                {validated && !(formData.to_date) && (
                     <span className="text-danger small">Required — select start date</span>
                   )}
                 </div>
@@ -412,80 +336,33 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
                 {/* To */}
                 <div className="col-md-3 mb-3">
                   <label className="form-label">To</label>
-                  <input
-                    type="date"
-                    name="to_date"
-                    className={`form-control ${formData.to_date ? 'is-valid' : (validated ? 'is-invalid' : '')}`}
-                    value={formData.to_date ?? ""}
-                    onChange={handleChange}
-                  />
+                          <DatePicker
+                                className={`form-control w-100 ${
+                                  isSubmitted
+                                    ? errors.date_of_marriage
+                                      ? "is-invalid"
+                                      : formData.date_of_marriage
+                                      ? "is-valid"
+                                      : ""
+                                    : ""
+                                }`}
+                                value={
+                                  formData.date_of_marriage
+                                    ? dayjs(formData.date_of_marriage)
+                                    : null
+                                }
+                                onChange={(_, dateStr) =>
+                                  setFormData({
+                                    ...formData,
+                                    date_of_marriage: dateStr,
+                                  })
+                                }
+                              />
                   {validated && !(formData.to_date) && (
                     <span className="text-danger small">Required — select end date</span>
                   )}
                 </div>
 
-                {/* No of Days (auto-calc) */}
-                <div className="col-md-3 mb-3">
-                  <label className="form-label">No of Days</label>
-                  <input
-                    type="number"
-                    name="no_of_days"
-                    className={`form-control ${formData.no_of_days !== "" && formData.no_of_days !== null && formData.no_of_days !== undefined ? 'is-valid' : (validated ? 'is-invalid' : '')}`}
-                    value={formData.no_of_days ?? ""}
-                    onChange={handleChange}
-                  />
-                  {validated && (formData.no_of_days === "" || formData.no_of_days === null || formData.no_of_days === undefined) && (
-                    <span className="text-danger small">Required — enter number of days</span>
-                  )}
-                </div>
-
-                {/* Requested (Days/Hours) */}
-                <div className="col-md-3 mb-3">
-                  <label className="form-label">Requested (Days/Hours)</label>
-                  <input
-                    type="number"
-                    name="requested"
-                    className={`form-control ${formData.requested !== "" && formData.requested !== null && formData.requested !== undefined ? 'is-valid' : (validated ? 'is-invalid' : '')}`}
-                    value={formData.requested ?? ""}
-                    onChange={handleChange}
-                  />
-                  {validated && (formData.requested === "" || formData.requested === null || formData.requested === undefined) && (
-                    <span className="text-danger small">Required — enter requested amount</span>
-                  )}
-                </div>
-
-                {/* HOD Approval Document (upload) */}
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">HOD Approval Document</label>
-                  <input
-                    type="file"
-                    name="hod_document"
-                    className={`form-control ${formData.hod_document ? 'is-valid' : (validated ? 'is-invalid' : '')}`}
-                    onChange={handleChange}
-                  />
-                  {validated && !(formData.hod_document) && (
-                    <span className="text-danger small">Required — upload HOD approval document</span>
-                  )}
-                </div>
-
-                {/* Payslip State */}
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Payslip State</label>
-                  <select
-                    name="payslip_state"
-                    className={`form-select ${formData.payslip_state ? 'is-valid' : (validated ? 'is-invalid' : '')}`}
-                    value={formData.payslip_state ?? ""}
-                    onChange={handleChange}
-                  >
-                    <option value="">Select</option>
-                    <option value="to_compute_next">To compute in next payslip</option>
-                    <option value="computed_current">Computed in current payslip</option>
-                    <option value="defer_next">To defer to next payslip</option>
-                  </select>
-                  {validated && !(formData.payslip_state) && (
-                    <span className="text-danger small">Required — select payslip state</span>
-                  )}
-                </div>
 
                 {/* Reason */}
                 <div className="col-md-12 mb-3">
@@ -525,6 +402,4 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
   );
 };
 
-export default AddEditAttendancePolicyModal;
-
-
+export default AddEditLeaveRequestModal;

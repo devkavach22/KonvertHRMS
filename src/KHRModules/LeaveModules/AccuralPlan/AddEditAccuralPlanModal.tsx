@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  addAttendancePolicy,
-  updateAttendancePolicy,
-  AttendancePolicy,
+  createAccuralPlan
 } from "./AccuralPlanServices";
 
 interface Props {
@@ -98,17 +96,17 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
     const form = e.currentTarget;
     if (form.checkValidity() === false) return;
 
-    const payload: any = {
-      name: formData.name || null,
-      accrued_gain_time: formData.accrued_gain_time || null,
-      carry_over_time: formData.carry_over_time || null,
-      based_on_worked_time: Boolean(formData.based_on_worked_time),
-      company: formData.company || null,
+    const payload = {
+      name: formData.name,
+      carryover_date: formData.carry_over_time === "start_of_year" ? "year_start" : formData.carry_over_time === "allocation_date" ? "allocation_date" : "other",
+      accrued_gain_time: formData.accrued_gain_time === "start_of_accrual" ? "start" : "end",
+      // company_id: parseInt(formData.company),
+      is_based_on_worked_time: Boolean(formData.based_on_worked_time),
     };
 
     try {
-      if (data && data.id) await updateAttendancePolicy(data.id, payload);
-      else await addAttendancePolicy(payload);
+      await createAccuralPlan(payload);
+      // console.log("done here")
       const closeBtn = document.getElementById("close-btn-policy");
       closeBtn?.click();
       onSuccess();
@@ -169,7 +167,7 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
                   </div>
                 </div>
 
-                <div className="col-md-6 mb-3">
+                {/* <div className="col-md-6 mb-3">
                   <label className="form-label">Company</label>
                   <select name="company" className="form-select" value={formData.company ?? ""} onChange={handleChange} required>
                     <option value="">Select company</option>
@@ -180,7 +178,7 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
                   {validated && !(formData.company) && (
                     <span className="text-danger small">Required — select company</span>
                   )}
-                </div>
+                </div> */}
               </div>
 
               <div className="modal-footer">
@@ -196,4 +194,3 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
 };
 
 export default AddEditAttendancePolicyModal;
-

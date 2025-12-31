@@ -36,33 +36,12 @@ export interface APIAttendancePolicy {
 
 // 3. SERVICE FUNCTIONS
 
-// GET: /employee/attendance-policies
-export const getAttendancePolicies = async (): Promise<
-  APIAttendancePolicy[]
-> => {
-  try {
-    const response = await Instance.get("/employee/attendance-policies");
-    return response.data.data || [];
-  } catch (error) {
-    console.error("Error fetching attendance policies:", error);
-    return [];
-  }
-};
 
 // POST: /employee/create/attendance-policy
 export const addAttendancePolicy = async (data: any) => {
   return await Instance.post("/employee/create/attendance-policy", data);
 };
 
-// PUT: /employee/attendance-policy/:id
-export const updateAttendancePolicy = async (id: string, data: any) => {
-  return await Instance.put(`/employee/attendance-policy/${id}`, data);
-};
-
-// DELETE: /employee/attendance-policy/:id
-export const deleteAttendancePolicy = async (id: string) => {
-  return await Instance.delete(`/employee/attendance-policy/${id}`);
-};
 
 // POST: /api/create/leave-allocate
 export const createLeaveAllocation = async (data: any) => {
@@ -78,9 +57,6 @@ export const createLeaveAllocation = async (data: any) => {
       if (!Number.isNaN(parsed)) config.params = { user_id: parsed };
     }
 
-    const token = localStorage.getItem("authToken");
-    if (token) config.headers = { Authorization: token, "Content-Type": "application/json" };
-
     const response = await Instance.post("/api/create/leave-allocate", data, config);
     return response.data;
   } catch (error: any) {
@@ -89,7 +65,7 @@ export const createLeaveAllocation = async (data: any) => {
   }
 };
 
-// GET: /api/leave-allocate
+// GET: http://192.168.11.245:4000/api/leave-allocate?user_id
 export const getLeaveAllocations = async (): Promise<any[]> => {
   try {
     const config: any = { maxBodyLength: Infinity };

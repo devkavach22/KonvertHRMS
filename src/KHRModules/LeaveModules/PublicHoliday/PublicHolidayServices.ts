@@ -49,17 +49,42 @@ export const getAttendancePolicies = async (): Promise<
   }
 };
 
-// POST: /employee/create/attendance-policy
-export const addAttendancePolicy = async (data: any) => {
-  return await Instance.post("/employee/create/attendance-policy", data);
-};
+// work entry id api :- http://192.168.11.245:4000/api/work-entry-types?user_id=3145
+export const getWorkEntryTypes = async (): Promise<any> => {
+  let user_id = localStorage.getItem("user_id");
+  try {
+    const response = await Instance.get(`/work-entry-types?user_id=${user_id}`);
+    return response.data.data || [];
+  } catch (error) {
+    console.error("Error fetching work entry types:", error);
+    return [];
+  }
+}
 
-// PUT: /employee/attendance-policy/:id
-export const updateAttendancePolicy = async (id: string, data: any) => {
-  return await Instance.put(`/employee/attendance-policy/${id}`, data);
-};
+// POST :- http://192.168.11.245:4000/api/create/public-holiday?user_id=219
+// Create a holiday 
+export const createHoliday = async (data: any): Promise<any> => {
+  let user_id = localStorage.getItem("user_id");
+  return await Instance.post(`/api/create/public-holiday?user_id=${user_id}`, data);
+}
 
-// DELETE: /employee/attendance-policy/:id
-export const deleteAttendancePolicy = async (id: string) => {
-  return await Instance.delete(`/employee/attendance-policy/${id}`);
-};
+// GET : http://192.168.11.245:4000/api/public-holiday?user_id=219
+// Get all holidays
+export const getHolidays = async (): Promise<any> => {
+  let user_id = localStorage.getItem("user_id");  
+  return await Instance.get(`/api/public-holiday?user_id=${user_id}`);
+} 
+
+// GET :- http://localhost:4000/api/work-entry-types?user_id=159
+// work entry type
+export const getWorkEntryType = async (): Promise<any> => {
+  let user_id = localStorage.getItem("user_id");    
+  return await Instance.get(`/api/work-entry-types?user_id=${user_id}`);
+}
+
+// GET :- http://192.168.11.245:4000/api/WorkingSchedules?user_id=3145
+// calender ID :-
+export const getCalenderId = async (): Promise<any> => {
+  let user_id = localStorage.getItem("user_id");    
+  return await Instance.get(`/api/WorkingSchedules?user_id=${user_id}`);
+}

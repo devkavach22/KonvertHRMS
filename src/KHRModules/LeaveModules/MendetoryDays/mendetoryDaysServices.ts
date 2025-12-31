@@ -49,17 +49,19 @@ export const getAttendancePolicies = async (): Promise<
   }
 };
 
-// POST: /employee/create/attendance-policy
-export const addAttendancePolicy = async (data: any) => {
-  return await Instance.post("/employee/create/attendance-policy", data);
-};
 
-// PUT: /employee/attendance-policy/:id
-export const updateAttendancePolicy = async (id: string, data: any) => {
-  return await Instance.put(`/employee/attendance-policy/${id}`, data);
-};
+// post :- http://192.168.11.245:4000/api/create/mandatory-days?user_id=219
+// Create a mandatory days
+export const createMandatoryDays = async (data: any): Promise<any> => {
+  let user_id = localStorage.getItem("user_id");
+  return await Instance.post(`/api/create/mandatory-days?user_id=${user_id}`, data);
+}
 
-// DELETE: /employee/attendance-policy/:id
-export const deleteAttendancePolicy = async (id: string) => {
-  return await Instance.delete(`/employee/attendance-policy/${id}`);
-};
+
+// get :- http://192.168.11.245:4000/api/mandatory-days?user_id=
+// Get all mandatory days
+export const getAllMandatoryDays = async (): Promise<any> =>{
+  let user_id = localStorage.getItem("user_id");
+  return await Instance.get(`/api/mandatory-days?user_id=${user_id}`);
+
+}

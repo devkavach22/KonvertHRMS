@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   addAttendancePolicy,
-  updateAttendancePolicy,
+  // updateAttendancePolicy,
   AttendancePolicy,
 } from "./LeaveServices";
 import moment from "moment";
@@ -11,7 +11,7 @@ interface Props {
   data: AttendancePolicy | null;
 }
 
-const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
+export const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
   // Initial state for the new geofence-style attendance fields
   const initialFormState = {
     employees_selection: [] as any[],
@@ -210,7 +210,7 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
 
     try {
       if (data && data.id) {
-        await updateAttendancePolicy(data.id, apiPayload);
+        // await updateAttendancePolicy(data.id, apiPayload);
       } else {
         await addAttendancePolicy(apiPayload);
       }
@@ -234,7 +234,7 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
         <div className="modal-content">
           <div className="modal-header">
             <h5 className="modal-title">
-              {data ? "Edit Geo Configurations" : "Add Geo Configurations"}
+              {data ? "Edit Admin" : "Add Admin"}
             </h5>
             <button
               type="button"
