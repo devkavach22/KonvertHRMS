@@ -1,15 +1,26 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { submitAttendance } from "./checkinCheckOutService";
+import { useDispatch, useSelector } from "react-redux";
+import { CheckinCheckout, TBSelector } from "@/Store/Reducers/TBSlice";
 
 const StatusCheckInPopup: React.FC = () => {
+  const dispatch = useDispatch();
+  const ref = useRef<HTMLDivElement>(null);
+
+  const { CheckinCheckoutData, isCheckinCheckoutFetching } =
+    useSelector(TBSelector);
+
   const [open, setOpen] = useState(false);
-  const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [checkInTime, setCheckInTime] = useState<Date | null>(null);
   const [totalMinutes, setTotalMinutes] = useState(0);
 
-  const ref = useRef<HTMLDivElement>(null);
-
+  /* =====================
+     DERIVED STATE
+  ===================== */
+  const isCheckedIn =
+    CheckinCheckoutData?.status === "CheckedIn";
+  console.log(CheckinCheckoutData,"lplp");
+  
   /* =====================
      CLOSE ON OUTSIDE CLICK
   ===================== */
@@ -24,103 +35,97 @@ const StatusCheckInPopup: React.FC = () => {
   }, []);
 
   /* =====================
-     TIMER LOGIC
+     HANDLE API RESPONSE
   ===================== */
   useEffect(() => {
-    let interval: any;
+    if (!CheckinCheckoutData) return;
 
-    if (isCheckedIn && checkInTime) {
-      interval = setInterval(() => {
-        const now = new Date();
-        const diff = Math.floor(
-          (now.getTime() - checkInTime.getTime()) / 60000
-        );
-        setTotalMinutes(diff);
-      }, 60000);
+    const { status, data } = CheckinCheckoutData;
+  console.log(data,"..44");
+  
+    if (status === "CheckedIn") {
+      setCheckInTime(new Date(data?.check_in_time));
+      setOpen(true);
+      toast.success("Checked in successfully");
     }
+
+    if (status === "CheckedOut") {
+      setCheckInTime(null);
+      setTotalMinutes(0);
+      setOpen(true);
+      toast.success("Checked out successfully");
+    }
+  }, [CheckinCheckoutData]);
+
+  /* =====================
+     WORK TIMER
+  ===================== */
+  useEffect(() => {
+    if (!isCheckedIn || !checkInTime) return;
+
+    const interval = setInterval(() => {
+      const now = new Date();
+      const diff = Math.floor(
+        (now.getTime() - checkInTime.getTime()) / 60000
+      );
+      setTotalMinutes(diff);
+    }, 60000);
 
     return () => clearInterval(interval);
   }, [isCheckedIn, checkInTime]);
 
   /* =====================
-     GET CURRENT LOCATION
+     CHECK IN / CHECK OUT
   ===================== */
-  const getCurrentLocation = (): Promise<{
-    latitude: number;
-    longitude: number;
-  }> => {
-    return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        reject("Geolocation not supported");
-      }
 
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          resolve({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          });
-        },
-        (error) => reject(error),
-        { enableHighAccuracy: true }
+  const handleAction = () => {
+  if (!navigator.geolocation) {
+    toast.error("Geolocation is not supported by your browser");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const { latitude, longitude } = position.coords;
+      dispatch(
+        CheckinCheckout({
+          Latitude: latitude,
+          Longitude: longitude,
+        })
       );
-    });
-  };
+    },
+    (error) => {
+      console.error(error);
+      toast.error("Unable to get your location");
+    },
+    { enableHighAccuracy: true }
+  );
+};
 
-  /* =====================
-     CHECK-IN
-  ===================== */
-  const handleCheckIn = async () => {
-    try {
-      const { latitude, longitude } = await getCurrentLocation();
-      console.log(latitude, longitude,"Submitting attendance...");
-      
-      // await submitAttendance(latitude, longitude);
-      await submitAttendance(23.089409500000, 72.530084100000);
-
-
-      setCheckInTime(new Date());
-      setIsCheckedIn(true);
-      toast.success("Checked in successfully");
-    } catch (err) {
-      console.error(err);
-      toast.error("Check-in failed");
-    }
-  };
-
-  /* =====================
-     CHECK-OUT
-  ===================== */
-  const handleCheckOut = async () => {
-    try {
-      const { latitude, longitude } = await getCurrentLocation();
-      // await submitAttendance(latitude, longitude);
-      await submitAttendance(23.089409500000, 72.530084100000);
-
-
-      setIsCheckedIn(false);
-      setCheckInTime(null);
-      setTotalMinutes(0);
-      toast.success("Checked out successfully");
-    } catch (err) {
-      console.error(err);
-      toast.error("Check-out failed");
-    }
-  };
+  // const handleAction = () => {
+  //   dispatch(
+  //     CheckinCheckout({
+  //       Latitude: 23.0894095,
+  //       Longitude: 72.5300841,
+  //     })
+  //   );
+  // };
 
   /* =====================
      FORMATTERS
   ===================== */
   const formatTime = (date: Date | null) =>
     date
-      ? date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      ? date.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
       : "--:--";
 
-  const formatTotal = (min: number) => {
-    const h = Math.floor(min / 60);
-    const m = min % 60;
-    return `${h}:${m.toString().padStart(2, "0")}`;
-  };
+  const formatTotal = (min: number) =>
+    `${Math.floor(min / 60)}:${(min % 60)
+      .toString()
+      .padStart(2, "0")}`;
 
   /* =====================
      UI
@@ -129,15 +134,17 @@ const StatusCheckInPopup: React.FC = () => {
     <div ref={ref} style={{ position: "relative" }}>
       {/* STATUS DOT */}
       <span
-        onClick={() => setOpen(!open)}
+        onClick={() => setOpen((p) => !p)}
         style={{
-          width: "10px",
-          height: "10px",
+          width: 10,
+          height: 10,
           borderRadius: "50%",
           backgroundColor: isCheckedIn ? "#28c76f" : "#ea5455",
           cursor: "pointer",
           display: "inline-block",
-          boxShadow: "0 0 0 4px rgba(40,199,111,0.2)",
+          boxShadow: isCheckedIn
+            ? "0 0 0 4px rgba(40,199,111,0.2)"
+            : "0 0 0 4px rgba(234,84,85,0.2)",
         }}
       />
 
@@ -146,12 +153,12 @@ const StatusCheckInPopup: React.FC = () => {
         <div
           style={{
             position: "absolute",
-            top: "18px",
+            top: 18,
             right: 0,
-            width: "230px",
+            width: 230,
             background: "#fff",
-            borderRadius: "10px",
-            padding: "12px",
+            borderRadius: 10,
+            padding: 12,
             boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
             zIndex: 1000,
           }}
@@ -159,9 +166,10 @@ const StatusCheckInPopup: React.FC = () => {
           {!isCheckedIn ? (
             <button
               className="btn btn-success w-100"
-              onClick={handleCheckIn}
+              onClick={handleAction}
+              disabled={isCheckinCheckoutFetching}
             >
-              Check In
+              {isCheckinCheckoutFetching ? "Checking In..." : "Check In"}
             </button>
           ) : (
             <>
@@ -180,18 +188,14 @@ const StatusCheckInPopup: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mb-2">
-                <small className="text-muted">Total today</small>
-                <div className=" fw-bold">
-                  {formatTotal(totalMinutes)}
-                </div>
-              </div>
-
               <button
                 className="btn btn-warning w-100"
-                onClick={handleCheckOut}
+                onClick={handleAction}
+                disabled={isCheckinCheckoutFetching}
               >
-                Check Out ↪
+                {isCheckinCheckoutFetching
+                  ? "Checking Out..."
+                  : "Check Out ↪"}
               </button>
             </>
           )}

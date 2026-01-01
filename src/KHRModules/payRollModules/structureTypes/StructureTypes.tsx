@@ -6,7 +6,12 @@ import DatatableKHR from "@/CommonComponent/DataTableKHR/DatatableKHR";
 import CommonHeader from "@/CommonComponent/HeaderKHR/HeaderKHR";
 
 import AddStructureTypeModal from "./AddStructureType";
-import { getStructureTypes } from "./StructureTypeService";
+import {
+  GetStructureTypes,
+  TBSelector,
+  updateState,
+} from "@/Store/Reducers/TBSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 /* ================= TYPES ================= */
 
@@ -21,7 +26,6 @@ interface StructureType {
   default_work_entry_type: string;
 }
 
-
 /* ================= COMPONENT ================= */
 
 const StructureTypeKHR = () => {
@@ -29,65 +33,105 @@ const StructureTypeKHR = () => {
 
   const [data, setData] = useState<StructureType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const dispatch = useDispatch();
+
+  const {
+    isGetStructureTypes,
+    isGetStructureTypesFetching,
+    GetStructureTypesData,
+  } = useSelector(TBSelector);
+
   const [selectedStructure, setSelectedStructure] =
     useState<StructureType | null>(null);
 
   /* ================= FETCH ================= */
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const response: any = await getStructureTypes();
-      console.log(response, "rrrr");
+  // const fetchData = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const response: any = await getStructureTypes();
+  //     console.log(response, "rrrr");
 
-      const list = Array.isArray(response)
-        ? response
-        : Array.isArray(response?.data)
-          ? response.data
-          : [];
+  //     const list = Array.isArray(response)
+  //       ? response
+  //       : Array.isArray(response?.data)
+  //       ? response.data
+  //       : [];
 
+  //     const mappedData: StructureType[] = list.map((item: any) => ({
+  //       id: item.id,
 
-      const mappedData: StructureType[] = list.map((item: any) => ({
-        id: item.id,
+  //       name: item.name || "-",
 
-        name: item.name || "-",
+  //       country: Array.isArray(item.country_id) ? item.country_id[1] : "-",
 
-        country:
-          Array.isArray(item.country_id)
-            ? item.country_id[1]
-            : "-",
+  //       default_wage_type: item.wage_type || "-",
 
-        default_wage_type: item.wage_type || "-",
+  //       default_schedule_pay: item.default_schedule_pay || "-",
 
-        default_schedule_pay: item.default_schedule_pay || "-",
+  //       default_working_hours: Array.isArray(item.default_resource_calendar_id)
+  //         ? item.default_resource_calendar_id[1]
+  //         : "-",
 
-        default_working_hours: Array.isArray(item.default_resource_calendar_id)
-          ? item.default_resource_calendar_id[1]
-          : "-",
+  //       regular_pay_structure: Array.isArray(item.default_struct_id)
+  //         ? item.default_struct_id[1]
+  //         : "-",
 
-        regular_pay_structure: Array.isArray(item.default_struct_id)
-          ? item.default_struct_id[1]
-          : "-",
+  //       default_work_entry_type: Array.isArray(item.default_work_entry_type_id)
+  //         ? item.default_work_entry_type_id[1]
+  //         : "-",
+  //     }));
 
-        default_work_entry_type: Array.isArray(item.default_work_entry_type_id)
-          ? item.default_work_entry_type_id[1]
-          : "-",
-      }));
-
-
-
-      setData(mappedData);
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to load structure types");
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     setData(mappedData);
+  //   } catch (error) {
+  //     console.error(error);
+  //     toast.error("Failed to load structure types");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   useEffect(() => {
-    fetchData();
+    dispatch(GetStructureTypes());
   }, []);
+
+  useEffect(() => {
+    if (isGetStructureTypes) {
+      const mappedData: StructureType[] = GetStructureTypesData?.data?.map(
+        (item: any) => {
+          return {
+            id: item.id,
+
+            name: item.name || "-",
+
+            country: Array.isArray(item.country_id) ? item.country_id[1] : "-",
+
+            default_wage_type: item.wage_type || "-",
+
+            default_schedule_pay: item.default_schedule_pay || "-",
+
+            default_working_hours: Array.isArray(
+              item.default_resource_calendar_id
+            )
+              ? item.default_resource_calendar_id[1]
+              : "-",
+
+            regular_pay_structure: Array.isArray(item.default_struct_id)
+              ? item.default_struct_id[1]
+              : "-",
+
+            default_work_entry_type: Array.isArray(
+              item.default_work_entry_type_id
+            )
+              ? item.default_work_entry_type_id[1]
+              : "-",
+          };
+        }
+      );
+      setData(mappedData);
+      dispatch(updateState({ isGetStructureTypes: false }));
+    }
+  }, [isGetStructureTypes, isGetStructureTypesFetching]);
 
   /* ================= TABLE COLUMNS ================= */
 
@@ -168,17 +212,13 @@ const StructureTypeKHR = () => {
 
           <div className="card">
             <div className="card-body p-0">
-              {loading ? (
+              {isGetStructureTypesFetching ? (
                 <div className="text-center p-5">
                   <div className="spinner-border text-primary" />
                   <div className="mt-2">Loading Structure Types...</div>
                 </div>
               ) : (
-                <DatatableKHR
-                  data={data}
-                  columns={columns}
-                  selection={false}
-                />
+                <DatatableKHR data={data} columns={columns} selection={false} />
               )}
             </div>
           </div>

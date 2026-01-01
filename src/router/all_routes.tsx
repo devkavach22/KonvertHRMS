@@ -1,7 +1,7 @@
 export const all_routes = {
   //Development Routes
   planActivationKHR: "/KHR-plan-activation",
-  
+
   // Master's Modules
   departmentsKHR: "/KHR-departments",
   jobPositionsKHR: "/KHR-job-positions",
@@ -15,9 +15,10 @@ export const all_routes = {
   industriesKHR: "/KHR-industries",
   hrContractTypeKHR: "/KHR-hr-contract-type",
   banksKHR: "/KHR-banks",
+  banksAccountKHR: "/KHR-bank-accounts",
   geoConfigKHR: "/KHR-geo-configurations",
   geoKHR: "/KHR-geo-configurations",
-  SalaryRuleKHR:"/KHR-salary-rules",
+  SalaryRuleKHR: "/KHR-salary-rules",
 
   //Employee Modules
   employeeKHR: "/KHR-employees",
@@ -33,7 +34,7 @@ export const all_routes = {
   publicHolidayKHR: "/KHR-public-holiday",
   mendetoryDaysKHR: "/KHR-mendetory-days",
 
-  employeeSalaryKHR:"/KHR-employee-salary",
+  employeeSalaryKHR: "/KHR-employee-salary",
 
   //Attendance Modules
   attendanceAdminKHR: "/KHR-attendance-admin",
@@ -431,5 +432,5 @@ export const all_routes = {
   attendancereport: "/attendance-report",
   leavereport: "/leave-report",
   dailyreport: "/daily-report",
-  employeeContract:"/employee-contract",
+  employeeContract: "/employee-contract",
 };

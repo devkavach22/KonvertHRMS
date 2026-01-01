@@ -29,11 +29,17 @@ export interface APIWorkingSchedule {
 }
 
 // 3. SERVICE FUNCTIONS
+const getUserId = () => {
+  const id = localStorage.getItem("user_id");
+  return id ? Number(id) : 219; // Defaulting to 219 based on your API specs
+};
 
 // GET List
 export const getWorkingSchedules = async (): Promise<APIWorkingSchedule[]> => {
   try {
-    const response = await Instance.get("/employee/working-schedules");
+    const response = await Instance.get("/api/WorkingSchedules", {
+      params: { user_id: getUserId() },
+    });
     return response.data.data || [];
   } catch (error) {
     console.error("Error fetching schedules:", error);

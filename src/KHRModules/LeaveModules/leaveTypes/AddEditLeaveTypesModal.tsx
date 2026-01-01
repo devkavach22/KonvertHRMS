@@ -3,9 +3,9 @@ import {
   createLeaveType,
   LeaveTypePayload,
   getLeaveTypesCode,
-  updateLeaveType
+  updateLeaveType,
 } from "./LeavetypesServices";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 interface Props {
   onSuccess: () => void;
@@ -19,24 +19,31 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
   const [leaveName, setLeaveName] = useState<string>("");
   const [leaveNameTouched, setLeaveNameTouched] = useState<boolean>(false);
   const [leaveValidationType, setLeaveValidationType] = useState<string>("");
-  const [allocationValidationType, setAllocationValidationType] = useState<string>("");
+  const [allocationValidationType, setAllocationValidationType] =
+    useState<string>("");
   const [requiresAllocation, setRequiresAllocation] = useState<string>("");
   const [employeeRequests, setEmployeeRequests] = useState<string>("");
   const [responsibleIds, setResponsibleIds] = useState<number[]>([]);
   const [leaveTypeCode, setLeaveTypeCode] = useState<string>("");
   const [leaveCategory, setLeaveCategory] = useState<string>("");
   const [requestUnit, setRequestUnit] = useState<string>("half_day");
-  const [includePublicHolidaysInDuration, setIncludePublicHolidaysInDuration] = useState<boolean>(true);
+  const [includePublicHolidaysInDuration, setIncludePublicHolidaysInDuration] =
+    useState<boolean>(true);
   const [overtimeDeductible, setOvertimeDeductible] = useState<boolean>(false);
   const [isEarnedLeave, setIsEarnedLeave] = useState<boolean>(true);
 
   // Validation states
-  const [leaveNameTouchedValidation, setLeaveNameTouchedValidation] = useState<boolean>(false);
-  const [leaveTypeCodeTouched, setLeaveTypeCodeTouched] = useState<boolean>(false);
-  const [leaveCategoryTouched, setLeaveCategoryTouched] = useState<boolean>(false);
+  const [leaveNameTouchedValidation, setLeaveNameTouchedValidation] =
+    useState<boolean>(false);
+  const [leaveTypeCodeTouched, setLeaveTypeCodeTouched] =
+    useState<boolean>(false);
+  const [leaveCategoryTouched, setLeaveCategoryTouched] =
+    useState<boolean>(false);
 
   // Options
-  const [leaveTypeOptions, setLeaveTypeOptions] = useState<Array<{id:any;name:string;leave_type_code:any}>>([]);
+  const [leaveTypeOptions, setLeaveTypeOptions] = useState<
+    Array<{ id: any; name: string; leave_type_code: any }>
+  >([]);
   const [employeesOptions, setEmployeesOptions] = useState<any[]>([]);
 
   // Fetch leave types for code select
@@ -47,14 +54,20 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
         const list = await getLeaveTypesCode();
         if (!mounted) return;
         if (Array.isArray(list)) {
-          const opts = list.map((l: any) => ({ id: l.id, name: l.name ?? String(l.id), leave_type_code: l.leave_type_code }));
+          const opts = list.map((l: any) => ({
+            id: l.id,
+            name: l.name ?? String(l.id),
+            leave_type_code: l.leave_type_code,
+          }));
           setLeaveTypeOptions(opts);
         }
       } catch (e) {
         // ignore
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // Fetch employees for responsible_ids
@@ -62,7 +75,12 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
     let mounted = true;
     (async () => {
       try {
-        const endpoints = ["/api/employees", "/api/users", "/employees", "/users"];
+        const endpoints = [
+          "/api/employees",
+          "/api/users",
+          "/employees",
+          "/users",
+        ];
         let result: any = null;
         for (const ep of endpoints) {
           try {
@@ -82,14 +100,20 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
           }
         }
         if (mounted && Array.isArray(result)) {
-          const opts = result.map((r: any) => ({ id: r.id ?? r.user_id ?? r.value, name: r.name ?? r.full_name ?? r.label ?? r.username ?? String(r.id) }));
+          const opts = result.map((r: any) => ({
+            id: r.id ?? r.user_id ?? r.value,
+            name:
+              r.name ?? r.full_name ?? r.label ?? r.username ?? String(r.id),
+          }));
           setEmployeesOptions(opts);
         }
       } catch (e) {
         // ignore
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // Populate form when data is provided (for edit)
@@ -179,7 +203,7 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
 
       if (data && data.id) {
         await updateLeaveType(data.id, payload);
-        console.log("done here")
+        console.log("done here");
         toast.success("Leave type updated.");
       } else {
         await createLeaveType(payload);
@@ -254,11 +278,15 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
 
               <div className="col-md-6">
                 <div className="form-group mb-3">
-                  <label className="form-label">Allocation Validation Type</label>
+                  <label className="form-label">
+                    Allocation Validation Type
+                  </label>
                   <select
                     className="form-select"
                     value={allocationValidationType}
-                    onChange={(e) => setAllocationValidationType(e.target.value)}
+                    onChange={(e) =>
+                      setAllocationValidationType(e.target.value)
+                    }
                   >
                     <option value="">Select</option>
                     <option value="manager">Manager</option>
@@ -326,7 +354,10 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
                   >
                     <option value="">Select Leave Type Code</option>
                     {leaveTypeOptions.map((opt) => (
-                      <option key={opt.id} value={opt.leave_type_code || String(opt.id)}>
+                      <option
+                        key={opt.id}
+                        value={opt.leave_type_code || String(opt.id)}
+                      >
                         {opt.leave_type_code || opt.name} ({opt.name})
                       </option>
                     ))}
@@ -379,7 +410,9 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
                   <input
                     type="checkbox"
                     checked={includePublicHolidaysInDuration}
-                    onChange={(e) => setIncludePublicHolidaysInDuration(e.target.checked)}
+                    onChange={(e) =>
+                      setIncludePublicHolidaysInDuration(e.target.checked)
+                    }
                   />
                   {" "}{"  "}{" "}
                   <label className="form-label">Include Public Holidays in Duration</label>
@@ -419,7 +452,7 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
                 onClick={handleSaveLeaveType}
                 disabled={isSavingLeaveType}
               >
-                {isSavingLeaveType ? 'Saving...' : 'Save'}
+                {isSavingLeaveType ? "Saving..." : "Save"}
               </button>
               <button
                 className="btn btn-secondary"
