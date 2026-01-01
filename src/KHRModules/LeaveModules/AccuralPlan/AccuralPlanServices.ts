@@ -62,3 +62,15 @@ export const getAllAccuralPlan = async (): Promise<any> => {
   let user_id = localStorage.getItem("user_id");
   return await Instance.get(`api/accural-plan?user_id=${user_id}`);
 }
+
+// put :- http://192.168.11.245:4000/api/accural-plan/2?user_id=3145
+export const updateAccuralPlan = async (id: number, data: any): Promise<any> => {
+  let user_id = localStorage.getItem("user_id");
+  return await Instance.put(`/api/accural-plan/${id}?user_id=${user_id}`, data);
+}
+
+// delete :- http://192.168.11.245:4000/api/accural-plan/2?user_id=3145
+export const deleteAccuralPlan = async (id: number): Promise<any> => {
+  let user_id = localStorage.getItem("user_id");
+  return await Instance.delete(`/api/accural-plan/${id}?user_id=${user_id}`);
+}

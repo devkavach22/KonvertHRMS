@@ -6,13 +6,25 @@ import AddEditAttendancePolicyModal from "./AddEditAccuralPlanModal";
 import { Link } from "react-router-dom";
 
 import {
-  getAllAccuralPlan
+  getAllAccuralPlan,deleteAccuralPlan
 } from "./AccuralPlanServices";
 
 const AccuralPlanKHR = () => {
   const routes = all_routes;
   const [selectedPolicy, setSelectedPolicy] = useState<any>(null);
   const [data, setData] = useState<any[]>([]);
+
+  const handleDelete = async (id: number) => {
+    if (window.confirm('Are you sure you want to delete this accrual plan?')) {
+      try {
+        await deleteAccuralPlan(id);
+        fetchData();
+      } catch (err) {
+        console.error(err);
+        alert('Error deleting plan.');
+      }
+    }
+  };
 
   const columns: any[] = [
     {
@@ -68,7 +80,7 @@ const AccuralPlanKHR = () => {
                 to="#"
                 className="me-2"
                 data-bs-toggle="modal"
-                data-bs-target="#add_department"
+                data-bs-target="#add_attendance_policy"
   onClick={() => {
               setSelectedPolicy(record);
               const jq = (window as any).jQuery || (window as any).$;
@@ -82,9 +94,8 @@ const AccuralPlanKHR = () => {
             }}              >
                 <i className="ti ti-edit text-blue" />
               </Link>
-              <Link to="#" 
-              // onClick={() => 
-              //   handleDelete(record.id!)}
+              <Link to="#"
+                onClick={() => handleDelete(Number(record.id))}
                 >
                 <i className="ti ti-trash text-danger" />
               </Link>
@@ -97,7 +108,7 @@ const AccuralPlanKHR = () => {
   const fetchData = async () => {
     try {
       const response = await getAllAccuralPlan();
-      const plans = response.data.data || response.data || [];
+      const plans = response.data?.data || response.data?.data || [];
       setData(plans);
     } catch (error) {
       console.error('Error fetching accrual plans:', error);
@@ -119,7 +130,7 @@ const AccuralPlanKHR = () => {
               parentMenu="HR"
               activeMenu="Leave List"
               routes={routes}
-              buttonText="Add leave Request"
+              buttonText="Add Accural Plan"
               modalTarget="#add_attendance_policy"
             />
           </div>

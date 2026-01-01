@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  createMandatoryDays
+  createMandatoryDays,updateMandatoryDays,getBranches
 } from "./mendetoryDaysServices";
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
@@ -15,12 +15,26 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
     name: "",
     start_date: "",
     end_date: "",
-    color: "",
+    color: 2,
     company: ""
   };
 
   const [formData, setFormData] = useState<any>(initialFormState);
   const [validated, setValidated] = useState(false);
+  const [companyOptions, setCompanyOptions] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const response = await getBranches();
+        const branches = response || [];
+        setCompanyOptions(branches.map((b: any) => ({ id: b.id, name: b.name })));
+      } catch (err) {
+        console.error("Error fetching branches:", err);
+      }
+    };
+    fetchBranches();
+  }, []);
 
   useEffect(() => {
     if (data) {
@@ -29,7 +43,7 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
         start_date: (data as any).start_date ?? "",
         end_date: (data as any).end_date ?? "",
         color: (data as any).color ?? "",
-        company: (data as any).company ?? "",
+        company: (data as any).company_id ?? 12,
       });
     } else {
       setFormData(initialFormState);
@@ -67,13 +81,16 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
       name: formData.name,
       start_date: formData.start_date,
       end_date: formData.end_date,
-      color: parseInt(formData.color),
-      company_id: parseInt(formData.company)
+      color: 2,
+      company_id: 12
     };
 
     try {
-      await createMandatoryDays(payload);
-      console.log("done here")
+      if (data) {
+        await updateMandatoryDays(Number((data as any).id), payload);
+      } else {
+        await createMandatoryDays(payload);
+      }
       const closeBtn = document.getElementById("close-btn-policy");
       closeBtn?.click();
       onSuccess();
@@ -102,23 +119,27 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
                   )}
                 </div>
 
-                {/* company field */}
-                <div className="col-md-6 mb-3">
+                {/* <div className="col-md-6 mb-3">
                   <label className="form-label">Company</label>
-                  <input type="text" name="company" className="form-control" value={formData.company ?? ""} onChange={handleChange} required />
+                  <select name="company" className="form-select" value={formData.company ?? ""} onChange={handleChange} required>
+                    <option value="">Select Company</option>
+                    {companyOptions.map((opt: any) => (
+                      <option key={opt.id} value={opt.id}>{opt.name}</option>
+                    ))}
+                  </select>
                   {validated && !(formData.company) && (
                     <span className="text-danger small">Required</span>
                   )}
-                </div>
+                </div> */}
 
                 {/* color field */}
-                <div className="col-md-6 mb-3">
+                {/* <div className="col-md-6 mb-3">
                   <label className="form-label">Color</label>
                   <input type="number" name="color" className="form-control" value={formData.color ?? ""} onChange={handleChange} min="1" required />
                   {validated && !(formData.color) && (
                     <span className="text-danger small">Required</span>
                   )}
-                </div>
+                </div> */}
 
                 <div className="col-md-6 mb-3">
                   <label className="form-label">Start Date</label>

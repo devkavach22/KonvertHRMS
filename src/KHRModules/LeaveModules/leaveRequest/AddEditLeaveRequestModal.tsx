@@ -1,401 +1,331 @@
 import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import {
-  addAttendancePolicy,
-  AttendancePolicy,
+  LeaveRequest,
   getEmployeesForLeaveRequest,
+  updateLeaveRequest,
+  createLeaveRequest,
 } from "./LeaveRequestServices";
+import { DatePicker } from "antd";
 import moment from "moment";
-import { DatePicker, Radio, Checkbox } from "antd";
-import dayjs from "dayjs";
 
 interface Props {
   onSuccess: () => void;
-  data: AttendancePolicy | null;
+  data: LeaveRequest | null;
 }
 
 const AddEditLeaveRequestModal: React.FC<Props> = ({ onSuccess, data }) => {
-  // Initial state for the new geofence-style attendance fields
   const initialFormState = {
     employees_selection: [] as any[],
-    // leave specific fields
-    type: "",
+    holiday_status_id: "",
     from_date: "",
     to_date: "",
     no_of_days: "",
-    // removed remaining_days in favor of `requested` and `leave_balance`
-    leave_balance: "",
-    requested: "",
-    company: "",
-    department: "",
-    payslip_state: "",
-    hod_document: null as File | null,
     reason: "",
+    responsible_ids: "", // ✅ keep as string
+    include_public_holidays: false,
+    overtime_deductible: false,
+    is_earned_leave: false,
   };
 
   const [formData, setFormData] = useState<any>(initialFormState);
-  const [validated, setValidated] = useState(false);
   const [employeesOptions, setEmployeesOptions] = useState<any[]>([]);
-  const [departmentsOptions, setDepartmentsOptions] = useState<any[]>([]);
-  const [companyName, setCompanyName] = useState<string>("");
-   const [isSubmitted, setIsSubmitted] = useState(false);
-     const [errors, setErrors] = useState<any>({});
+  const [validated, setValidated] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<any>({});
 
-  // 1. DATA SYNC: Populate form when editing
+  /* -------------------- EDIT MODE -------------------- */
   useEffect(() => {
     if (data) {
-      // Map incoming `data` to the new form shape.
-      let employees: any[] = [];
-      if (Array.isArray((data as any).employees_selection)) {
-        employees = (data as any).employees_selection;
-      } else if (typeof (data as any).employees_selection === "string") {
-        try {
-          const parsed = JSON.parse((data as any).employees_selection);
-          if (Array.isArray(parsed)) employees = parsed;
-        } catch (e) {
-          employees = [];
-        }
-      }
-
       setFormData({
-        employees_selection: employees,
-        type: (data as any).type ?? "",
-        from_date: (data as any).from_date ?? (data as any).start_date ?? "",
-        to_date: (data as any).to_date ?? (data as any).end_date ?? "",
-        no_of_days: (data as any).no_of_days ?? "",
-          leave_balance: (data as any).leave_balance ?? "",
-          requested: (data as any).requested ?? "",
-          company: (data as any).company ?? "",
-          department: (data as any).department ?? "",
-          payslip_state: (data as any).payslip_state ?? "",
-          hod_document: (data as any).hod_document ?? null,
-        reason: (data as any).reason ?? "",
+        employees_selection: [],
+        holiday_status_id: data.holiday_status_id ?? "",
+        from_date: data.from_date ?? "",
+        to_date: data.to_date ?? "",
+        no_of_days: data.no_of_days ?? "",
+        reason: data.reason ?? "",
+        responsible_ids: data.responsible_ids
+          ? String(data.responsible_ids)
+          : "",
+        include_public_holidays: Boolean(data.include_public_holidays),
+        overtime_deductible: Boolean(data.overtime_deductible),
+        is_earned_leave: Boolean(data.is_earned_leave),
       });
     } else {
       setFormData(initialFormState);
     }
   }, [data]);
 
-  // Fetch employee list for the Employee Name select
+  /* -------------------- EMPLOYEES -------------------- */
   useEffect(() => {
-    let mounted = true;
     (async () => {
       try {
-        const employees = await getEmployeesForLeaveRequest();
-        if (mounted && Array.isArray(employees)) {
-          // normalize to objects with id and name
-          const opts = employees.map((emp: any) => ({ id: emp.id ?? emp.user_id, name: emp.name ?? emp.full_name ?? String(emp.id) }));
-          setEmployeesOptions(opts);
-        }
-      } catch (e) {
-        console.error("Error fetching employees:", e);
+        const res = await getEmployeesForLeaveRequest();
+        const opts = res.map((e: any) => ({
+          id: e.id ?? e.user_id,
+          name: e.name ?? e.full_name,
+        }));
+        setEmployeesOptions(opts);
+      } catch {
+        toast.error("Failed to load employees");
       }
     })();
-    return () => { mounted = false; };
   }, []);
 
-  // 2. RESET LOGIC: Listen for Modal Close
+  /* -------------------- AUTO DAYS -------------------- */
   useEffect(() => {
-    const modalElement = document.getElementById("add_leave_request");
-    const handleModalClose = () => {
-      setValidated(false);
-      setFormData(initialFormState);
-    };
-    if (modalElement) {
-      modalElement.addEventListener("hidden.bs.modal", handleModalClose);
-    }
-    return () => {
-      if (modalElement) {
-        modalElement.removeEventListener("hidden.bs.modal", handleModalClose);
-      }
-    };
-  }, []);
-
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
-  ) => {
-    const target = e.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
-    const name = target.name;
-    const value = (target as HTMLInputElement).value;
-
-    // Special handling for employees_selection: select element (single select)
-    if (name === "employees_selection") {
-      // if it's a select element, map selected value to employee object
-      if (target instanceof HTMLSelectElement) {
-        const selectedValue = target.value;
-        if (!selectedValue) {
-          setFormData((prev: any) => ({ ...prev, employees_selection: [] }));
-        } else {
-          const found = employeesOptions.find((o) => String(o.id) === String(selectedValue));
-          setFormData((prev: any) => ({ ...prev, employees_selection: found ? [found] : [] }));
-        }
-        return;
-      }
-
-      // fallback to textarea/json handling
-      if (!value || value.trim() === "") {
-        setFormData((prev: any) => ({ ...prev, [name]: [] }));
-        return;
-      }
-      try {
-        const parsed = JSON.parse(value);
-        if (Array.isArray(parsed)) {
-          setFormData((prev: any) => ({ ...prev, [name]: parsed }));
-          return;
-        }
-      } catch (err) {
-        setFormData((prev: any) => ({ ...prev, [name]: [] }));
-        return;
-      }
-      setFormData((prev: any) => ({ ...prev, [name]: [] }));
-      return;
-    }
-
-    // file input (HOD approval document)
-    if (target instanceof HTMLInputElement && target.type === 'file') {
-      const file = (target as HTMLInputElement).files && (target as HTMLInputElement).files![0];
-      setFormData((prev: any) => ({ ...prev, [name]: file || null }));
-      return;
-    }
-
-    // no geo numeric fields handled here anymore
-
-    // numeric fields for leave
-    if (name === "no_of_days" || name === "leave_balance" || name === "requested") {
-      setFormData((prev: any) => ({ ...prev, [name]: value }));
-      return;
-    }
-
-    // date fields
-    if (name === "from_date" || name === "to_date") {
-      setFormData((prev: any) => ({ ...prev, [name]: value }));
-      return;
-    }
-
-    setFormData((prev: any) => ({ ...prev, [name]: value }));
-  };
-
-  // auto-calc no_of_days when dates change
-  useEffect(() => {
-    const f = formData.from_date;
-    const t = formData.to_date;
-    if (f && t && moment(f).isValid() && moment(t).isValid()) {
-      const diff = moment(t).endOf("day").diff(moment(f).startOf("day"), "days") + 1;
-      setFormData((prev: any) => ({ ...prev, no_of_days: String(diff) }));
+    if (formData.from_date && formData.to_date) {
+      const days =
+        moment(formData.to_date).diff(
+          moment(formData.from_date),
+          "days"
+        ) + 1;
+      setFormData((p: any) => ({ ...p, no_of_days: days }));
     }
   }, [formData.from_date, formData.to_date]);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
+  /* -------------------- CHANGE -------------------- */
+  const handleChange = (e: any) => {
+    const { name, value, type, checked } = e.target;
 
-    const form = e.currentTarget;
-    setValidated(true);
-
-    if (form.checkValidity() === false) {
+    if (name === "employees_selection") {
+      const emp = employeesOptions.find((e) => String(e.id) === value);
+      setFormData((p: any) => ({
+        ...p,
+        employees_selection: emp ? [emp] : [],
+      }));
       return;
     }
 
-    // Prepare Payload: convert numeric fields and ensure employees_selection is an array
-    const apiPayload: any = { ...formData };
-
-    // geo fields removed
-
-    // ensure employees_selection is array of objects
-    if (!Array.isArray(apiPayload.employees_selection)) {
-      apiPayload.employees_selection = [];
+    if (type === "checkbox") {
+      setFormData((p: any) => ({ ...p, [name]: checked }));
+      return;
     }
 
-    // convert numeric leave fields
-    apiPayload.no_of_days = apiPayload.no_of_days === "" ? null : Number(apiPayload.no_of_days);
-    apiPayload.leave_balance = apiPayload.leave_balance === "" ? null : Number(apiPayload.leave_balance);
-    apiPayload.requested = apiPayload.requested === "" ? null : Number(apiPayload.requested);
+    // ✅ allow typing freely
+    setFormData((p: any) => ({ ...p, [name]: value }));
+  };
 
-    // ensure simple scalar fields
-    apiPayload.company = apiPayload.company || companyName || null;
-    apiPayload.department = apiPayload.department || null;
-    apiPayload.payslip_state = apiPayload.payslip_state || null;
+  /* -------------------- VALIDATION -------------------- */
+  const validateForm = () => {
+    const err: any = {};
 
-    // hod document: include file object if provided (backend must support multipart)
-    // We'll include as-is; the service may need to use FormData when sending if file is present.
-    if (apiPayload.hod_document && apiPayload.hod_document instanceof File) {
-      // leave it in payload; caller/service should handle file uploads
-    }
+    if (!formData.employees_selection.length)
+      err.employees_selection = "Employee required";
 
+    if (!formData.holiday_status_id)
+      err.holiday_status_id = "Holiday status required";
 
+    if (!formData.from_date) err.from_date = "From date required";
+    if (!formData.to_date) err.to_date = "To date required";
+
+    setErrors(err);
+    return Object.keys(err).length === 0;
+  };
+
+  /* -------------------- SUBMIT -------------------- */
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setValidated(true);
+
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
     try {
-      if (data && data.id) {
-        // await updateAttendancePolicy(data.id, apiPayload);
+      const payload = {
+        holiday_status_id: Number(formData.holiday_status_id),
+        date_from: formData.from_date,
+        date_to: formData.to_date,
+        reason: formData.reason,
+        responsible_ids: formData.responsible_ids
+          ? Number(formData.responsible_ids)
+          : null,
+        include_public_holidays: formData.include_public_holidays,
+        overtime_deductible: formData.overtime_deductible,
+        is_earned_leave: formData.is_earned_leave,
+      };
+
+      if (data?.id) {
+        await updateLeaveRequest(Number(data.id), payload);
+        toast.success("Leave updated");
       } else {
-        await addAttendancePolicy(apiPayload);
+        await createLeaveRequest({
+          employee_id: formData.employees_selection[0].id,
+          ...payload,
+        });
+        toast.success("Leave created");
       }
-      const closeBtn = document.getElementById("close-btn-policy");
-      closeBtn?.click();
+
       onSuccess();
-    } catch (error) {
-      console.error("Failed to save policy", error);
-      alert("Error saving data.");
+      document.getElementById("close-btn-leave")?.click();
+    } catch {
+      toast.error("API call failed");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div
-      className="modal custom-modal fade"
-      id="add_leave_request"
-      role="dialog"
-    >
-      <div className="modal-dialog modal-dialog-centered modal-lg">
+    <div className="modal fade" id="add_leave_request">
+      <div className="modal-dialog modal-lg modal-dialog-centered">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">
-              {data ? "Edit Leave Request" : "Add Leave Request"}
-            </h5>
+            <h5>{data ? "Edit Leave" : "Add Leave"}</h5>
             <button
-              type="button"
-              className="btn-close"
-              data-bs-dismiss="modal"
               id="close-btn-leave"
-              aria-label="Close"
-            >
-              <span aria-hidden="true">×</span>
-            </button>
+              data-bs-dismiss="modal"
+              className="btn-close"
+            />
           </div>
-          <div className="modal-body">
-            <form
-              className={`needs-validation ${validated ? "was-validated" : ""}`}
-              noValidate
-              onSubmit={handleSubmit}
-            >
-              <div className="row">
-                {/* Employee (search/list) */}
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Employee</label>
-                  <select
-                    name="employees_selection"
-                    className={`form-select ${formData.employees_selection && formData.employees_selection[0] ? 'is-valid' : (validated ? 'is-invalid' : '')}`}
-                    value={formData.employees_selection && formData.employees_selection[0] ? String(formData.employees_selection[0].id) : ""}
-                    onChange={handleChange}
-                  >
-                    <option value="">Select employee</option>
-                    {employeesOptions.map((emp) => (
-                      <option key={emp.id} value={emp.id}>{emp.name}</option>
-                    ))}
-                  </select>
-                  {validated && (!formData.employees_selection || formData.employees_selection.length === 0) && (
-                    <span className="text-danger small">Required — select an employee</span>
-                  )}
-                </div>
 
-                {/* Leave Balance */}
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Holiday status</label>
-                  <input
-                    type="number"
-                    name="Holiday_status_id"
-                    className={`form-control ${formData.leave_balance !== "" && formData.leave_balance !== null && formData.leave_balance !== undefined ? 'is-valid' : (validated ? 'is-invalid' : '')}`}
-                    value={formData.leave_balance ?? ""}
-                    onChange={handleChange}
-                  />
-                  {validated && (formData.leave_balance === "" || formData.leave_balance === null || formData.leave_balance === undefined) && (
-                    <span className="text-danger small">Required — enter Holiday status </span>
-                  )}
-                </div>
-
-
-                {/* From */}
-                <div className="col-md-3 mb-3">
-                  <label className="form-label">From</label>
-                                                <DatePicker
-                                className={`form-control w-100 ${
-                                  isSubmitted
-                                    ? errors.date_of_marriage
-                                      ? "is-invalid"
-                                      : formData.date_of_marriage
-                                      ? "is-valid"
-                                      : ""
-                                    : ""
-                                }`}
-                                value={
-                                  formData.date_of_marriage
-                                    ? dayjs(formData.date_of_marriage)
-                                    : null
-                                }
-                                onChange={(_, dateStr) =>
-                                  setFormData({
-                                    ...formData,
-                                    date_of_marriage: dateStr,
-                                  })
-                                }
-                              />
-                                                {validated && !(formData.to_date) && (
-                    <span className="text-danger small">Required — select start date</span>
-                  )}
-                </div>
-
-                {/* To */}
-                <div className="col-md-3 mb-3">
-                  <label className="form-label">To</label>
-                          <DatePicker
-                                className={`form-control w-100 ${
-                                  isSubmitted
-                                    ? errors.date_of_marriage
-                                      ? "is-invalid"
-                                      : formData.date_of_marriage
-                                      ? "is-valid"
-                                      : ""
-                                    : ""
-                                }`}
-                                value={
-                                  formData.date_of_marriage
-                                    ? dayjs(formData.date_of_marriage)
-                                    : null
-                                }
-                                onChange={(_, dateStr) =>
-                                  setFormData({
-                                    ...formData,
-                                    date_of_marriage: dateStr,
-                                  })
-                                }
-                              />
-                  {validated && !(formData.to_date) && (
-                    <span className="text-danger small">Required — select end date</span>
-                  )}
-                </div>
-
-
-                {/* Reason */}
-                <div className="col-md-12 mb-3">
-                  <label className="form-label">Reason</label>
-                  <textarea
-                    name="reason"
-                    className={`form-control ${formData.reason ? 'is-valid' : (validated ? 'is-invalid' : '')}`}
-                    rows={3}
-                    value={formData.reason ?? ""}
-                    onChange={handleChange}
-                  />
-                  {validated && !(formData.reason) && (
-                    <span className="text-danger small">Required — enter reason</span>
-                  )}
-                </div>
-
-                {/* removed geo fields and JSON textarea per request */}
-              </div>
-
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-light"
-                  data-bs-dismiss="modal"
+          <form onSubmit={handleSubmit} noValidate>
+            <div className="modal-body row">
+              {/* Employee */}
+              <div className="col-md-6 mb-3">
+                <label>Employee</label>
+                <select
+                  name="employees_selection"
+                  className={`form-select ${
+                    validated && errors.employees_selection
+                      ? "is-invalid"
+                      : ""
+                  }`}
+                  onChange={handleChange}
                 >
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  {data ? "Update Changes" : "Save Policy"}
-                </button>
+                  <option value="">Select</option>
+                  {employeesOptions.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.name}
+                    </option>
+                  ))}
+                </select>
               </div>
-            </form>
-          </div>
+
+              {/* Holiday */}
+              <div className="col-md-6 mb-3">
+                <label>Holiday Status</label>
+                <input
+                  type="number"
+                  name="holiday_status_id"
+                  className={`form-control ${
+                    validated && errors.holiday_status_id
+                      ? "is-invalid"
+                      : ""
+                  }`}
+                  value={formData.holiday_status_id}
+                  onChange={handleChange}
+                />
+              </div>
+
+              {/* Dates */}
+              <div className="col-md-3 mb-3">
+                <label>From</label>
+                <DatePicker
+                  className="w-100"
+                  value={
+                    formData.from_date
+                      ? moment(formData.from_date)
+                      : null
+                  }
+                  onChange={(_, d) =>
+                    setFormData((p: any) => ({ ...p, from_date: d }))
+                  }
+                />
+              </div>
+
+              <div className="col-md-3 mb-3">
+                <label>To</label>
+                <DatePicker
+                  className="w-100"
+                  value={
+                    formData.to_date ? moment(formData.to_date) : null
+                  }
+                  onChange={(_, d) =>
+                    setFormData((p: any) => ({ ...p, to_date: d }))
+                  }
+                />
+              </div>
+
+              {/* Reason */}
+              <div className="col-md-12 mb-3">
+                <label>Reason</label>
+                <textarea
+                  name="reason"
+                  className="form-control"
+                  value={formData.reason}
+                  onChange={handleChange}
+                />
+              </div>
+
+              {/* Responsible IDs */}
+              <div className="col-md-6 mb-3">
+                <label>Responsible IDs</label>
+                <input
+                  type="number"
+                  name="responsible_ids"
+                  className="form-control"
+                  value={formData.responsible_ids}
+                  onChange={(e) => setFormData((p: any) => ({ ...p, responsible_ids: e.target.value }))}
+                />
+              </div>
+
+              {/* Checkboxes */}
+              <div className="col-md-6 mb-3">
+                <div className="form-check d-flex align-items-center gap-2">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    name="include_public_holidays"
+                    checked={formData.include_public_holidays}
+                    onChange={handleChange}
+                  />
+                  <label className="form-check-label">
+                    Include Public Holidays in Duration
+                  </label>
+                </div>
+              </div>
+
+              <div className="col-md-6 mb-3">
+                <div className="form-check d-flex align-items-center gap-2">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    name="overtime_deductible"
+                    checked={formData.overtime_deductible}
+                    onChange={handleChange}
+                  />
+                  <label className="form-check-label">
+                    Overtime Deductible
+                  </label>
+                </div>
+              </div>
+
+              <div className="col-md-6 mb-3">
+                <div className="form-check d-flex align-items-center gap-2">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    name="is_earned_leave"
+                    checked={formData.is_earned_leave}
+                    onChange={handleChange}
+                  />
+                  <label className="form-check-label">
+                    Is Earned Leave
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Saving..." : "Save Leave"}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
