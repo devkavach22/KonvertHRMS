@@ -19,9 +19,9 @@ export const useFormValidation = () => {
       errors.radius_km = "Radius must be greater than 0";
     }
 
-    // if (!data.employees_selection?.length) {
-    //   errors.employees_selection = "Select at least one employee";
-    // }
+    if (!data.employees_selection?.length) {
+      errors.employees_selection = "Select at least one employee";
+    }
 
     return errors;
   };
@@ -169,8 +169,68 @@ export const useFormValidation = () => {
 
     return errors;
   };
+
+  const validateSalaryRule = (data: any) => {
+    const errors: any = {};
+
+    // BASIC
+    if (!data.name) errors.name = "Rule name is required";
+    if (!data.code) errors.code = "Code is required";
+    if (!data.category_id) errors.category_id = "Category is required";
+    if (!data.struct_id) errors.struct_id = "Salary structure is required";
+    if (!data.sequence || data.sequence < 1)
+      errors.sequence = "Sequence must be at least 1";
+
+    // CONDITIONS
+    if (data.condition_select === "range") {
+      if (!data.condition_range)
+        errors.condition_range = "Range based on is required";
+      if (!data.condition_range_min)
+        errors.condition_range_min = "Min value is required";
+      if (!data.condition_range_max)
+        errors.condition_range_max = "Max value is required";
+    }
+
+    if (data.condition_select === "other_input") {
+      if (!data.condition_other_input_id)
+        errors.condition_other_input_id = "Other input is required";
+    }
+
+    if (data.condition_select === "python") {
+      if (!data.condition_python)
+        errors.condition_python = "Python condition is required";
+    }
+
+    // COMPUTATION
+    if (data.amount_select === "fix") {
+      if (!data.amount_fix) errors.amount_fix = "Fixed amount is required";
+      if (!data.quantity) errors.quantity = "Quantity is required";
+    }
+
+    if (data.amount_select === "percentage") {
+      if (!data.amount_percentage)
+        errors.amount_percentage = "Percentage is required";
+      if (!data.amount_percentage_based)
+        errors.amount_percentage_based = "Percentage based on is required";
+      if (!data.quantity) errors.quantity = "Quantity is required";
+    }
+
+    if (data.amount_select === "other_input") {
+      if (!data.amount_other_input_id)
+        errors.amount_other_input_id = "Other input is required";
+    }
+
+    if (data.amount_select === "python") {
+      if (!data.amount_python_compute)
+        errors.amount_python_compute = "Python code is required";
+    }
+
+    return errors;
+  };
+
   return {
     validateAttendancePolicy,
+    validateSalaryRule,
     validateEmployeeContract,
     EmpAttendancevalidateForm,
     validateStructureType,

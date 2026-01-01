@@ -3,7 +3,11 @@ import CommonModal from "@/KHRModules/commanForm/CommanModal/CommanModal";
 import FormInput from "@/KHRModules/commanForm/inputComman/FormInput";
 import CommonSelect, { Option } from "@/core/common/commonSelect";
 import { useFormValidation } from "@/KHRModules/commanForm/FormValidation";
-import { getCountries, getRegularPayStructure, getWorkEntryType, getWorkingHours } from "./StructureTypeService";
+import { getRegularPayStructure, getWorkEntryType, getWorkingHours } from "./StructureTypeService";
+import { useDispatch, useSelector } from "react-redux";
+import { getWorkingSchedules, TBSelector } from "@/Store/Reducers/TBSlice";
+import {getCountries
+} from "@/Store/Reducers/TBSlice";
 
 interface Props {
   onSubmit: (data: any) => void;
@@ -20,6 +24,11 @@ const AddStructureTypeModal: React.FC<Props> = ({ onSubmit }) => {
   const [workingHoursOptions, setWorkingHoursOptions] = useState<Option[]>([]);
   const [workEntryTypeOptions, setWorkEntryTypeOptions] = useState<Option[]>([]);
   const [regularPayStructureOptions, setRegularPayStructureOptions] = useState<Option[]>([]);
+    const {
+    GetCountriesData,
+    getWorkingSchedulesData,
+    } = useSelector(TBSelector);
+  const dispatch = useDispatch()
 
   const [formData, setFormData] = useState<any>({
     name: "",
@@ -31,49 +40,40 @@ const AddStructureTypeModal: React.FC<Props> = ({ onSubmit }) => {
     default_work_entry_type: "",
   });
 
-  /* ================= FETCH COUNTRIES ================= */
-
+  
   useEffect(() => {
-    const fetchCountries = async () => {
-      try {
-        const response = await getCountries();
-
-        const mapped: Option[] = (response || []).map((item: any) => ({
-          label: item.name, // 👈 PRINTED IN UI
-          value: item.id,   // 👈 STORED IN FORM
-        }));
-
-        setCountryOptions(mapped);
-      } catch (error) {
-        console.error("Failed to load countries", error);
-      }
-    };
-
-    fetchCountries();
+    dispatch(getCountries())
+    dispatch(getWorkingSchedules())
   }, []);
+
+    useEffect(() => {
+      if (GetCountriesData?.data?.length) {
+        setCountryOptions(
+          GetCountriesData.data.map((item: any) => ({
+            label: item.name,
+            value: item.id,
+          }))
+        );
+      }
+      if (getWorkingSchedulesData?.data?.length) {
+          setWorkingHoursOptions(
+          GetCountriesData.data.map((item: any) => ({
+            label: item.name,
+            value: item.id,
+          }))
+        );
+      }
+    }, [GetCountriesData,getWorkingSchedulesData]);
+
+
+
+
 
   
 
-  useEffect(() => {
-    const fetchgetWorkingHours = async () => {
-      try {
-        const response = await getWorkingHours();
 
-        const mapped: Option[] = (response || []).map((item: any) => ({
-          label: item.name, // 👈 PRINTED IN UI
-          value: item.id,   // 👈 STORED IN FORM
-        }));
 
-        setWorkingHoursOptions(mapped);
-      } catch (error) {
-        console.error("Failed to load working hours", error);
-      }
-    };
-
-    fetchgetWorkingHours();
-  }, []);
-
-  console.log(workingHoursOptions,"working");
+  console.log(getWorkingSchedulesData,"getWorkingSchedulesData");
   
 
    useEffect(() => {
@@ -128,11 +128,17 @@ const AddStructureTypeModal: React.FC<Props> = ({ onSubmit }) => {
     { label: "Hourly Wage", value: "hourly" },
   ];
 
-  const schedulePayOptions: Option[] = [
-    { label: "Monthly", value: "monthly" },
-    { label: "Bi-Weekly", value: "bi_weekly" },
-    { label: "Weekly", value: "weekly" },
-  ];
+const schedulePayOptions: Option[] = [
+  { label: "Annually", value: "annually" },
+  { label: "Semi-Annually", value: "semi_annually" },
+  { label: "Quarterly", value: "quarterly" },
+  { label: "Bi-Monthly", value: "bi_monthly" },
+  { label: "Monthly", value: "monthly" },
+  { label: "Semi-Monthly", value: "semi_monthly" },
+  { label: "Bi-Weekly", value: "bi_weekly" },
+  { label: "Weekly", value: "weekly" },
+  { label: "Daily", value: "daily" },
+];
 
 
 

@@ -1,4 +1,4 @@
-const BASE_URL_ALL = "http://192.168.11.150:4000/";
+const BASE_URL_ALL = "http://178.236.185.232:4000/";
 
 const CONFIG = {
   BASE_URL_ALL
