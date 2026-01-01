@@ -4,6 +4,8 @@ import { DatePicker, TimePicker } from "antd";
 import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
 import { updateAdminAttendance } from "./AdminAttandanceServices";
+import { useDispatch, useSelector } from "react-redux";
+import { TBSelector, UpdateAdminAttendanceApi, updateState } from "@/Store/Reducers/TBSlice";
 
 
 interface Props {
@@ -13,6 +15,9 @@ interface Props {
 }
 
 const EditAttendanceModal: React.FC<Props> = ({ attendance, onClose, onSuccess }) => {
+  const { isUpdateAdminAttendanceApi, isUpdateAdminAttendanceApiFetching, UpdateAdminAttendanceApiData } = useSelector(TBSelector)
+
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState<any>({
     date: null,
     check_in: null,
@@ -54,9 +59,6 @@ const EditAttendanceModal: React.FC<Props> = ({ attendance, onClose, onSuccess }
 
 
 
-  /* =====================
-     SUBMIT
-  ===================== */
   const handleSubmit = async () => {
     const date = formData.date?.format("YYYY-MM-DD");
 
@@ -76,19 +78,26 @@ const EditAttendanceModal: React.FC<Props> = ({ attendance, onClose, onSuccess }
     };
 
     console.log("EDIT ATTENDANCE PAYLOAD 👉", payload);
+    dispatch(UpdateAdminAttendanceApi({ payload: payload, attendanceId: attendance.id }));
+    // try {
+    //   await updateAdminAttendance(attendance.id, payload);
 
-    try {
-      await updateAdminAttendance(attendance.id, payload);
-      onClose()
-      onSuccess();
-    } catch (error) {
-      console.error("Failed to update attendance");
-    }
+    //   onClose()
+    //   onSuccess();
+    // } catch (error) {
+    //   console.error("Failed to update attendance");
+    // }
 
     onClose();
   };
 
-
+  useEffect(() => {
+    if (isUpdateAdminAttendanceApi) {
+      onClose();
+      onSuccess();
+      dispatch(updateState({ isUpdateAdminAttendanceApi: false }))
+    }
+  }, [isUpdateAdminAttendanceApi]);
   return (
     <CommonModal
       id="edit_attendance"

@@ -5,6 +5,7 @@ import FormInput from "@/KHRModules/commanForm/inputComman/FormInput";
 import CommonSelect, { Option } from "@/core/common/commonSelect";
 import { createSalaryRule } from "./SalaryRuleService";
 import { toast } from "react-toastify";
+import { useFormValidation } from "@/KHRModules/commanForm/FormValidation";
 
 interface Props {
   onSuccess: () => void;
@@ -58,6 +59,8 @@ const partnerOptions: Option[] = [
 /* ================= COMPONENT ================= */
 
 const AddSalaryRuleModal: React.FC<Props> = ({ onSuccess }) => {
+    const { validateSalaryRule } = useFormValidation();
+  
   const [formData, setFormData] = useState<any>({
     /* BASIC */
     name: "",
@@ -93,12 +96,21 @@ const AddSalaryRuleModal: React.FC<Props> = ({ onSuccess }) => {
     partner_id: null,
     partner_name: "",
   });
+  const [errors, setErrors] = useState<any>({});
+const [isSubmitted, setIsSubmitted] = useState(false);
 
 
 
   /* ================= SUBMIT ================= */
 
   const handleSubmit = async () => {
+      setIsSubmitted(true);
+
+  const validationErrors = validateSalaryRule(formData);
+  if (Object.keys(validationErrors).length > 0) {
+    setErrors(validationErrors);
+    return;
+  }
     const payload = {
       ...formData,
 

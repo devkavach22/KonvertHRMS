@@ -24,10 +24,10 @@ const getAuthDetails = () => {
 export const getAttendance = async (): Promise<APIAttendance[]> => {
   try {
     const { user_id } = getAuthDetails();
-    const response = await Instance.get("/api/attendance", {
-      params: 219,
+    const response = await Instance.get("/api/employee/attendance", {
+     params: { user_id },
     });
-    return response.data.data || response.data || [];
+    return response.data || response.data || [];
   } catch (error) {
     console.error("Attendance Fetch Error:", error);
     return [];

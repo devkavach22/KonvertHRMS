@@ -27,7 +27,7 @@ const AttendanceQueryModal: React.FC<Props> = ({
   console.log(employeeId, "employeeId");
 
   const [formData, setFormData] = useState({
-    employee_id: employeeId,
+    // employee_id: employeeId,
     from_date: "",
     to_date: "",
     reg_category: null as number | null,
@@ -96,7 +96,7 @@ const AttendanceQueryModal: React.FC<Props> = ({
     setIsSubmitting(true);
 
     const payload = {
-      employee_id: formData.employee_id,
+      employee_id: employeeId,
       from_date: formData.from_date,
       to_date: formData.to_date,
       reg_category: formData.reg_category,
