@@ -3,9 +3,11 @@ import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import CommonSelect from "@/core/common/commonSelect";
-import { getCategories, createRegularization } from "./EmployeeAttandanceServices";
+import {
+  getCategories,
+  createRegularization,
+} from "./EmployeeAttandanceServices";
 import { useFormValidation } from "@/KHRModules/commanForm/FormValidation";
-
 
 interface Props {
   attendance: any;
@@ -13,9 +15,9 @@ interface Props {
   onClose: () => void;
 }
 
-interface CategoryOption {
+interface Option {
   label: string;
-  value: number;
+  value: string;
 }
 
 const AttendanceQueryModal: React.FC<Props> = ({
@@ -23,24 +25,22 @@ const AttendanceQueryModal: React.FC<Props> = ({
   employeeId,
   onClose,
 }) => {
-
   console.log(employeeId, "employeeId");
 
   const [formData, setFormData] = useState({
     employee_id: employeeId,
     from_date: "",
     to_date: "",
-    reg_category: null as number | null,
+    reg_category: null as string | null,
     reg_reason: "",
   });
 
-  const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [categories, setCategories] = useState<Option[]>([]);
 
   const [errors, setErrors] = useState<any>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-    const { EmpAttendancevalidateForm } = useFormValidation();
-  
+  const { EmpAttendancevalidateForm } = useFormValidation();
 
   /* =========================
      INIT DATE FROM CHECK-IN
@@ -66,7 +66,7 @@ const AttendanceQueryModal: React.FC<Props> = ({
         setCategories(
           res?.data?.map((item: any) => ({
             label: item.type,
-            value: item.id,
+            value: String(item.id),
           })) || []
         );
       } catch {
@@ -81,13 +81,12 @@ const AttendanceQueryModal: React.FC<Props> = ({
      VALIDATION
      ========================= */
 
-
   /* =========================
      SUBMIT
      ========================= */
   const handleSubmit = async () => {
     setIsSubmitted(true);
-     const validationErrors = EmpAttendancevalidateForm(formData);
+    const validationErrors = EmpAttendancevalidateForm(formData);
     if (Object.keys(validationErrors).length) {
       setErrors(validationErrors);
       return;
@@ -110,14 +109,12 @@ const AttendanceQueryModal: React.FC<Props> = ({
       onClose();
     } catch (error: any) {
       toast.error(
-        error?.response?.data?.message ||
-        "Failed to submit regularization"
+        error?.response?.data?.message || "Failed to submit regularization"
       );
     } finally {
       setIsSubmitting(false);
     }
   };
-
 
   /* =========================
      UI
@@ -129,7 +126,6 @@ const AttendanceQueryModal: React.FC<Props> = ({
     >
       <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content">
-
           <div className="modal-header">
             <h5 className="modal-title">Attendance Regularization</h5>
             <button className="btn-close" onClick={onClose} />
@@ -137,7 +133,6 @@ const AttendanceQueryModal: React.FC<Props> = ({
 
           <div className="modal-body">
             <div className="row">
-
               <div className="col-md-6 mb-3">
                 <label className="fw-bold">
                   Date <span className="text-danger">*</span>
@@ -198,7 +193,6 @@ const AttendanceQueryModal: React.FC<Props> = ({
                   <div className="text-danger fs-11">{errors.reg_reason}</div>
                 )}
               </div>
-
             </div>
           </div>
 
@@ -214,7 +208,6 @@ const AttendanceQueryModal: React.FC<Props> = ({
               {isSubmitting ? "Submitting..." : "Submit"}
             </button>
           </div>
-
         </div>
       </div>
     </div>

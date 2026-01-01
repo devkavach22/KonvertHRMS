@@ -29,6 +29,7 @@ export const SidebarDataTest = [
           { label: "Skills", link: routes.skillsKHR },
           { label: "Industries", link: routes.industriesKHR },
           { label: "Bank", link: routes.banksKHR },
+          { label: "Bank Account", link: routes.banksAccountKHR },
           { label: "HR Contract Type ", link: routes.hrContractTypeKHR },
           { label: "Geo Configurations", link: routes.geoKHR },
 
@@ -54,8 +55,8 @@ export const SidebarDataTest = [
         materialicons: "start",
         dot: false,
         submenuItems: [
-            { label: "Employees", link: routes.employeeKHR },
-            { label: "Employee Contract", link: routes.employeeContract },
+          { label: "Employees", link: routes.employeeKHR },
+          { label: "Employee Contract", link: routes.employeeContract },
           // { label: "Attendance", link: routes.attendanceadmin },
           // { label: "Leave Management", link: routes.leaveadmin },
           // { label: "Holidays", link: routes.holidays },
@@ -115,7 +116,7 @@ export const SidebarDataTest = [
         submenuItems: [
           { label: "Leaves (Admin)", link: routes.leaveAdminKHR },
           { label: "Leaves (Employee)", link: routes.leaveEmployeeKHR },
-          { label: "Leave Settings", link: routes.leaveSettingsKHR },
+          // { label: "Leave Settings", link: routes.leaveSettingsKHR },
           { label: "Leave Types", link: routes.leaveTypesKHR },
           { label: "Leave Allocation", link: routes.leaveAllocationKHR },
           { label: "Leave Request", link: routes.leaveRequestKHR },
@@ -127,8 +128,7 @@ export const SidebarDataTest = [
     ],
   },
 
-
-   {
+  {
     tittle: "Finance & Accounts",
     icon: "payroll",
     showAsTab: true,
@@ -146,7 +146,6 @@ export const SidebarDataTest = [
         submenuItems: [
           { label: "Structure Types", link: routes.employeeSalaryKHR },
           { label: "Salary Rules", link: routes.SalaryRuleKHR },
-       
         ],
       },
     ],

@@ -25,9 +25,7 @@ import CommonHeader from "@/CommonComponent/HeaderKHR/HeaderKHR";
 // import WorkStatsWithTimeline from "@/CommonComponent/CommanAttenceCard/WorkStatsWithTimeline";
 // import { attendance_admin_details } from "@/core/data/json/attendanceadmin";
 
-import {
-  getAdminAttendance,
-} from "./AdminAttandanceServices";
+import { getAdminAttendance } from "./AdminAttandanceServices";
 import Link from "antd/es/typography/Link";
 import CommonAttendanceStatus from "@/CommonComponent/CommonAttendanceStatus/CommonAttendanceStatus";
 import EditAttendanceModal from "./EditAdminAttendance";
@@ -57,16 +55,14 @@ type AttendanceCard = {
 };
 
 const AdminAttandanceKHR = () => {
-
-
   const routes = all_routes;
 
   // const [data, setData] = useState<EmployeeAttendance[]>([]);
   const [data, setData] = useState<AttendanceAdminData[]>([]);
   const [attendanceCards, setAttendanceCards] = useState<any[]>([]);
 
-  const [selectedAttendanceeEditModal, setSelectedAttendanceeEditModal] = useState<any>(null);
-
+  const [selectedAttendanceeEditModal, setSelectedAttendanceeEditModal] =
+    useState<any>(null);
 
   const formatTime = (dateTime: string | false) => {
     if (!dateTime) return "-";
@@ -94,15 +90,14 @@ const AdminAttandanceKHR = () => {
     try {
       const response: any = await getAdminAttendance();
 
-
       console.log(response, "dddddffff");
 
       // Safety Check: Backend might return { data: [...] } or just [...]
       const rawArray = Array.isArray(response)
         ? response
         : response?.data && Array.isArray(response.data)
-          ? response.data
-          : [];
+        ? response.data
+        : [];
 
       // const mappedData: AttendanceAdminData[] = rawArray.map((item: any) => ({
       //   Employee: Array.isArray(item.employee_id) ? item.employee_id[1] : "Employee",
@@ -142,18 +137,21 @@ const AdminAttandanceKHR = () => {
 
           Break: isPresent ? item.break_time_display || "-" : "-",
 
-          Late: isPresent ? (item.late_time_display ? item.late_time_display : "-") : "-",
+          Late: isPresent
+            ? item.late_time_display
+              ? item.late_time_display
+              : "-"
+            : "-",
 
           ProductionHours: isPresent
             ? typeof item.worked_hours === "number"
               ? item.worked_hours.toFixed(2)
               : item.worked_hours
-                ? String(item.worked_hours)
-                : "0"
+              ? String(item.worked_hours)
+              : "0"
             : "0",
         };
       });
-
 
       setData(mappedData);
 
@@ -223,7 +221,6 @@ const AdminAttandanceKHR = () => {
       dataIndex: "Employee",
       render: (_text: string, record: AttendanceAdminData) => (
         <div className="d-flex align-items-center file-name-icon">
-
           <div className="ms-2">
             <h6 className="fw-medium">{record.Employee}</h6>
             <span className="fs-12 fw-normal ">{record.Role}</span>
@@ -238,10 +235,11 @@ const AdminAttandanceKHR = () => {
       dataIndex: "Status",
       render: (text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge ${text === "Present"
-            ? "badge-success-transparent"
-            : "badge-danger-transparent"
-            } d-inline-flex align-items-center`}
+          className={`badge ${
+            text === "Present"
+              ? "badge-success-transparent"
+              : "badge-danger-transparent"
+          } d-inline-flex align-items-center`}
         >
           <i className="ti ti-point-filled me-1" />
           {record.Status}
@@ -279,13 +277,14 @@ const AdminAttandanceKHR = () => {
       dataIndex: "ProductionHours",
       render: (_text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge d-inline-flex align-items-center badge-sm ${parseFloat(record.ProductionHours) < 8
-            ? "badge-danger"
-            : parseFloat(record.ProductionHours) >= 8 &&
-              parseFloat(record.ProductionHours) <= 9
+          className={`badge d-inline-flex align-items-center badge-sm ${
+            parseFloat(record.ProductionHours) < 8
+              ? "badge-danger"
+              : parseFloat(record.ProductionHours) >= 8 &&
+                parseFloat(record.ProductionHours) <= 9
               ? "badge-success"
               : "badge-info"
-            }`}
+          }`}
         >
           <i className="ti ti-clock-hour-11 me-1"></i>
           {record.ProductionHours}
@@ -319,8 +318,7 @@ const AdminAttandanceKHR = () => {
           </div>
         );
       },
-    }
-
+    },
   ];
 
   const statusChoose = [
@@ -455,7 +453,7 @@ const AdminAttandanceKHR = () => {
                       </span>
                       <Link
                         className="avatar bg-primary avatar-rounded text-fixed-white fs-12"
-                      // to="#"
+                        // to="#"
                       >
                         +1
                       </Link>
@@ -480,15 +478,17 @@ const AdminAttandanceKHR = () => {
                     className="spinner-border text-primary"
                     role="status"
                   ></div>
-                  <div className="mt-2">Loading All Employees Attendence...</div>
+                  <div className="mt-2">
+                    Loading All Employees Attendence...
+                  </div>
                 </div>
               ) : (
                 <DatatableKHR
                   data={data}
                   columns={columns}
                   selection={true}
-                // Ensure these keys match what DatatableKHR expects
-                // textKey="Department_Name"
+                  // Ensure these keys match what DatatableKHR expects
+                  // textKey="Department_Name"
                 />
               )}
             </div>
@@ -509,7 +509,6 @@ const AdminAttandanceKHR = () => {
           }}
         />
       )}
-
     </>
   );
 };

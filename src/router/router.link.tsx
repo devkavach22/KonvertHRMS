@@ -308,6 +308,8 @@ import {
   BanksKHR,
   GeoKHR,
   LeaveEmployeeKHR,
+  BanksAccountKHR,
+  // BanksAccountKHR,
 } from "./lazyRoutes";
 
 // Import third-party components
@@ -1634,6 +1636,11 @@ export const publicRoutes = [
     route: Route,
   },
   {
+    path: routes.banksAccountKHR,
+    element: <BanksAccountKHR />,
+    route: Route,
+  },
+  {
     path: routes.hrContractTypeKHR,
     element: <HrContractTypeKHR />,
     route: Route,
@@ -1663,12 +1670,12 @@ export const publicRoutes = [
     element: <LeaveSettingsKHR />,
     route: Route,
   },
-    {
+  {
     path: routes.employeeSalaryKHR,
     element: <StructureTypeKHR />,
     route: Route,
   },
-     {
+  {
     path: routes.SalaryRuleKHR,
     element: <SalaryRuleKHR />,
     route: Route,
@@ -1699,19 +1706,19 @@ export const publicRoutes = [
     route: Route,
   },
   {
-      path: routes.accuralPlanKHR,
-      element: <AccuralPlanKHR />,
-      route: Route,
+    path: routes.accuralPlanKHR,
+    element: <AccuralPlanKHR />,
+    route: Route,
   },
   {
-      path: routes.publicHolidayKHR,
-      element: <PublicHolidayKHR />,
-      route: Route,
+    path: routes.publicHolidayKHR,
+    element: <PublicHolidayKHR />,
+    route: Route,
   },
   {
-      path: routes.mendetoryDaysKHR,
-      element: <MendetoryDaysKHR />,
-      route: Route,
+    path: routes.mendetoryDaysKHR,
+    element: <MendetoryDaysKHR />,
+    route: Route,
   },
   {
     path: routes.buisnessTypeKHR,

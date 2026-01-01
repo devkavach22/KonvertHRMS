@@ -24,9 +24,10 @@ const getAuthDetails = () => {
 export const getAttendance = async (): Promise<APIAttendance[]> => {
   try {
     const { user_id } = getAuthDetails();
-    const response = await Instance.get("/api/attendance", {
-      params: 219,
-    });
+    const response = await Instance.get(
+      "/api/employee/attendance"
+      //  {params: { user_id },}
+    );
     return response.data.data || response.data || [];
   } catch (error) {
     console.error("Attendance Fetch Error:", error);
@@ -35,34 +36,33 @@ export const getAttendance = async (): Promise<APIAttendance[]> => {
 };
 
 export const getCategories = async () => {
-    try {
-        const { user_id } = getAuthDetails();
-        const response = await Instance.get("/api/regcategories", {
-            params: { user_id },
-        });
-        return response.data || response.data || [];
-    } catch (error) {
-        return [];
-    }
+  try {
+    const { user_id } = getAuthDetails();
+    const response = await Instance.get("/api/regcategories", {
+      params: { user_id },
+    });
+    return response.data || response.data || [];
+  } catch (error) {
+    return [];
+  }
 };
 
 // POST - Create Attendance Regularization
 export const createRegularization = async (payload: any) => {
-    try {
-        const { user_id } = getAuthDetails();
+  try {
+    const { user_id } = getAuthDetails();
 
-        const response = await Instance.post(
-            "/api/create/regularization",
-            payload,
-            {
-                params: { user_id },
-            }
-        );
+    const response = await Instance.post(
+      "/api/create/regularization",
+      payload,
+      {
+        params: { user_id },
+      }
+    );
 
-        return response.data;
-    } catch (error: any) {
-        console.error("Regularization Error:", error);
-        throw error;
-    }
+    return response.data;
+  } catch (error: any) {
+    console.error("Regularization Error:", error);
+    throw error;
+  }
 };
-

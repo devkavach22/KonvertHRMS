@@ -38,8 +38,7 @@ interface AttendanceAdminData {
   Break: string;
   Late: string;
   ProductionHours: string;
-  employeeId:number;
-  
+  employeeId: number;
 }
 
 // Define a type for employee attendance
@@ -94,7 +93,7 @@ const EmployeeAttendanceKHR = () => {
   // const [data, setData] = useState<EmployeeAttendance[]>([]);
   const [data, setData] = useState<AttendanceAdminData[]>([]);
   const [showQueryModal, setShowQueryModal] = useState(false);
-  const [employeeId, setEmployeeId] = useState<string | null>(null);
+  const [employeeId, setEmployeeId] = useState<number | null>(null);
 
   const [selectedAttendancee, setSelectedAttendancee] = useState<any>(null);
 
@@ -128,41 +127,41 @@ const EmployeeAttendanceKHR = () => {
       const attendanceArray = Array.isArray(response)
         ? response
         : Array.isArray(response.data)
-          ? response.data
-          : [];
+        ? response.data
+        : [];
 
       const empId = response?.meta?.employee_id || null;
-      setEmployeeId(empId);
+      setEmployeeId(empId ? Number(empId) : null);
 
       // const meta = response?.meta || response?.data?.meta || {};
 
-      const mappedData: AttendanceAdminData[] = attendanceArray.map((item: any) => ({
-        // Employee: meta?.employee_name || "Employee",
+      const mappedData: AttendanceAdminData[] = attendanceArray.map(
+        (item: any) => ({
+          // Employee: meta?.employee_name || "Employee",
 
-        Image: item.employee?.avatar || "avatar-1.jpg",
-        Role: item.employee?.role || "Employee",
-        Status: item.status_code ? "Present" : "Absent",
-        StartDate: formatDateOnly(item.check_in),
-        EndDate: item.check_out
-          ? formatDateOnly(item.check_out)
-          : "-",
-        CheckIn: formatTime(item.check_in),
-        CheckOut: formatTime(item.check_out),
-        LateTime: item.late_time_display,
-        Late: item.is_late_in ? "Yes" : "No",
-        Overtime:
-          typeof item.overtime_hours === "number"
-            ? item.overtime_hours.toFixed(2)
-            : item.overtime_hours
+          Image: item.employee?.avatar || "avatar-1.jpg",
+          Role: item.employee?.role || "Employee",
+          Status: item.status_code ? "Present" : "Absent",
+          StartDate: formatDateOnly(item.check_in),
+          EndDate: item.check_out ? formatDateOnly(item.check_out) : "-",
+          CheckIn: formatTime(item.check_in),
+          CheckOut: formatTime(item.check_out),
+          LateTime: item.late_time_display,
+          Late: item.is_late_in ? "Yes" : "No",
+          Overtime:
+            typeof item.overtime_hours === "number"
+              ? item.overtime_hours.toFixed(2)
+              : item.overtime_hours
               ? String(item.overtime_hours)
               : "0",
-        ProductionHours:
-          typeof item.worked_hours === "number"
-            ? item.worked_hours.toFixed(2)
-            : item.worked_hours
+          ProductionHours:
+            typeof item.worked_hours === "number"
+              ? item.worked_hours.toFixed(2)
+              : item.worked_hours
               ? String(item.worked_hours)
               : "0",
-      }));
+        })
+      );
 
       setData(mappedData);
     } catch (error) {
@@ -172,7 +171,6 @@ const EmployeeAttendanceKHR = () => {
       setLoading(false);
     }
   };
-
 
   useEffect(() => {
     fetchData();
@@ -224,10 +222,11 @@ const EmployeeAttendanceKHR = () => {
       dataIndex: "Status",
       render: (text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge ${text === "Present"
-            ? "badge-success-transparent"
-            : "badge-danger-transparent"
-            } d-inline-flex align-items-center`}
+          className={`badge ${
+            text === "Present"
+              ? "badge-success-transparent"
+              : "badge-danger-transparent"
+          } d-inline-flex align-items-center`}
         >
           <i className="ti ti-point-filled me-1" />
           {record.Status}
@@ -265,13 +264,14 @@ const EmployeeAttendanceKHR = () => {
       dataIndex: "ProductionHours",
       render: (_text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge d-inline-flex align-items-center badge-sm ${parseFloat(record.ProductionHours) < 8
-            ? "badge-danger"
-            : parseFloat(record.ProductionHours) >= 8 &&
-              parseFloat(record.ProductionHours) <= 9
+          className={`badge d-inline-flex align-items-center badge-sm ${
+            parseFloat(record.ProductionHours) < 8
+              ? "badge-danger"
+              : parseFloat(record.ProductionHours) >= 8 &&
+                parseFloat(record.ProductionHours) <= 9
               ? "badge-success"
               : "badge-info"
-            }`}
+          }`}
         >
           <i className="ti ti-clock-hour-11 me-1"></i>
           {record.ProductionHours}
@@ -311,7 +311,7 @@ const EmployeeAttendanceKHR = () => {
           Raise Query
         </button>
       ),
-    }
+    },
   ];
 
   const statusChoose = [
@@ -482,8 +482,8 @@ Punch In at 10.00 AM
                   data={data}
                   columns={columns}
                   selection={true}
-                // Ensure these keys match what DatatableKHR expects
-                // textKey="Department_Name"
+                  // Ensure these keys match what DatatableKHR expects
+                  // textKey="Department_Name"
                 />
               )}
             </div>
@@ -494,14 +494,13 @@ Punch In at 10.00 AM
       {/* Modal Component */}
       {/* <AddDepartmentModal onSuccess={fetchData} data={selectedDepartment} /> */}
 
-      {showQueryModal && selectedAttendancee && (
+      {showQueryModal && selectedAttendancee && employeeId && (
         <AttendanceQueryModal
           attendance={selectedAttendancee}
           employeeId={employeeId}
           onClose={() => setShowQueryModal(false)}
         />
       )}
-
     </>
   );
 };

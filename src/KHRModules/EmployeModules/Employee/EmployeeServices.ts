@@ -40,6 +40,36 @@ export const getEmployees = async () => {
   }
 };
 
+// ... existing imports and code
+
+// --- NEW ADDITIONS FOR APPROVAL TAB ---
+
+export const getApprovalGroups = async () => {
+  try {
+    // Calling: http://localhost:4000/api/groups
+    // Note: If Instance base URL is different, use the full URL: await Instance.get("http://localhost:4000/api/groups")
+    const response = await Instance.get("/api/groups");
+    return response.data || [];
+  } catch (error) {
+    console.error("Error fetching approval groups:", error);
+    return [];
+  }
+};
+
+export const getGroupUsers = async (groupId: string) => {
+  if (!groupId) return [];
+  try {
+    // Calling: http://localhost:4000/api/groups/users?group_id=69
+    const response = await Instance.get("/api/groups/users", {
+      params: { group_id: groupId },
+    });
+    return response.data || [];
+  } catch (error) {
+    console.error("Error fetching group users:", error);
+    return [];
+  }
+};
+
 // Add to EmployeeServices.ts
 
 export const getBusinessTypes = async () => {
