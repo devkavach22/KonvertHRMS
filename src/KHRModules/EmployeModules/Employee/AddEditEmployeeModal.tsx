@@ -214,6 +214,14 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
     employee_password: "",
     status: "active",
     pin: "",
+    latitude: "",
+    longitude: "",
+    device_id: "",
+    device_unique_id: "",
+    device_name: "",
+    system_version: "",
+    ip_address: "",
+    device_platform: "",
   };
 
   const resetForm = () => {
@@ -225,23 +233,25 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
     setActiveTab("legal"); // Always open back to the first tab
     setShowErrorAlert(false); // Hides the red Alert UI card
   };
+  // ✅ USE THIS CONSOLIDATED EFFECT
   useEffect(() => {
     if (data) {
       // 1. Helper to handle API's [id, "name"] or false/null values
       const getVal = (field: any) => {
         if (Array.isArray(field)) return String(field[0]); // Extract ID from [123, "Name"]
-        if (field === false || field === null) return ""; // Convert 'false' to empty string
+        if (field === false || field === null || field === 0) return ""; // Convert false/null/0 to empty string
         return String(field);
       };
 
       // 2. Set the Form Data
       setFormData({
-        ...initialFormData, // Start with defaults to ensure all keys exist
+        ...initialFormData, // Start with defaults
         ...data, // Spread API data
 
-        // Explicitly map/format dropdown fields
+        // --- Explicitly map Dropdown/Select fields ---
+        // This ensures the Select component gets a clean ID string, not an array
         attendance_policy_id: getVal(data.attendance_policy_id),
-        name_of_client: getVal(data.name_of_site), // API uses name_of_site, form uses name_of_client
+        name_of_client: getVal(data.name_of_site || data.name_of_client), // Handle key mismatch
         resource_calendar_id: getVal(data.resource_calendar_id),
         shift_roster_id: getVal(data.shift_roster_id),
         country_id: getVal(data.country_id),
@@ -252,25 +262,62 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
         bank_account_id: getVal(data.bank_account_id),
         reporting_manager_id: getVal(data.reporting_manager_id),
         head_of_department_id: getVal(data.head_of_department_id),
+        employment_type: data.employment_type
+          ? data.employment_type.toLowerCase()
+          : "permanent",
+        employee_category: data.employee_category
+          ? data.employee_category.toLowerCase()
+          : "staff",
+        attendance_capture_mode: data.attendance_capture_mode || "MobileAPP",
 
-        // Handle numeric fields that come as 0 or false
+        // --- Handle numeric fields ---
         pin_code: data.pin_code === 0 ? "" : data.pin_code,
+        probation_period: data.probation_period || 0,
+        notice_period_days: data.notice_period_days || 0,
 
-        // Handle Base64 strings (Keep them as strings in state for now)
-        // We don't convert them to File objects here, just store the Base64
+        // --- Handle Dates (Ensure false/null becomes null) ---
+        birthday: data.birthday || null,
+        joining_date: data.joining_date || null,
+        confirmation_date: data.confirmation_date || null,
+        resignation_date: data.resignation_date || null,
+        notice_period_end_date: data.notice_period_end_date || null,
+        probation_end_date: data.probation_end_date || null,
+        group_company_joining_date: data.group_company_joining_date || null,
+        date_of_marriage: data.date_of_marriage || null,
+
+        // --- Handle Files/Images ---
+        // Keep them as null or existing strings; do not overwrite with File objects yet
         image_1920: data.image_1920 || null,
         driving_license: data.driving_license || null,
         upload_passbook: data.upload_passbook || null,
+
+        latitude: data.latitude || "",
+        longitude: data.longitude || "",
+
+        // Ensure device fields are also mapped if they weren't already
+        device_id: data.device_id || "",
+        device_unique_id: data.device_unique_id || "",
+        device_name: data.device_name || "",
+        system_version: data.system_version || "",
+        ip_address: data.ip_address || "",
+        device_platform: data.device_platform || "",
       });
 
-      // 3. Set Visual Previews for Base64 data
-      // API returns raw base64, so we add the Data URI prefix
+      // 3. Set Visual Previews
       if (data.image_1920) {
-        setImgPreview(`data:image/png;base64,${data.image_1920}`);
+        // Check if it's already a full Data URI or just base64
+        const prefix = data.image_1920.startsWith("data:")
+          ? ""
+          : "data:image/png;base64,";
+        setImgPreview(`${prefix}${data.image_1920}`);
+      } else if (data.image) {
+        // Fallback if API uses 'image' key
+        setImgPreview(data.image);
+      } else {
+        setImgPreview(null);
       }
     }
   }, [data]);
-
   useEffect(() => {
     const modalElement = document.getElementById("add_employee_modal");
 
@@ -317,10 +364,6 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
       tempErrors.father_name = "Father's Name is required.";
       isValid = false;
     }
-    if (!formData.name_of_client) {
-      tempErrors.name_of_client = "Operational Branch selection is required.";
-      isValid = false;
-    }
 
     setErrors((prev: any) => ({ ...prev, ...tempErrors }));
     return isValid;
@@ -336,18 +379,17 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
         "A valid 12-digit Aadhaar number is required.";
       isValid = false;
     }
-
     // 2. Category - Mandatory
-    if (!formData.category) {
-      tempErrors.category = "Employee category selection is required.";
-      isValid = false;
-    }
+    // if (!formData.category) {
+    //   tempErrors.category = "Employee category selection is required.";
+    //   isValid = false;
+    // }
 
-    // 3. Driving License - Mandatory (File)
-    if (!formData.driving_license) {
-      tempErrors.driving_license = "Driving License document is required.";
-      isValid = false;
-    }
+    // // 3. Driving License - Mandatory (File)
+    // if (!formData.driving_license) {
+    //   tempErrors.driving_license = "Driving License document is required.";
+    //   isValid = false;
+    // }
 
     // 4. UAN Dependency (Conditional Mandatory)
     if (formData.is_uan_number_applicable) {
@@ -372,11 +414,11 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
       isValid = false;
     }
 
-    // Mandatory: Marital Status
-    if (!formData.marital) {
-      tempErrors.marital = "Marital status is required.";
-      isValid = false;
-    }
+    // // Mandatory: Marital Status
+    // if (!formData.marital) {
+    //   tempErrors.marital = "Marital status is required.";
+    //   isValid = false;
+    // }
 
     // Mandatory: Date of Birth
     if (!formData.birthday) {
@@ -407,7 +449,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
     // Conditional Mandatory: Spouse details if Married
     if (formData.marital === "married") {
       if (!formData.spouse_name?.trim()) {
-        tempErrors.spouse_name = "Spouse name is required for married status.";
+        tempErrors.spouse_name = "Spouse name is required.";
         isValid = false;
       }
       if (!formData.date_of_marriage) {
@@ -423,12 +465,13 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
     let tempErrors: any = {};
     let isValid = true;
 
-    // Only these two are mandatory as per your latest list
+    // 1. Present Address - MANDATORY
     if (!formData.present_address?.trim()) {
       tempErrors.present_address = "Present Address is required.";
       isValid = false;
     }
 
+    // 2. Permanent Address - MANDATORY
     if (!formData.permanent_address?.trim()) {
       tempErrors.permanent_address = "Permanent Address is required.";
       isValid = false;
@@ -473,20 +516,20 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
     let tempErrors: any = {};
     let isValid = true;
 
-    const requiredFields = [
-      { key: "department_id", label: "Department" },
-      { key: "job_id", label: "Designation" },
-      { key: "joining_date", label: "Joining Date" },
-      { key: "employee_password", label: "Login Password" },
-      { key: "status", label: "Status" },
-    ];
+    // const requiredFields = [
+    //   { key: "department_id", label: "Department" },
+    //   { key: "job_id", label: "Designation" },
+    //   { key: "joining_date", label: "Joining Date" },
+    //   { key: "employee_password", label: "Login Password" },
+    //   { key: "status", label: "Status" },
+    // ];
 
-    requiredFields.forEach((field) => {
-      if (!formData[field.key]) {
-        tempErrors[field.key] = `${field.label} is required.`;
-        isValid = false;
-      }
-    });
+    // requiredFields.forEach((field) => {
+    //   if (!formData[field.key]) {
+    //     tempErrors[field.key] = `${field.label} is required.`;
+    //     isValid = false;
+    //   }
+    // });
 
     // Hold logic
     if (formData.hold_status && !formData.hold_remarks?.trim()) {
@@ -520,10 +563,10 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
 
     // You can make these mandatory or optional.
     // Example: Mandatory Device Unique ID
-    if (!formData.device_unique_id?.trim()) {
-      tempErrors.device_unique_id = "Device Unique ID is required.";
-      isValid = false;
-    }
+    // if (!formData.device_unique_id?.trim()) {
+    //   tempErrors.device_unique_id = "Device Unique ID is required.";
+    //   isValid = false;
+    // }
 
     setErrors((prev: any) => ({ ...prev, ...tempErrors }));
     return isValid;
@@ -561,13 +604,13 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
     let isValid = true;
 
     // PIN Code - Mandatory (4-6 Digits)
-    if (!formData.pin) {
-      tempErrors.pin = "Employee Access PIN is required.";
-      isValid = false;
-    } else if (formData.pin.length < 4) {
-      tempErrors.pin = "PIN must be at least 4 digits.";
-      isValid = false;
-    }
+    // if (!formData.pin) {
+    //   tempErrors.pin = "Employee Access PIN is required.";
+    //   isValid = false;
+    // } else if (formData.pin.length < 4) {
+    //   tempErrors.pin = "PIN must be at least 4 digits.";
+    //   isValid = false;
+    // }
 
     setErrors((prev: any) => ({ ...prev, ...tempErrors }));
     return isValid;
@@ -754,12 +797,12 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
     loadRosters();
   }, []);
 
-  useEffect(() => {
-    if (data) {
-      setFormData(data);
-      if (data.image) setImgPreview(data.image);
-    }
-  }, [data]);
+  // useEffect(() => {
+  //   if (data) {
+  //     setFormData(data);
+  //     if (data.image) setImgPreview(data.image);
+  //   }
+  // }, [data]);
 
   // Inside AddEditEmployeeModal.tsx
 
@@ -1221,13 +1264,27 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
       let imageBase64 = null;
 
       if (formData.driving_license instanceof File) {
+        // Case A: User uploaded a NEW file
         licenseBase64 = await fileToBase64(formData.driving_license);
+      } else if (typeof formData.driving_license === "string") {
+        // Case B: Keeping the EXISTING file from API (which is a base64 string)
+        licenseBase64 = formData.driving_license;
       }
+
       if (formData.upload_passbook instanceof File) {
         passbookBase64 = await fileToBase64(formData.upload_passbook);
+      } else if (typeof formData.upload_passbook === "string") {
+        passbookBase64 = formData.upload_passbook;
       }
       if (formData.image_1920 instanceof File) {
         imageBase64 = await fileToBase64(formData.image_1920);
+      } else if (typeof formData.image_1920 === "string") {
+        // API often sends image with or without prefix, ensure we send raw base64 if needed
+        // If your API expects RAW base64 (no 'data:image...'), strip it if present:
+        const imgStr = formData.image_1920;
+        imageBase64 = imgStr.includes("base64,")
+          ? imgStr.split("base64,")[1]
+          : imgStr;
       }
 
       // 4. Construct Final Payload (Mapping values as per your API requirements)
@@ -1340,2537 +1397,2508 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
   };
 
   return (
-    <div className="modal fade" id="add_employee_modal" role="dialog">
-      {showErrorAlert && (
-        <div className="mb-4">
-          <CommonAlertCard
-            alertType="danger"
-            iconClass="ti ti-alert-triangle fs-30"
-            title="Mandatory Fields Missing"
-            message="Please fill in all required fields marked with * in the Header, Legal, Personal, Address, Emergency, and Banking tabs."
-            buttons={[
-              {
-                label: "Review Form",
-                className: "btn-danger",
-                onClick: () => setShowErrorAlert(false),
-              },
-            ]}
-          />
-        </div>
-      )}
-      <div className="modal-dialog modal-dialog-centered modal-xl">
-        <div className="modal-content bg-white border-0">
-          <div className="modal-header border-0 bg-white pb-0">
-            <h4 className="modal-title fw-bold">Employee Master Entry</h4>
-            <button
-              type="button"
-              id="close-emp-modal"
-              className="btn-close"
-              data-bs-dismiss="modal"
-            ></button>
+    <>
+      <div className="modal fade" id="add_employee_modal" role="dialog">
+        {showErrorAlert && (
+          <div className="mb-4">
+            <CommonAlertCard
+              alertType="danger"
+              iconClass="ti ti-alert-triangle fs-30"
+              title="Mandatory Fields Missing"
+              message="Please fill in all required fields marked with * in the Header, Legal, Personal, Address, Emergency, and Banking tabs."
+              buttons={[
+                {
+                  label: "Review Form",
+                  className: "btn-danger",
+                  onClick: () => setShowErrorAlert(false),
+                },
+              ]}
+            />
           </div>
+        )}
+        <div className="modal-dialog modal-dialog-centered modal-xl">
+          <div className="modal-content bg-white border-0">
+            <div className="modal-header border-0 bg-white pb-0">
+              <h4 className="modal-title fw-bold">Employee Master Entry</h4>
+              <button
+                type="button"
+                id="close-emp-modal"
+                className="btn-close"
+                data-bs-dismiss="modal"
+              ></button>
+            </div>
 
-          <div className="modal-body">
-            <form
-              className={`needs-validation ${validated ? "was-validated" : ""}`}
-              noValidate
-              onSubmit={handleSubmit}
-            >
-              {/* --- TOP SECTION (ALIGNED HEADER) --- */}
-              <div className="row g-3 mb-4 bg-light p-3 rounded mx-0 align-items-center border shadow-sm">
-                <div className="col-md-10">
-                  <div className="row g-3">
-                    {/* 1. Name - MANDATORY */}
-                    <div className="col-md-4">
-                      <label className="form-label fs-13 fw-bold">
-                        Name <span className="text-danger">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        className={`form-control ${
-                          isSubmitted
-                            ? errors.name
-                              ? "is-invalid"
-                              : formData.name
-                              ? "is-valid"
+            <div className="modal-body">
+              <form
+                className={`needs-validation ${
+                  validated ? "was-validated" : ""
+                }`}
+                noValidate
+                onSubmit={handleSubmit}
+              >
+                {/* --- TOP SECTION (ALIGNED HEADER) --- */}
+                <div className="row g-3 mb-4 bg-light p-3 rounded mx-0 align-items-xcenter border shadow-sm">
+                  <div className="col-md-10">
+                    <div className="row g-3">
+                      {/* 1. Name - MANDATORY */}
+                      <div className="col-md-4">
+                        <label className="form-label fs-13 fw-bold">
+                          Name <span className="text-danger">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className={`form-control ${
+                            isSubmitted
+                              ? errors.name
+                                ? "is-invalid"
+                                : formData.name
+                                ? "is-valid"
+                                : ""
                               : ""
-                            : ""
-                        }`}
-                        placeholder="Enter Name"
-                        value={formData.name}
-                        onChange={(e) => {
-                          setFormData({ ...formData, name: e.target.value });
-                          if (errors.name) setErrors({ ...errors, name: "" });
-                        }}
-                      />
-                      {isSubmitted && errors.name && (
-                        <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
-                          <i className="ti ti-info-circle me-1"></i>
-                          {errors.name}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 2. Father's Name - MANDATORY */}
-                    <div className="col-md-4">
-                      <label className="form-label fs-13 fw-bold">
-                        Father's Name <span className="text-danger">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        className={`form-control ${
-                          isSubmitted
-                            ? errors.father_name
-                              ? "is-invalid"
-                              : formData.father_name
-                              ? "is-valid"
-                              : ""
-                            : ""
-                        }`}
-                        placeholder="Enter Father's Name"
-                        value={formData.father_name}
-                        onChange={(e) => {
-                          setFormData({
-                            ...formData,
-                            father_name: e.target.value,
-                          });
-                          if (errors.father_name)
-                            setErrors({ ...errors, father_name: "" });
-                        }}
-                      />
-                      {isSubmitted && errors.father_name && (
-                        <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
-                          <i className="ti ti-info-circle me-1"></i>
-                          {errors.father_name}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 3. Branch - MANDATORY */}
-                    <div className="col-md-4">
-                      <label className="form-label fs-13 fw-bold">
-                        Branch <span className="text-danger">*</span>
-                      </label>
-                      <div
-                        className={
-                          isSubmitted
-                            ? errors.name_of_client
-                              ? "border border-danger rounded shadow-sm"
-                              : formData.name_of_client
-                              ? "border border-success rounded shadow-sm"
-                              : ""
-                            : ""
-                        }
-                      >
-                        <CommonSelect
-                          options={branches}
-                          placeholder="Select Branch"
-                          defaultValue={branches.find(
-                            (b) => b.value === formData.name_of_client
-                          )}
-                          onChange={(opt) => {
-                            setFormData({
-                              ...formData,
-                              name_of_client: opt?.value || "",
-                            });
-                            if (errors.name_of_client)
-                              setErrors({ ...errors, name_of_client: "" });
+                          }`}
+                          placeholder="Enter Name"
+                          value={formData.name}
+                          onChange={(e) => {
+                            setFormData({ ...formData, name: e.target.value });
+                            if (errors.name) setErrors({ ...errors, name: "" });
                           }}
                         />
+                        {isSubmitted && errors.name && (
+                          <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                            <i className="ti ti-info-circle me-1"></i>
+                            {errors.name}
+                          </div>
+                        )}
                       </div>
-                      {isSubmitted && errors.name_of_client && (
-                        <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
-                          <i className="ti ti-info-circle me-1"></i>
-                          {errors.name_of_client}
-                        </div>
-                      )}
-                    </div>
 
-                    {/* 4. Attendance Policy - OPTIONAL */}
-                    <div className="col-md-4">
-                      <label className="form-label fs-13">
-                        Attendance Policy
-                      </label>
-                      <CommonSelect
-                        options={attendancePolicies}
-                        placeholder="Select Policy"
-                        defaultValue={attendancePolicies.find(
-                          (opt) => opt.value === formData.attendance_policy_id
-                        )}
-                        onChange={(opt) =>
-                          setFormData({
-                            ...formData,
-                            attendance_policy_id: opt?.value || "",
-                          })
-                        }
-                      />
-                    </div>
-
-                    {/* 5. Employee Category - OPTIONAL */}
-                    <div className="col-md-4">
-                      <label className="form-label fs-13">
-                        Employee Category
-                      </label>
-                      <CommonSelect
-                        options={[
-                          { value: "staff", label: "Staff" },
-                          { value: "contract", label: "Contract" },
-                          { value: "intern", label: "Intern" },
-                        ]}
-                        defaultValue={[
-                          { value: "staff", label: "Staff" },
-                          { value: "contract", label: "Contract" },
-                          { value: "intern", label: "Intern" },
-                        ].find((o) => o.value === formData.employee_category)}
-                        onChange={(opt) =>
-                          setFormData({
-                            ...formData,
-                            employee_category: opt?.value || "",
-                          })
-                        }
-                      />
-                    </div>
-
-                    {/* 6. Working Hours - OPTIONAL */}
-                    <div className="col-md-4">
-                      <label className="form-label fs-13">Working Hours</label>
-                      <CommonSelect
-                        options={workingSchedules}
-                        placeholder="Select Hours"
-                        defaultValue={workingSchedules.find(
-                          (opt) => opt.value === formData.resource_calendar_id
-                        )}
-                        onChange={(opt) =>
-                          setFormData({
-                            ...formData,
-                            resource_calendar_id: opt?.value || "",
-                          })
-                        }
-                      />
-                    </div>
-
-                    {/* 7. Shift Roster - OPTIONAL */}
-                    <div className="col-md-3">
-                      <label className="form-label fs-13">Shift Roster</label>
-                      <CommonSelect
-                        options={shiftRosters}
-                        placeholder="Select Roster"
-                        defaultValue={shiftRosters.find(
-                          (opt) => opt.value === formData.shift_roster_id
-                        )}
-                        onChange={(opt) =>
-                          setFormData({
-                            ...formData,
-                            shift_roster_id: opt?.value || "",
-                          })
-                        }
-                      />
-                    </div>
-
-                    {/* 8. Timezone - OPTIONAL */}
-                    <div className="col-md-3">
-                      <label className="form-label fs-13">Timezone</label>
-                      <CommonSelect
-                        options={timezones}
-                        placeholder="Select Timezone"
-                        defaultValue={timezones.find(
-                          (opt) => opt.value === formData.timezone
-                        )}
-                        onChange={(opt) =>
-                          setFormData({
-                            ...formData,
-                            timezone: opt?.value || "",
-                          })
-                        }
-                      />
-                    </div>
-
-                    {/* 9. Geo Tracking - OPTIONAL */}
-                    <div className="col-md-3 d-flex align-items-center mt-4">
-                      <div className="form-check form-switch">
+                      {/* 2. Father's Name - MANDATORY */}
+                      <div className="col-md-4">
+                        <label className="form-label fs-13 fw-bold">
+                          Father's Name <span className="text-danger">*</span>
+                        </label>
                         <input
-                          type="checkbox"
-                          className="form-check-input"
-                          id="geoCheckHeader"
-                          checked={formData.is_geo_tracking}
-                          onChange={(e) =>
+                          type="text"
+                          className={`form-control ${
+                            isSubmitted
+                              ? errors.father_name
+                                ? "is-invalid"
+                                : formData.father_name
+                                ? "is-valid"
+                                : ""
+                              : ""
+                          }`}
+                          placeholder="Enter Father's Name"
+                          value={formData.father_name}
+                          onChange={(e) => {
                             setFormData({
                               ...formData,
-                              is_geo_tracking: e.target.checked,
+                              father_name: e.target.value,
+                            });
+                            if (errors.father_name)
+                              setErrors({ ...errors, father_name: "" });
+                          }}
+                        />
+                        {isSubmitted && errors.father_name && (
+                          <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                            <i className="ti ti-info-circle me-1"></i>
+                            {errors.father_name}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 3. Branch - MANDATORY */}
+                      {/* <div className="col-md-4">
+                        <label className="form-label fs-13 fw-bold">
+                          Branch <span className="text-danger">*</span>
+                        </label>
+                        <div
+                          className={
+                            isSubmitted
+                              ? errors.name_of_client
+                                ? "border border-danger rounded shadow-sm"
+                                : formData.name_of_client
+                                ? "border border-success rounded shadow-sm"
+                                : ""
+                              : ""
+                          }
+                        >
+                          <CommonSelect
+                            options={branches}
+                            placeholder="Select Branch"
+                            defaultValue={branches.find(
+                              (b) => b.value === formData.name_of_client
+                            )}
+                            onChange={(opt) => {
+                              setFormData({
+                                ...formData,
+                                name_of_client: opt?.value || "",
+                              });
+                              if (errors.name_of_client)
+                                setErrors({ ...errors, name_of_client: "" });
+                            }}
+                          />
+                        </div>
+                        {isSubmitted && errors.name_of_client && (
+                          <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                            <i className="ti ti-info-circle me-1"></i>
+                            {errors.name_of_client}
+                          </div>
+                        )}
+                      </div> */}
+                      {/* 3. Branch - NOW OPTIONAL */}
+                      <div className="col-md-4">
+                        <label className="form-label fs-13 fw-bold">
+                          Branch
+                        </label>
+                        {/* Removed validation border classes */}
+                        <div>
+                          <CommonSelect
+                            options={branches}
+                            placeholder="Select Branch"
+                            defaultValue={branches.find(
+                              (b) => b.value === formData.name_of_client
+                            )}
+                            onChange={(opt) => {
+                              setFormData({
+                                ...formData,
+                                name_of_client: opt?.value || "",
+                              });
+                            }}
+                          />
+                        </div>
+                      </div>
+                      {/* 4. Attendance Policy - OPTIONAL */}
+                      <div className="col-md-4">
+                        <label className="form-label fs-13">
+                          Attendance Policy
+                        </label>
+                        <CommonSelect
+                          options={attendancePolicies}
+                          placeholder="Select Policy"
+                          defaultValue={attendancePolicies.find(
+                            (opt) => opt.value === formData.attendance_policy_id
+                          )}
+                          onChange={(opt) =>
+                            setFormData({
+                              ...formData,
+                              attendance_policy_id: opt?.value || "",
                             })
                           }
                         />
-                        <label
-                          className="form-check-label fs-13 fw-bold text-primary ms-2"
-                          htmlFor="geoCheckHeader"
-                        >
-                          Geo Tracking
+                      </div>
+
+                      {/* 5. Employee Category - OPTIONAL */}
+                      <div className="col-md-4">
+                        <label className="form-label fs-13">
+                          Employee Category
                         </label>
+                        <CommonSelect
+                          options={[
+                            { value: "staff", label: "Staff" },
+                            { value: "contract", label: "Contract" },
+                            { value: "intern", label: "Intern" },
+                          ]}
+                          defaultValue={[
+                            { value: "staff", label: "Staff" },
+                            { value: "contract", label: "Contract" },
+                            { value: "intern", label: "Intern" },
+                          ].find((o) => o.value === formData.employee_category)}
+                          onChange={(opt) =>
+                            setFormData({
+                              ...formData,
+                              employee_category: opt?.value || "",
+                            })
+                          }
+                        />
+                      </div>
+
+                      {/* 6. Working Hours - OPTIONAL */}
+                      <div className="col-md-4">
+                        <label className="form-label fs-13">
+                          Working Hours
+                        </label>
+                        <CommonSelect
+                          options={workingSchedules}
+                          placeholder="Select Hours"
+                          defaultValue={workingSchedules.find(
+                            (opt) => opt.value === formData.resource_calendar_id
+                          )}
+                          onChange={(opt) =>
+                            setFormData({
+                              ...formData,
+                              resource_calendar_id: opt?.value || "",
+                            })
+                          }
+                        />
+                      </div>
+
+                      {/* 7. Shift Roster - OPTIONAL */}
+                      <div className="col-md-3">
+                        <label className="form-label fs-13">Shift Roster</label>
+                        <CommonSelect
+                          options={shiftRosters}
+                          placeholder="Select Roster"
+                          defaultValue={shiftRosters.find(
+                            (opt) => opt.value === formData.shift_roster_id
+                          )}
+                          onChange={(opt) =>
+                            setFormData({
+                              ...formData,
+                              shift_roster_id: opt?.value || "",
+                            })
+                          }
+                        />
+                      </div>
+
+                      {/* 8. Timezone - OPTIONAL */}
+                      <div className="col-md-3">
+                        <label className="form-label fs-13">Timezone</label>
+                        <CommonSelect
+                          options={timezones}
+                          placeholder="Select Timezone"
+                          defaultValue={timezones.find(
+                            (opt) => opt.value === formData.timezone
+                          )}
+                          onChange={(opt) =>
+                            setFormData({
+                              ...formData,
+                              timezone: opt?.value || "",
+                            })
+                          }
+                        />
+                      </div>
+
+                      {/* 9. Geo Tracking - OPTIONAL */}
+                      <div className="col-md-3 d-flex align-items-center mt-4">
+                        <div className="form-check form-switch">
+                          <input
+                            type="checkbox"
+                            className="form-check-input"
+                            id="geoCheckHeader"
+                            checked={formData.is_geo_tracking}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                is_geo_tracking: e.target.checked,
+                              })
+                            }
+                          />
+                          <label
+                            className="form-check-label fs-13 fw-bold text-primary ms-2"
+                            htmlFor="geoCheckHeader"
+                          >
+                            Geo Tracking
+                          </label>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* PHOTO BOX SECTION */}
-                <div className="col-md-2 text-center border-start py-2">
-                  <div
-                    className="profile-pic-box border border-dashed rounded p-1 mx-auto bg-white shadow-sm"
-                    style={{
-                      width: "100px",
-                      height: "100px",
-                      position: "relative",
-                    }}
-                  >
-                    {imgPreview ? (
-                      <img
-                        src={imgPreview}
-                        className="img-fluid rounded w-100 h-100 object-fit-cover"
-                        alt="Preview"
-                      />
-                    ) : (
-                      <div className="d-flex flex-column align-items-center justify-content-center h-100">
-                        <i className="ti ti-camera fs-32 text-muted"></i>
-                        <span className="fs-10 text-muted">Photo</span>
-                      </div>
-                    )}
-                    <label
-                      htmlFor="emp_img_header"
-                      className="btn btn-primary btn-icon btn-xs rounded-circle position-absolute"
+                  {/* PHOTO BOX SECTION */}
+                  <div className="col-md-2 text-center border-start py-2">
+                    <div
+                      className="profile-pic-box border border-dashed rounded p-1 mx-auto bg-white shadow-sm"
                       style={{
-                        bottom: "-10px",
-                        left: "50%",
-                        transform: "translateX(-50%)",
-                        width: "26px",
-                        height: "26px",
-                        padding: 0,
-                        display: "grid",
-                        placeItems: "center",
+                        width: "100px",
+                        height: "100px",
+                        position: "relative",
                       }}
                     >
-                      <i className="ti ti-upload fs-12"></i>
-                    </label>
-                    <input
-                      type="file"
-                      id="emp_img_header"
-                      className="d-none"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                    />
+                      {imgPreview ? (
+                        <img
+                          src={imgPreview}
+                          className="img-fluid rounded w-100 h-100 object-fit-cover"
+                          alt="Preview"
+                        />
+                      ) : (
+                        <div className="d-flex flex-column align-items-center justify-content-center h-100">
+                          <i className="ti ti-camera fs-32 text-muted"></i>
+                          <span className="fs-10 text-muted">Photo</span>
+                        </div>
+                      )}
+                      <label
+                        htmlFor="emp_img_header"
+                        className="btn btn-primary btn-icon btn-xs rounded-circle position-absolute"
+                        style={{
+                          bottom: "-10px",
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          width: "26px",
+                          height: "26px",
+                          padding: 0,
+                          display: "grid",
+                          placeItems: "center",
+                        }}
+                      >
+                        <i className="ti ti-upload fs-12"></i>
+                      </label>
+                      <input
+                        type="file"
+                        id="emp_img_header"
+                        className="d-none"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* --- TABS NAVIGATION --- */}
-              <div className="employee-tabs-scrollable border-bottom mb-3">
-                <ul
-                  className="nav nav-tabs flex-nowrap overflow-auto hide-scrollbar"
-                  role="tablist"
+                {/* --- TABS NAVIGATION --- */}
+                <div className="employee-tabs-scrollable border-bottom mb-3">
+                  <ul
+                    className="nav nav-tabs flex-nowrap overflow-auto hide-scrollbar"
+                    role="tablist"
+                  >
+                    {[
+                      "Legal",
+                      "Personal",
+                      "Address",
+                      "Emergency",
+                      "Employment",
+                      "Banking",
+                      "Notice",
+                      "Setting",
+                      "Device",
+                    ].map((tab) => (
+                      <li className="nav-item" key={tab}>
+                        <button
+                          className={`nav-link fw-medium ${
+                            activeTab === tab.toLowerCase() ? "active" : ""
+                          }`}
+                          onClick={() => setActiveTab(tab.toLowerCase())}
+                          type="button"
+                        >
+                          {tab === "Legal"
+                            ? "Legal / Identification"
+                            : tab + " Information"}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* --- TABS CONTENT --- */}
+                <div
+                  className="tab-content bg-white"
+                  style={{ minHeight: "350px" }}
                 >
-                  {[
-                    "Legal",
-                    "Personal",
-                    "Address",
-                    "Emergency",
-                    "Employment",
-                    "Banking",
-                    "Notice",
-                    "Setting",
-                    "Device",
-                  ].map((tab) => (
-                    <li className="nav-item" key={tab}>
-                      <button
-                        className={`nav-link fw-medium ${
-                          activeTab === tab.toLowerCase() ? "active" : ""
-                        }`}
-                        onClick={() => setActiveTab(tab.toLowerCase())}
-                        type="button"
-                      >
-                        {tab === "Legal"
-                          ? "Legal / Identification"
-                          : tab + " Information"}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* --- TABS CONTENT --- */}
-              <div
-                className="tab-content bg-white"
-                style={{ minHeight: "350px" }}
-              >
-                {/* 1. Legal / Identification */}
-                {activeTab === "legal" && (
-                  <div className="legal-info-wrapper animate__animated animate__fadeIn">
-                    {/* --- Section 1: Government Identification --- */}
-                    <div className="form-section mb-4">
-                      <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
-                        <i className="ti ti-id fs-18 me-2"></i> Primary
-                        Identification
-                      </h6>
-                      <div className="row g-3">
-                        {/* Aadhaar Number - MANDATORY */}
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Aadhaar Number{" "}
-                            <span className="text-danger">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            className={`form-control ${
-                              isSubmitted
-                                ? errors.aadhaar_number
-                                  ? "is-invalid"
-                                  : formData.aadhaar_number
-                                  ? "is-valid"
-                                  : ""
-                                : ""
-                            }`}
-                            placeholder="12 Digit Aadhaar"
-                            value={formData.aadhaar_number}
-                            onChange={(e) => {
-                              const val = e.target.value
-                                .replace(/\D/g, "")
-                                .slice(0, 12);
-                              setFormData({ ...formData, aadhaar_number: val });
-                              if (errors.aadhaar_number)
-                                setErrors({ ...errors, aadhaar_number: "" });
-                            }}
-                          />
-                          {isSubmitted && errors.aadhaar_number && (
-                            <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
-                              <i className="ti ti-info-circle me-1"></i>
-                              {errors.aadhaar_number}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* PAN Number - OPTIONAL */}
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">PAN Number</label>
-                          <input
-                            type="text"
-                            className={`form-control text-uppercase ${
-                              isSubmitted && formData.pan_number
-                                ? "is-valid"
-                                : ""
-                            }`}
-                            maxLength={10}
-                            placeholder="ABCDE1234F"
-                            value={formData.pan_number}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                pan_number: e.target.value
-                                  .toUpperCase()
-                                  .replace(/\s/g, ""),
-                              })
-                            }
-                          />
-                        </div>
-
-                        {/* Voter ID - OPTIONAL */}
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">Voter ID</label>
-                          <input
-                            type="text"
-                            className={`form-control text-uppercase ${
-                              isSubmitted && formData.voter_id ? "is-valid" : ""
-                            }`}
-                            placeholder="ABC1234567"
-                            value={formData.voter_id}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                voter_id: e.target.value
-                                  .toUpperCase()
-                                  .replace(/\s/g, ""),
-                              })
-                            }
-                          />
-                        </div>
-
-                        {/* Passport No - OPTIONAL */}
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Passport No
-                          </label>
-                          <input
-                            type="text"
-                            className={`form-control text-uppercase ${
-                              isSubmitted && formData.passport_no
-                                ? "is-valid"
-                                : ""
-                            }`}
-                            placeholder="A1234567"
-                            value={formData.passport_no}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                passport_no: e.target.value
-                                  .toUpperCase()
-                                  .replace(/\s/g, ""),
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <hr className="my-4 opacity-25" />
-
-                    {/* --- Section 2: Social Security & Welfare --- */}
-                    <div className="form-section mb-4">
-                      <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
-                        <i className="ti ti-shield-check fs-18 me-2"></i>{" "}
-                        Statutory Compliance
-                      </h6>
-                      <div className="row g-3">
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">ESI Number</label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            placeholder="Enter ESI Number"
-                            value={formData.esi_number}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                esi_number: e.target.value.replace(/\D/g, ""),
-                              })
-                            }
-                          />
-                        </div>
-
-                        <div className="col-md-4 d-flex align-items-center">
-                          <div className="form-check pt-4">
+                  {/* 1. Legal / Identification */}
+                  {activeTab === "legal" && (
+                    <div className="legal-info-wrapper animate__animated animate__fadeIn">
+                      {/* --- Section 1: Government Identification --- */}
+                      <div className="form-section mb-4">
+                        <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
+                          <i className="ti ti-id fs-18 me-2"></i> Primary
+                          Identification
+                        </h6>
+                        <div className="row g-3">
+                          {/* Aadhaar Number - MANDATORY */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Aadhaar Number{" "}
+                              <span className="text-danger">*</span>
+                            </label>
                             <input
-                              type="checkbox"
-                              className="form-check-input"
-                              id="uanCheckLegal"
-                              checked={formData.is_uan_number_applicable}
+                              type="text"
+                              className={`form-control ${
+                                isSubmitted
+                                  ? errors.aadhaar_number
+                                    ? "is-invalid"
+                                    : formData.aadhaar_number
+                                    ? "is-valid"
+                                    : ""
+                                  : ""
+                              }`}
+                              placeholder="12 Digit Aadhaar"
+                              value={formData.aadhaar_number}
+                              onChange={(e) => {
+                                const val = e.target.value
+                                  .replace(/\D/g, "")
+                                  .slice(0, 12);
+                                setFormData({
+                                  ...formData,
+                                  aadhaar_number: val,
+                                });
+                                if (errors.aadhaar_number)
+                                  setErrors({ ...errors, aadhaar_number: "" });
+                              }}
+                            />
+                            {isSubmitted && errors.aadhaar_number && (
+                              <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                                <i className="ti ti-info-circle me-1"></i>
+                                {errors.aadhaar_number}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* PAN Number - OPTIONAL (Validated) */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              PAN Number
+                            </label>
+                            <input
+                              type="text"
+                              className={`form-control text-uppercase ${
+                                isSubmitted
+                                  ? errors.pan_number
+                                    ? "is-invalid"
+                                    : formData.pan_number
+                                    ? "is-valid"
+                                    : ""
+                                  : ""
+                              }`}
+                              maxLength={10}
+                              placeholder="ABCDE1234F"
+                              value={formData.pan_number}
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  pan_number: e.target.value
+                                    .toUpperCase()
+                                    .replace(/\s/g, ""),
+                                });
+                                // Clear error if user is fixing it
+                                if (errors.pan_number)
+                                  setErrors({ ...errors, pan_number: "" });
+                              }}
+                            />
+                            {isSubmitted && errors.pan_number && (
+                              <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                                <i className="ti ti-info-circle me-1"></i>
+                                {errors.pan_number}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Voter ID - OPTIONAL */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">Voter ID</label>
+                            <input
+                              type="text"
+                              className="form-control text-uppercase"
+                              placeholder="ABC1234567"
+                              value={formData.voter_id}
                               onChange={(e) =>
                                 setFormData({
                                   ...formData,
-                                  is_uan_number_applicable: e.target.checked,
+                                  voter_id: e.target.value
+                                    .toUpperCase()
+                                    .replace(/\s/g, ""),
                                 })
                               }
                             />
-                            <label
-                              className="form-check-label fs-13 ms-2"
-                              htmlFor="uanCheckLegal"
-                            >
-                              Is UAN Applicable?
+                          </div>
+
+                          {/* Passport No - OPTIONAL */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Passport No
                             </label>
-                          </div>
-                        </div>
-
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            UAN Number{" "}
-                            {formData.is_uan_number_applicable && (
-                              <span className="text-danger">*</span>
-                            )}
-                          </label>
-                          <input
-                            type="text"
-                            className={`form-control ${
-                              isSubmitted && formData.is_uan_number_applicable
-                                ? errors.uan_number
-                                  ? "is-invalid"
-                                  : "is-valid"
-                                : ""
-                            }`}
-                            disabled={!formData.is_uan_number_applicable}
-                            placeholder="12 Digit UAN"
-                            value={formData.uan_number}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                uan_number: e.target.value
-                                  .replace(/\D/g, "")
-                                  .slice(0, 12),
-                              })
-                            }
-                          />
-                          {isSubmitted && errors.uan_number && (
-                            <div className="text-danger fs-11 mt-1">
-                              {errors.uan_number}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <hr className="my-4 opacity-25" />
-
-                    {/* --- Section 3: Classification & Verification --- */}
-                    <div className="form-section">
-                      <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
-                        <i className="ti ti-file-upload fs-18 me-2"></i>{" "}
-                        Verification Documents
-                      </h6>
-                      <div className="row g-3">
-                        {/* Category Dropdown - MANDATORY */}
-                        <div className="col-md-6">
-                          <label className="form-label fs-13">
-                            Category <span className="text-danger">*</span>
-                          </label>
-                          <div
-                            className={
-                              isSubmitted
-                                ? errors.category
-                                  ? "border border-danger rounded"
-                                  : formData.category
-                                  ? "border border-success rounded"
-                                  : ""
-                                : ""
-                            }
-                          >
-                            <CommonSelect
-                              options={[
-                                { value: "general", label: "General" },
-                                { value: "sc", label: "SC" },
-                                { value: "st", label: "ST" },
-                                { value: "obc", label: "OBC" },
-                                { value: "others", label: "Others" },
-                              ]}
-                              placeholder="Select Category"
-                              defaultValue={
-                                formData.category
-                                  ? {
-                                      value: formData.category,
-                                      label: formData.category.toUpperCase(),
-                                    }
-                                  : undefined
-                              }
-                              onChange={(opt) => {
-                                setFormData({
-                                  ...formData,
-                                  category: opt?.value || "",
-                                });
-                                if (errors.category)
-                                  setErrors({ ...errors, category: "" });
-                              }}
-                            />
-                          </div>
-                          {isSubmitted && errors.category && (
-                            <div className="text-danger fs-11 mt-1">
-                              {errors.category}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Driving License Upload - MANDATORY */}
-                        <div className="col-md-6">
-                          <label className="form-label fs-13">
-                            Driving License (Copy){" "}
-                            <span className="text-danger">*</span>
-                          </label>
-                          <div
-                            className={`upload-box border rounded p-1 bg-white ${
-                              isSubmitted
-                                ? errors.driving_license
-                                  ? "border-danger"
-                                  : formData.driving_license
-                                  ? "border-success"
-                                  : ""
-                                : ""
-                            }`}
-                          >
                             <input
-                              type="file"
-                              className="form-control border-0 shadow-none"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0] || null;
+                              type="text"
+                              className="form-control text-uppercase"
+                              placeholder="A1234567"
+                              value={formData.passport_no}
+                              onChange={(e) =>
                                 setFormData({
                                   ...formData,
-                                  driving_license: file,
-                                });
-                                if (file && errors.driving_license)
-                                  setErrors({ ...errors, driving_license: "" });
-                              }}
+                                  passport_no: e.target.value
+                                    .toUpperCase()
+                                    .replace(/\s/g, ""),
+                                })
+                              }
                             />
                           </div>
-                          {isSubmitted && errors.driving_license && (
-                            <div className="text-danger fs-11 mt-1">
-                              {errors.driving_license}
+                        </div>
+                      </div>
+
+                      <hr className="my-4 opacity-25" />
+
+                      {/* --- Section 2: Social Security & Welfare --- */}
+                      <div className="form-section mb-4">
+                        <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
+                          <i className="ti ti-shield-check fs-18 me-2"></i>{" "}
+                          Statutory Compliance
+                        </h6>
+                        <div className="row g-3">
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              ESI Number
+                            </label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              placeholder="Enter ESI Number"
+                              value={formData.esi_number}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  esi_number: e.target.value.replace(/\D/g, ""),
+                                })
+                              }
+                            />
+                          </div>
+
+                          <div className="col-md-4 d-flex align-items-center">
+                            <div className="form-check pt-4">
+                              <input
+                                type="checkbox"
+                                className="form-check-input"
+                                id="uanCheckLegal"
+                                checked={formData.is_uan_number_applicable}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    is_uan_number_applicable: e.target.checked,
+                                  })
+                                }
+                              />
+                              <label
+                                className="form-check-label fs-13 ms-2"
+                                htmlFor="uanCheckLegal"
+                              >
+                                Is UAN Applicable?
+                              </label>
                             </div>
-                          )}
-                          {formData.driving_license && (
-                            <div className="text-success fs-11 mt-1">
-                              <i className="ti ti-check me-1"></i>Document
-                              attached: {formData.driving_license.name}
+                          </div>
+
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              UAN Number{" "}
+                              {formData.is_uan_number_applicable && (
+                                <span className="text-danger">*</span>
+                              )}
+                            </label>
+                            <input
+                              type="text"
+                              className={`form-control ${
+                                isSubmitted && formData.is_uan_number_applicable
+                                  ? errors.uan_number
+                                    ? "is-invalid"
+                                    : "is-valid"
+                                  : ""
+                              }`}
+                              disabled={!formData.is_uan_number_applicable}
+                              placeholder="12 Digit UAN"
+                              value={formData.uan_number}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  uan_number: e.target.value
+                                    .replace(/\D/g, "")
+                                    .slice(0, 12),
+                                })
+                              }
+                            />
+                            {isSubmitted && errors.uan_number && (
+                              <div className="text-danger fs-11 mt-1">
+                                {errors.uan_number}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <hr className="my-4 opacity-25" />
+
+                      {/* --- Section 3: Classification & Verification --- */}
+                      <div className="form-section">
+                        <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
+                          <i className="ti ti-file-upload fs-18 me-2"></i>{" "}
+                          Verification Documents
+                        </h6>
+                        <div className="row g-3">
+                          {/* Category Dropdown - NOW OPTIONAL */}
+                          <div className="col-md-6">
+                            <label className="form-label fs-13">Category</label>
+                            <div className="">
+                              <CommonSelect
+                                options={[
+                                  { value: "general", label: "General" },
+                                  { value: "sc", label: "SC" },
+                                  { value: "st", label: "ST" },
+                                  { value: "obc", label: "OBC" },
+                                  { value: "others", label: "Others" },
+                                ]}
+                                placeholder="Select Category"
+                                defaultValue={
+                                  formData.category
+                                    ? {
+                                        value: formData.category,
+                                        label: formData.category.toUpperCase(),
+                                      }
+                                    : undefined
+                                }
+                                onChange={(opt) => {
+                                  setFormData({
+                                    ...formData,
+                                    category: opt?.value || "",
+                                  });
+                                }}
+                              />
                             </div>
-                          )}
+                          </div>
+
+                          {/* Driving License Upload - NOW OPTIONAL */}
+                          {/* <div className="col-md-6">
+                            <label className="form-label fs-13">
+                              Driving License (Copy)
+                            </label>
+                            <div className="upload-box border rounded p-1 bg-white">
+                              <input
+                                type="file"
+                                className="form-control border-0 shadow-none"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0] || null;
+                                  setFormData({
+                                    ...formData,
+                                    driving_license: file,
+                                  });
+                                }}
+                              />
+                            </div>
+                            {formData.driving_license && (
+                              <div className="text-success fs-11 mt-1">
+                                <i className="ti ti-check me-1"></i>Document
+                                attached: {formData.driving_license.name}
+                              </div>
+                            )}
+                          </div> */}
+                          <div className="col-md-6">
+                            <label className="form-label fs-13">
+                              Driving License (Copy)
+                            </label>
+                            <div className="upload-box border rounded p-1 bg-white">
+                              <input
+                                type="file"
+                                className="form-control border-0 shadow-none"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0] || null;
+                                  setFormData({
+                                    ...formData,
+                                    driving_license: file,
+                                  });
+                                }}
+                              />
+                            </div>
+
+                            {/* NEW: Show Existing File Indicator */}
+                            {typeof formData.driving_license === "string" &&
+                              formData.driving_license.length > 0 && (
+                                <div className="mt-2 p-2 bg-soft-success text-success rounded fs-12 d-flex align-items-center">
+                                  <i className="ti ti-check-circle me-2 fs-16"></i>
+                                  <span>
+                                    Existing License Document Uploaded
+                                  </span>
+                                </div>
+                              )}
+
+                            {/* Existing: Show New File Name */}
+                            {formData.driving_license instanceof File && (
+                              <div className="text-success fs-11 mt-1">
+                                <i className="ti ti-check me-1"></i>New File:{" "}
+                                {formData.driving_license.name}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
-                {/* 2. Personal Information */}
-                {activeTab === "personal" && (
-                  <div className="personal-info-wrapper animate__animated animate__fadeIn">
-                    {/* --- Section 1: Basic Identity --- */}
-                    <div className="form-section mb-4">
-                      <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
-                        <i className="ti ti-user-circle fs-18 me-2"></i> Basic
-                        Identity
-                      </h6>
-                      <div className="row g-3">
-                        <div className="col-md-4">
-                          <label className="form-label fs-13 text-muted">
-                            Employee Code
-                          </label>
-                          <input
-                            type="text"
-                            className="form-control bg-light border-dashed"
-                            disabled
-                            value="AUTO-GEN-2025"
-                          />
-                        </div>
-
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            CD Emp. No.
-                          </label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            value={formData.cd_employee_num}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                cd_employee_num: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-
-                        {/* Gender - MANDATORY */}
-                        <div className="col-md-4">
-                          <label className="form-label fs-13 d-block">
-                            Gender <span className="text-danger">*</span>
-                          </label>
-                          <div
-                            className={`pt-1 ps-2 rounded ${
-                              isSubmitted && errors.gender
-                                ? "border border-danger"
-                                : ""
-                            }`}
-                          >
-                            <Radio.Group
-                              className="custom-radio-group"
-                              value={formData.gender}
-                              onChange={(e) => {
-                                setFormData({
-                                  ...formData,
-                                  gender: e.target.value,
-                                });
-                                if (errors.gender)
-                                  setErrors({ ...errors, gender: "" });
-                              }}
-                            >
-                              <Radio value="male">Male</Radio>
-                              <Radio value="female">Female</Radio>
-                              <Radio value="other">Other</Radio>
-                            </Radio.Group>
-                          </div>
-                          {isSubmitted && errors.gender && (
-                            <div className="text-danger fs-11 mt-1">
-                              {errors.gender}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Marital Status - MANDATORY */}
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Marital Status{" "}
-                            <span className="text-danger">*</span>
-                          </label>
-                          <div
-                            className={
-                              isSubmitted
-                                ? errors.marital
-                                  ? "border border-danger rounded"
-                                  : formData.marital
-                                  ? "border border-success rounded"
-                                  : ""
-                                : ""
-                            }
-                          >
-                            <CommonSelect
-                              options={[
-                                { value: "single", label: "Single" },
-                                { value: "married", label: "Married" },
-                                {
-                                  value: "cohabitant",
-                                  label: "Legal Cohabitant",
-                                },
-                                { value: "widower", label: "Widower" },
-                                { value: "divorced", label: "Divorced" },
-                              ]}
-                              defaultValue={{
-                                value: formData.marital,
-                                label: formData.marital
-                                  ? formData.marital.charAt(0).toUpperCase() +
-                                    formData.marital.slice(1)
-                                  : "Select",
-                              }}
-                              onChange={(opt) => {
-                                setFormData({
-                                  ...formData,
-                                  marital: opt?.value || "",
-                                  spouse_name:
-                                    opt?.value !== "married"
-                                      ? ""
-                                      : formData.spouse_name,
-                                  date_of_marriage:
-                                    opt?.value !== "married"
-                                      ? null
-                                      : formData.date_of_marriage,
-                                });
-                                if (errors.marital)
-                                  setErrors({ ...errors, marital: "" });
-                              }}
+                  )}
+                  {/* 2. Personal Information */}
+                  {activeTab === "personal" && (
+                    <div className="personal-info-wrapper animate__animated animate__fadeIn">
+                      {/* --- Section 1: Basic Identity --- */}
+                      <div className="form-section mb-4">
+                        <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
+                          <i className="ti ti-user-circle fs-18 me-2"></i> Basic
+                          Identity
+                        </h6>
+                        <div className="row g-3">
+                          <div className="col-md-4">
+                            <label className="form-label fs-13 text-muted">
+                              Employee Code
+                            </label>
+                            <input
+                              type="text"
+                              className="form-control bg-light border-dashed"
+                              disabled
+                              value="AUTO-GEN-2025"
                             />
                           </div>
-                          {isSubmitted && errors.marital && (
-                            <div className="text-danger fs-11 mt-1">
-                              {errors.marital}
-                            </div>
-                          )}
-                        </div>
 
-                        {/* Conditional Spouse Fields */}
-                        {formData.marital === "married" && (
-                          <>
-                            <div className="col-md-4 animate__animated animate__fadeInDown">
-                              <label className="form-label fs-13">
-                                Spouse Name{" "}
-                                <span className="text-danger">*</span>
-                              </label>
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              CD Emp. No.
+                            </label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={formData.cd_employee_num}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  cd_employee_num: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+
+                          {/* Gender - MANDATORY */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13 d-block">
+                              Gender <span className="text-danger">*</span>
+                            </label>
+                            <div
+                              className={`pt-1 ps-2 rounded ${
+                                isSubmitted && errors.gender
+                                  ? "border border-danger"
+                                  : ""
+                              }`}
+                            >
+                              <Radio.Group
+                                className="custom-radio-group"
+                                value={formData.gender}
+                                onChange={(e) => {
+                                  setFormData({
+                                    ...formData,
+                                    gender: e.target.value,
+                                  });
+                                  if (errors.gender)
+                                    setErrors({ ...errors, gender: "" });
+                                }}
+                              >
+                                <Radio value="male">Male</Radio>
+                                <Radio value="female">Female</Radio>
+                                <Radio value="other">Other</Radio>
+                              </Radio.Group>
+                            </div>
+                            {isSubmitted && errors.gender && (
+                              <div className="text-danger fs-11 mt-1">
+                                {errors.gender}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Marital Status - NOW OPTIONAL */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Marital Status
+                            </label>
+                            <div>
+                              <CommonSelect
+                                options={[
+                                  { value: "single", label: "Single" },
+                                  { value: "married", label: "Married" },
+                                  {
+                                    value: "cohabitant",
+                                    label: "Legal Cohabitant",
+                                  },
+                                  { value: "widower", label: "Widower" },
+                                  { value: "divorced", label: "Divorced" },
+                                ]}
+                                defaultValue={{
+                                  value: formData.marital,
+                                  label: formData.marital
+                                    ? formData.marital.charAt(0).toUpperCase() +
+                                      formData.marital.slice(1)
+                                    : "Select",
+                                }}
+                                onChange={(opt) => {
+                                  setFormData({
+                                    ...formData,
+                                    marital: opt?.value || "",
+                                    // Clear spouse details if status changes from married
+                                    spouse_name:
+                                      opt?.value !== "married"
+                                        ? ""
+                                        : formData.spouse_name,
+                                    date_of_marriage:
+                                      opt?.value !== "married"
+                                        ? null
+                                        : formData.date_of_marriage,
+                                  });
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Conditional Spouse Fields (Only if Married is selected) */}
+                          {formData.marital === "married" && (
+                            <>
+                              <div className="col-md-4 animate__animated animate__fadeInDown">
+                                <label className="form-label fs-13">
+                                  Spouse Name{" "}
+                                  <span className="text-danger">*</span>
+                                </label>
+                                <input
+                                  type="text"
+                                  className={`form-control ${
+                                    isSubmitted
+                                      ? errors.spouse_name
+                                        ? "is-invalid"
+                                        : formData.spouse_name
+                                        ? "is-valid"
+                                        : ""
+                                      : ""
+                                  }`}
+                                  placeholder="Enter Spouse Name"
+                                  value={formData.spouse_name}
+                                  onChange={(e) =>
+                                    setFormData({
+                                      ...formData,
+                                      spouse_name: e.target.value,
+                                    })
+                                  }
+                                />
+                                {isSubmitted && errors.spouse_name && (
+                                  <div className="invalid-feedback">
+                                    {errors.spouse_name}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="col-md-4 animate__animated animate__fadeInDown">
+                                <label className="form-label fs-13">
+                                  Date of Marriage{" "}
+                                  <span className="text-danger">*</span>
+                                </label>
+                                <DatePicker
+                                  className={`form-control w-100 ${
+                                    isSubmitted
+                                      ? errors.date_of_marriage
+                                        ? "is-invalid"
+                                        : formData.date_of_marriage
+                                        ? "is-valid"
+                                        : ""
+                                      : ""
+                                  }`}
+                                  value={
+                                    formData.date_of_marriage
+                                      ? dayjs(formData.date_of_marriage)
+                                      : null
+                                  }
+                                  onChange={(_, dateStr) =>
+                                    setFormData({
+                                      ...formData,
+                                      date_of_marriage: dateStr,
+                                    })
+                                  }
+                                />
+                                {isSubmitted && errors.date_of_marriage && (
+                                  <div className="text-danger fs-11 mt-1">
+                                    {errors.date_of_marriage}
+                                  </div>
+                                )}
+                              </div>
+                            </>
+                          )}
+
+                          {/* DOB - MANDATORY */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Date of Birth{" "}
+                              <span className="text-danger">*</span>
+                            </label>
+                            <DatePicker
+                              className={`form-control w-100 ${
+                                isSubmitted
+                                  ? errors.birthday
+                                    ? "is-invalid"
+                                    : formData.birthday
+                                    ? "is-valid"
+                                    : ""
+                                  : ""
+                              }`}
+                              value={
+                                formData.birthday
+                                  ? dayjs(formData.birthday)
+                                  : null
+                              }
+                              onChange={(_, dateStr) => {
+                                setFormData({ ...formData, birthday: dateStr });
+                                if (errors.birthday)
+                                  setErrors({ ...errors, birthday: "" });
+                              }}
+                            />
+                            {isSubmitted && errors.birthday && (
+                              <div className="text-danger fs-11 mt-1">
+                                {errors.birthday}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Blood Group - MANDATORY */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Blood Group <span className="text-danger">*</span>
+                            </label>
+                            <div
+                              className={
+                                isSubmitted
+                                  ? errors.blood_group
+                                    ? "border border-danger rounded"
+                                    : formData.blood_group
+                                    ? "border border-success rounded"
+                                    : ""
+                                  : ""
+                              }
+                            >
+                              <CommonSelect
+                                options={[
+                                  "A+",
+                                  "A-",
+                                  "B+",
+                                  "B-",
+                                  "AB+",
+                                  "AB-",
+                                  "O+",
+                                  "O-",
+                                ].map((bg) => ({ value: bg, label: bg }))}
+                                defaultValue={
+                                  formData.blood_group
+                                    ? {
+                                        value: formData.blood_group,
+                                        label: formData.blood_group,
+                                      }
+                                    : undefined
+                                }
+                                onChange={(opt) => {
+                                  setFormData({
+                                    ...formData,
+                                    blood_group: opt?.value || "",
+                                  });
+                                  if (errors.blood_group)
+                                    setErrors({ ...errors, blood_group: "" });
+                                }}
+                              />
+                            </div>
+                            {isSubmitted && errors.blood_group && (
+                              <div className="text-danger fs-11 mt-1">
+                                {errors.blood_group}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <hr className="my-4 opacity-25" />
+
+                      {/* Section 2: Education (Optional) */}
+                      <div className="form-section mb-4">
+                        <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
+                          <i className="ti ti-school fs-18 me-2"></i> Education
+                          & Experience
+                        </h6>
+                        <div className="row g-3">
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Post Graduation
+                            </label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              placeholder="MBA, etc."
+                              value={formData.name_of_post_graduation}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  name_of_post_graduation: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Other Education
+                            </label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={formData.name_of_any_other_education}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  name_of_any_other_education: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Experience (Years)
+                            </label>
+                            <input
+                              type="number"
+                              className="form-control"
+                              value={formData.total_experiance}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  total_experiance: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <hr className="my-4 opacity-25" />
+
+                      {/* Section 3: Background & Contact - MANDATORY FIELDS */}
+                      <div className="form-section">
+                        <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
+                          <i className="ti ti-address-book fs-18 me-2"></i>{" "}
+                          Contact Details
+                        </h6>
+                        <div className="row g-3">
+                          {/* Mobile - MANDATORY */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Primary Mobile{" "}
+                              <span className="text-danger">*</span>
+                            </label>
+                            <div className="input-group">
+                              <span className="input-group-text fs-12 bg-light">
+                                +91
+                              </span>
                               <input
                                 type="text"
                                 className={`form-control ${
                                   isSubmitted
-                                    ? errors.spouse_name
+                                    ? errors.work_phone
                                       ? "is-invalid"
-                                      : formData.spouse_name
+                                      : formData.work_phone
                                       ? "is-valid"
                                       : ""
                                     : ""
                                 }`}
-                                placeholder="Enter Spouse Name"
-                                value={formData.spouse_name}
+                                maxLength={10}
+                                value={formData.work_phone}
                                 onChange={(e) =>
                                   setFormData({
                                     ...formData,
-                                    spouse_name: e.target.value,
+                                    work_phone: e.target.value.replace(
+                                      /\D/g,
+                                      ""
+                                    ),
                                   })
                                 }
                               />
-                              {isSubmitted && errors.spouse_name && (
-                                <div className="invalid-feedback">
-                                  {errors.spouse_name}
+                            </div>
+                            {isSubmitted && errors.work_phone && (
+                              <div className="text-danger fs-11 mt-1">
+                                {errors.work_phone}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Email - MANDATORY */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Personal Email{" "}
+                              <span className="text-danger">*</span>
+                            </label>
+                            <input
+                              type="email"
+                              className={`form-control ${
+                                isSubmitted
+                                  ? errors.private_email
+                                    ? "is-invalid"
+                                    : formData.private_email
+                                    ? "is-valid"
+                                    : ""
+                                  : ""
+                              }`}
+                              placeholder="example@gmail.com"
+                              value={formData.private_email}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  private_email: e.target.value,
+                                })
+                              }
+                            />
+                            {isSubmitted && errors.private_email && (
+                              <div className="text-danger fs-11 mt-1">
+                                {errors.private_email}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Secondary Mobile
+                            </label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              maxLength={10}
+                              value={formData.mobile_phone}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  mobile_phone: e.target.value.replace(
+                                    /\D/g,
+                                    ""
+                                  ),
+                                })
+                              }
+                            />
+                          </div>
+
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">Religion</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={formData.religion}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  religion: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+
+                          {/* <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Upload Passbook
+                            </label>
+                            <div className="upload-box border rounded p-1 bg-white">
+                              <input
+                                type="file"
+                                className="form-control border-0 shadow-none"
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    upload_passbook:
+                                      e.target.files?.[0] || null,
+                                  })
+                                }
+                              />
+                            </div>
+                          </div> */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Upload Passbook
+                            </label>
+                            <div className="upload-box border rounded p-1 bg-white">
+                              <input
+                                type="file"
+                                className="form-control border-0 shadow-none"
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    upload_passbook:
+                                      e.target.files?.[0] || null,
+                                  })
+                                }
+                              />
+                            </div>
+
+                            {/* NEW: Show Existing File Indicator */}
+                            {typeof formData.upload_passbook === "string" &&
+                              formData.upload_passbook.length > 0 && (
+                                <div className="mt-2 p-2 bg-soft-success text-success rounded fs-12 d-flex align-items-center">
+                                  <i className="ti ti-check-circle me-2 fs-16"></i>
+                                  <span>Passbook Uploaded</span>
                                 </div>
                               )}
-                            </div>
-                            <div className="col-md-4 animate__animated animate__fadeInDown">
-                              <label className="form-label fs-13">
-                                Date of Marriage{" "}
-                                <span className="text-danger">*</span>
-                              </label>
-                              <DatePicker
-                                className={`form-control w-100 ${
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {/* 3. Address Details */}
+                  {activeTab === "address" && (
+                    <div className="address-info-wrapper animate__animated animate__fadeIn">
+                      {/* --- Section 1: Residential Information --- */}
+                      <div className="form-section mb-4">
+                        <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
+                          <i className="ti ti-home fs-18 me-2"></i> Residential
+                          Information
+                        </h6>
+                        <div className="row g-3">
+                          {/* Present Address - MANDATORY */}
+                          <div className="col-md-6">
+                            <label className="form-label fs-13">
+                              Present Address{" "}
+                              <span className="text-danger">*</span>
+                            </label>
+                            <textarea
+                              rows={2}
+                              className={`form-control ${
+                                isSubmitted
+                                  ? errors.present_address
+                                    ? "is-invalid"
+                                    : formData.present_address
+                                    ? "is-valid"
+                                    : ""
+                                  : ""
+                              }`}
+                              placeholder="House no, Building, Street..."
+                              value={formData.present_address}
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  present_address: e.target.value,
+                                });
+                                if (errors.present_address)
+                                  setErrors({ ...errors, present_address: "" });
+                              }}
+                            />
+                            {isSubmitted && errors.present_address && (
+                              <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                                <i className="ti ti-info-circle me-1"></i>
+                                {errors.present_address}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Permanent Address - MANDATORY */}
+                          <div className="col-md-6">
+                            <label className="form-label fs-13">
+                              Permanent Address{" "}
+                              <span className="text-danger">*</span>
+                            </label>
+                            <textarea
+                              rows={2}
+                              className={`form-control ${
+                                isSubmitted
+                                  ? errors.permanent_address
+                                    ? "is-invalid"
+                                    : formData.permanent_address
+                                    ? "is-valid"
+                                    : ""
+                                  : ""
+                              }`}
+                              placeholder="Same as present or different..."
+                              value={formData.permanent_address}
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  permanent_address: e.target.value,
+                                });
+                                if (errors.permanent_address)
+                                  setErrors({
+                                    ...errors,
+                                    permanent_address: "",
+                                  });
+                              }}
+                            />
+                            {isSubmitted && errors.permanent_address && (
+                              <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                                <i className="ti ti-info-circle me-1"></i>
+                                {errors.permanent_address}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <hr className="my-4 opacity-25" />
+
+                      {/* --- Section 2: Regional Geography (ALL OPTIONAL) --- */}
+                      <div className="form-section">
+                        <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
+                          <i className="ti ti-map-pin fs-18 me-2"></i> Regional
+                          Details
+                        </h6>
+                        <div className="row g-3">
+                          {/* Pin Code - OPTIONAL */}
+                          <div className="col-md-3">
+                            <label className="form-label fs-13">Pin Code</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              maxLength={6}
+                              placeholder="6-Digits"
+                              value={formData.pin_code}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  pin_code: e.target.value.replace(/\D/g, ""),
+                                })
+                              }
+                            />
+                          </div>
+
+                          {/* District - OPTIONAL */}
+                          <div className="col-md-3">
+                            <label className="form-label fs-13">District</label>
+                            <CommonSelect
+                              options={districts}
+                              placeholder="Select City/District"
+                              defaultValue={districts.find(
+                                (d) => d.value === String(formData.district_id)
+                              )}
+                              onChange={(opt) =>
+                                setFormData({
+                                  ...formData,
+                                  district_id: opt?.value || "",
+                                })
+                              }
+                            />
+                          </div>
+
+                          {/* State - OPTIONAL */}
+                          <div className="col-md-3">
+                            <label className="form-label fs-13">State</label>
+                            <CommonSelect
+                              options={states}
+                              placeholder="Select State"
+                              defaultValue={states.find(
+                                (s) => s.value === String(formData.state_id)
+                              )}
+                              onChange={(opt) =>
+                                setFormData({
+                                  ...formData,
+                                  state_id: opt?.value || "",
+                                })
+                              }
+                            />
+                          </div>
+
+                          {/* Country - OPTIONAL */}
+                          <div className="col-md-3">
+                            <label className="form-label fs-13">Country</label>
+                            <CommonSelect
+                              options={countries}
+                              placeholder="Select Country"
+                              defaultValue={countries.find(
+                                (c) => c.value === String(formData.country_id)
+                              )}
+                              onChange={(opt) =>
+                                setFormData({
+                                  ...formData,
+                                  country_id: opt?.value || "",
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 4. Emergency Contact */}
+                  {activeTab === "emergency" && (
+                    <div className="emergency-info-wrapper animate__animated animate__fadeIn">
+                      {/* --- Section: Emergency Details --- */}
+                      <div className="form-section mb-4">
+                        <h6 className="fw-bold text-danger mb-3 d-flex align-items-center">
+                          <i className="ti ti-phone-call fs-18 me-2"></i>{" "}
+                          Immediate Contact Details
+                        </h6>
+                        <div className="row g-3">
+                          {/* Contact Person Name - MANDATORY */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Emergency Contact Name{" "}
+                              <span className="text-danger">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              className={`form-control ${
+                                isSubmitted
+                                  ? errors.emergency_contact_name
+                                    ? "is-invalid"
+                                    : formData.emergency_contact_name
+                                    ? "is-valid"
+                                    : ""
+                                  : ""
+                              }`}
+                              placeholder="Full Name"
+                              value={formData.emergency_contact_name}
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  emergency_contact_name: e.target.value,
+                                });
+                                if (errors.emergency_contact_name)
+                                  setErrors({
+                                    ...errors,
+                                    emergency_contact_name: "",
+                                  });
+                              }}
+                            />
+                            {isSubmitted && errors.emergency_contact_name && (
+                              <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                                <i className="ti ti-info-circle me-1"></i>
+                                {errors.emergency_contact_name}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Relation - MANDATORY */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Relation <span className="text-danger">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              className={`form-control ${
+                                isSubmitted
+                                  ? errors.emergency_contact_relation
+                                    ? "is-invalid"
+                                    : formData.emergency_contact_relation
+                                    ? "is-valid"
+                                    : ""
+                                  : ""
+                              }`}
+                              placeholder="e.g. Spouse, Father, Brother"
+                              value={formData.emergency_contact_relation}
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  emergency_contact_relation: e.target.value,
+                                });
+                                if (errors.emergency_contact_relation)
+                                  setErrors({
+                                    ...errors,
+                                    emergency_contact_relation: "",
+                                  });
+                              }}
+                            />
+                            {isSubmitted &&
+                              errors.emergency_contact_relation && (
+                                <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                                  <i className="ti ti-info-circle me-1"></i>
+                                  {errors.emergency_contact_relation}
+                                </div>
+                              )}
+                          </div>
+
+                          {/* Mobile Number - MANDATORY */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Mobile Number{" "}
+                              <span className="text-danger">*</span>
+                            </label>
+                            <div className="input-group">
+                              <span className="input-group-text bg-light fs-12">
+                                +91
+                              </span>
+                              <input
+                                type="text"
+                                className={`form-control ${
                                   isSubmitted
-                                    ? errors.date_of_marriage
+                                    ? errors.emergency_contact_mobile
                                       ? "is-invalid"
-                                      : formData.date_of_marriage
+                                      : formData.emergency_contact_mobile
                                       ? "is-valid"
                                       : ""
                                     : ""
                                 }`}
-                                value={
-                                  formData.date_of_marriage
-                                    ? dayjs(formData.date_of_marriage)
-                                    : null
-                                }
-                                onChange={(_, dateStr) =>
+                                maxLength={10}
+                                placeholder="10-Digit Mobile"
+                                value={formData.emergency_contact_mobile}
+                                onChange={(e) => {
+                                  const val = e.target.value.replace(/\D/g, "");
                                   setFormData({
                                     ...formData,
-                                    date_of_marriage: dateStr,
+                                    emergency_contact_mobile: val,
+                                  });
+                                  if (errors.emergency_contact_mobile)
+                                    setErrors({
+                                      ...errors,
+                                      emergency_contact_mobile: "",
+                                    });
+                                }}
+                              />
+                            </div>
+                            {isSubmitted && errors.emergency_contact_mobile && (
+                              <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                                <i className="ti ti-info-circle me-1"></i>
+                                {errors.emergency_contact_mobile}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Contact Address - OPTIONAL */}
+                          <div className="col-md-12">
+                            <label className="form-label fs-13">
+                              Contact Address
+                            </label>
+                            <textarea
+                              rows={3}
+                              className={`form-control ${
+                                isSubmitted &&
+                                formData.emergency_contact_address
+                                  ? "is-valid"
+                                  : ""
+                              }`}
+                              placeholder="Full Residential Address of the contact person"
+                              value={formData.emergency_contact_address}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  emergency_contact_address: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        className="alert alert-soft-warning d-flex align-items-center border-0 p-2"
+                        role="alert"
+                      >
+                        <i className="ti ti-info-circle fs-16 me-2"></i>
+                        <div className="fs-12">
+                          Please ensure the contact details provided are
+                          accurate for use in case of emergencies.
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 5. Employment Information */}
+                  {activeTab === "employment" && (
+                    <div className="employment-wrapper animate__animated animate__fadeIn">
+                      {/* --- Section 1: Organizational Role --- */}
+                      <div className="form-section mb-4">
+                        <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
+                          <i className="ti ti-briefcase fs-18 me-2"></i>{" "}
+                          Organizational Role
+                        </h6>
+                        <div className="row g-3">
+                          {/* Department - OPTIONAL */}
+                          <div className="col-md-3">
+                            <label className="form-label fs-13">
+                              Department
+                            </label>
+                            <div>
+                              <CommonSelect
+                                options={departments}
+                                placeholder="Select Department"
+                                defaultValue={departments.find(
+                                  (o) =>
+                                    o.value === String(formData.department_id)
+                                )}
+                                onChange={(opt) => {
+                                  setFormData({
+                                    ...formData,
+                                    department_id: opt?.value || "",
+                                  });
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Designation - OPTIONAL */}
+                          <div className="col-md-3">
+                            <label className="form-label fs-13">
+                              Designation
+                            </label>
+                            <div>
+                              <CommonSelect
+                                options={designations}
+                                placeholder="Select Designation"
+                                defaultValue={designations.find(
+                                  (o) => o.value === String(formData.job_id)
+                                )}
+                                onChange={(opt) => {
+                                  setFormData({
+                                    ...formData,
+                                    job_id: opt?.value || "",
+                                  });
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="col-md-3">
+                            <label className="form-label fs-13">
+                              Employment Type
+                            </label>
+                            <CommonSelect
+                              options={[
+                                { value: "permanent", label: "Permanent" },
+                                { value: "fixed_term", label: "Fixed Term" },
+                                { value: "temporary", label: "Temporary" },
+                              ]}
+                              placeholder="Select Type"
+                              defaultValue={[
+                                { value: "permanent", label: "Permanent" },
+                                { value: "fixed_term", label: "Fixed Term" },
+                                { value: "temporary", label: "Temporary" },
+                              ].find(
+                                (opt) => opt.value === formData.employment_type
+                              )}
+                              onChange={(opt) =>
+                                setFormData({
+                                  ...formData,
+                                  employment_type: opt?.value || "",
+                                })
+                              }
+                            />
+                          </div>
+
+                          <div className="col-md-3">
+                            <label className="form-label fs-13">
+                              Grade / Band
+                            </label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              placeholder="e.g. A1, Senior"
+                              value={formData.grade_band}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  grade_band: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <hr className="my-4 opacity-25" />
+
+                      {/* --- Section 2: Tenure & Probation --- */}
+                      <div className="form-section mb-4">
+                        <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
+                          <i className="ti ti-calendar-event fs-18 me-2"></i>{" "}
+                          Joining & Probation
+                        </h6>
+                        <div className="row g-3">
+                          {/* Joining Date - OPTIONAL */}
+                          <div className="col-md-3">
+                            <label className="form-label fs-13">
+                              Joining Date
+                            </label>
+                            <DatePicker
+                              className="w-100 form-control"
+                              value={
+                                formData.joining_date
+                                  ? dayjs(formData.joining_date)
+                                  : null
+                              }
+                              onChange={(_, dateStr) => {
+                                setFormData({
+                                  ...formData,
+                                  joining_date: dateStr,
+                                });
+                              }}
+                            />
+                          </div>
+
+                          <div className="col-md-3">
+                            <label className="form-label fs-13">
+                              Group Joining Date
+                            </label>
+                            <DatePicker
+                              className="w-100 form-control"
+                              value={
+                                formData.group_company_joining_date
+                                  ? dayjs(formData.group_company_joining_date)
+                                  : null
+                              }
+                              onChange={(_, dateStr) =>
+                                setFormData({
+                                  ...formData,
+                                  group_company_joining_date: dateStr,
+                                })
+                              }
+                            />
+                          </div>
+
+                          <div className="col-md-3">
+                            <label className="form-label fs-13">
+                              Confirmation Date
+                            </label>
+                            <DatePicker
+                              className="w-100 form-control"
+                              value={
+                                formData.confirmation_date
+                                  ? dayjs(formData.confirmation_date)
+                                  : null
+                              }
+                              onChange={(_, dateStr) =>
+                                setFormData({
+                                  ...formData,
+                                  confirmation_date: dateStr,
+                                })
+                              }
+                            />
+                          </div>
+
+                          {/* Employee Password - OPTIONAL */}
+                          <div className="col-md-3">
+                            <label className="form-label fs-13">
+                              Login Password
+                            </label>
+                            <input
+                              type="password"
+                              className="form-control"
+                              placeholder="System Access Password"
+                              value={formData.employee_password}
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  employee_password: e.target.value,
+                                });
+                              }}
+                            />
+                          </div>
+
+                          <div className="col-md-2">
+                            <label className="form-label fs-13">
+                              Probation (Months)
+                            </label>
+                            <input
+                              type="number"
+                              className="form-control"
+                              value={formData.probation_period}
+                              onChange={(e) =>
+                                handleProbationChange(Number(e.target.value))
+                              }
+                            />
+                          </div>
+
+                          <div className="col-md-2">
+                            <label className="form-label fs-13 text-muted">
+                              Probation End Date
+                            </label>
+                            <DatePicker
+                              className="w-100 form-control bg-light"
+                              value={
+                                formData.probation_end_date
+                                  ? dayjs(formData.probation_end_date)
+                                  : null
+                              }
+                              disabled
+                            />
+                          </div>
+
+                          <div className="col-md-2 d-flex align-items-center pt-4">
+                            <div className="form-check">
+                              <input
+                                type="checkbox"
+                                className="form-check-input"
+                                id="probCheck"
+                                checked={formData.in_probation}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    in_probation: e.target.checked,
                                   })
                                 }
                               />
-                              {isSubmitted && errors.date_of_marriage && (
-                                <div className="text-danger fs-11 mt-1">
-                                  {errors.date_of_marriage}
+                              <label
+                                className="form-check-label fs-13 ms-1"
+                                htmlFor="probCheck"
+                              >
+                                In Probation
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <hr className="my-4 opacity-25" />
+
+                      {/* --- Section 3: Administration --- */}
+                      <div className="form-section">
+                        <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
+                          <i className="ti ti-settings-cog fs-18 me-2"></i>{" "}
+                          Administration & Reporting
+                        </h6>
+                        <div className="row g-3">
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Reporting Manager
+                            </label>
+                            <CommonSelect
+                              options={managers}
+                              defaultValue={managers.find(
+                                (o) =>
+                                  o.value ===
+                                  String(formData.reporting_manager_id)
+                              )}
+                              onChange={(opt) =>
+                                setFormData({
+                                  ...formData,
+                                  reporting_manager_id: opt?.value || "",
+                                })
+                              }
+                            />
+                          </div>
+
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Head of Department
+                            </label>
+                            <CommonSelect
+                              options={managers}
+                              defaultValue={managers.find(
+                                (o) =>
+                                  o.value ===
+                                  String(formData.head_of_department_id)
+                              )}
+                              onChange={(opt) =>
+                                setFormData({
+                                  ...formData,
+                                  head_of_department_id: opt?.value || "",
+                                })
+                              }
+                            />
+                          </div>
+
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Attendance Mode
+                            </label>
+                            <CommonSelect
+                              options={[
+                                { value: "qr", label: "QR CODE" },
+                                { value: "biometric", label: "BIOMETRIC" },
+                                { value: "mobile", label: "MobileAPP" },
+                              ]}
+                              placeholder="Capture Mode"
+                              onChange={(opt) =>
+                                setFormData({
+                                  ...formData,
+                                  attendance_capture_mode: opt?.value || "",
+                                })
+                              }
+                            />
+                          </div>
+
+                          {/* Status - OPTIONAL */}
+                          <div className="col-md-3">
+                            <label className="form-label fs-13">Status</label>
+                            <div>
+                              <CommonSelect
+                                options={[
+                                  { value: "active", label: "Active" },
+                                  { value: "inactive", label: "Inactive" },
+                                ]}
+                                defaultValue={
+                                  formData.status
+                                    ? {
+                                        value: formData.status,
+                                        label: formData.status.toUpperCase(),
+                                      }
+                                    : undefined
+                                }
+                                onChange={(opt) => {
+                                  setFormData({
+                                    ...formData,
+                                    status: opt?.value || "",
+                                  });
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="col-md-3">
+                            <label className="form-label fs-13">Week Off</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              placeholder="e.g. Sunday"
+                              value={formData.week_off}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  week_off: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+
+                          <div className="col-md-2 d-flex align-items-center pt-4">
+                            <div className="form-check">
+                              <input
+                                type="checkbox"
+                                className="form-check-input"
+                                id="holdCheck"
+                                checked={formData.hold_status}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    hold_status: e.target.checked,
+                                  })
+                                }
+                              />
+                              <label
+                                className="form-check-label fs-13 ms-1 text-warning fw-bold"
+                                htmlFor="holdCheck"
+                              >
+                                On Hold
+                              </label>
+                            </div>
+                          </div>
+
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Hold Remarks
+                            </label>
+                            <textarea
+                              rows={1}
+                              className={`form-control ${
+                                isSubmitted &&
+                                formData.hold_status &&
+                                errors.hold_remarks
+                                  ? "is-invalid"
+                                  : ""
+                              }`}
+                              placeholder="Reason for hold..."
+                              disabled={!formData.hold_status}
+                              value={formData.hold_remarks}
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  hold_remarks: e.target.value,
+                                });
+                                if (errors.hold_remarks)
+                                  setErrors({ ...errors, hold_remarks: "" });
+                              }}
+                            />
+                            {isSubmitted &&
+                              formData.hold_status &&
+                              errors.hold_remarks && (
+                                <div className="invalid-feedback">
+                                  {errors.hold_remarks}
                                 </div>
                               )}
-                            </div>
-                          </>
-                        )}
-
-                        {/* DOB - MANDATORY */}
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Date of Birth <span className="text-danger">*</span>
-                          </label>
-                          <DatePicker
-                            className={`form-control w-100 ${
-                              isSubmitted
-                                ? errors.birthday
-                                  ? "is-invalid"
-                                  : formData.birthday
-                                  ? "is-valid"
-                                  : ""
-                                : ""
-                            }`}
-                            value={
-                              formData.birthday
-                                ? dayjs(formData.birthday)
-                                : null
-                            }
-                            onChange={(_, dateStr) => {
-                              setFormData({ ...formData, birthday: dateStr });
-                              if (errors.birthday)
-                                setErrors({ ...errors, birthday: "" });
-                            }}
-                          />
-                          {isSubmitted && errors.birthday && (
-                            <div className="text-danger fs-11 mt-1">
-                              {errors.birthday}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Blood Group - MANDATORY */}
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Blood Group <span className="text-danger">*</span>
-                          </label>
-                          <div
-                            className={
-                              isSubmitted
-                                ? errors.blood_group
-                                  ? "border border-danger rounded"
-                                  : formData.blood_group
-                                  ? "border border-success rounded"
-                                  : ""
-                                : ""
-                            }
-                          >
-                            <CommonSelect
-                              options={[
-                                "A+",
-                                "A-",
-                                "B+",
-                                "B-",
-                                "AB+",
-                                "AB-",
-                                "O+",
-                                "O-",
-                              ].map((bg) => ({ value: bg, label: bg }))}
-                              defaultValue={
-                                formData.blood_group
-                                  ? {
-                                      value: formData.blood_group,
-                                      label: formData.blood_group,
-                                    }
-                                  : undefined
-                              }
-                              onChange={(opt) => {
-                                setFormData({
-                                  ...formData,
-                                  blood_group: opt?.value || "",
-                                });
-                                if (errors.blood_group)
-                                  setErrors({ ...errors, blood_group: "" });
-                              }}
-                            />
                           </div>
-                          {isSubmitted && errors.blood_group && (
-                            <div className="text-danger fs-11 mt-1">
-                              {errors.blood_group}
-                            </div>
-                          )}
                         </div>
                       </div>
                     </div>
+                  )}
+                  {/* 6. Banking Information Tab Content */}
+                  {activeTab === "banking" && (
+                    <div className="banking-info-wrapper animate__animated animate__fadeIn">
+                      <div className="form-section mb-4">
+                        <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
+                          <i className="ti ti-building-bank fs-18 me-2"></i>{" "}
+                          Salary Payment Details
+                        </h6>
 
-                    <hr className="my-4 opacity-25" />
+                        <div className="row g-3">
+                          <div className="col-md-12">
+                            <label className="form-label fs-13">
+                              Bank Account{" "}
+                              <span className="text-danger">*</span>
+                            </label>
 
-                    {/* Section 2: Education (Optional) */}
-                    <div className="form-section mb-4">
-                      <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
-                        <i className="ti ti-school fs-18 me-2"></i> Education &
-                        Experience
-                      </h6>
-                      <div className="row g-3">
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Post Graduation
-                          </label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            placeholder="MBA, etc."
-                            value={formData.name_of_post_graduation}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                name_of_post_graduation: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Other Education
-                          </label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            value={formData.name_of_any_other_education}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                name_of_any_other_education: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Experience (Years)
-                          </label>
-                          <input
-                            type="number"
-                            className="form-control"
-                            value={formData.total_experiance}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                total_experiance: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <hr className="my-4 opacity-25" />
-
-                    {/* Section 3: Background & Contact - MANDATORY FIELDS */}
-                    <div className="form-section">
-                      <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
-                        <i className="ti ti-address-book fs-18 me-2"></i>{" "}
-                        Contact Details
-                      </h6>
-                      <div className="row g-3">
-                        {/* Mobile - MANDATORY */}
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Primary Mobile{" "}
-                            <span className="text-danger">*</span>
-                          </label>
-                          <div className="input-group">
-                            <span className="input-group-text fs-12 bg-light">
-                              +91
-                            </span>
-                            <input
-                              type="text"
-                              className={`form-control ${
+                            {/* Validation Border Wrapper */}
+                            <div
+                              className={
                                 isSubmitted
-                                  ? errors.work_phone
-                                    ? "is-invalid"
-                                    : formData.work_phone
-                                    ? "is-valid"
+                                  ? errors.bank_account_id
+                                    ? "border border-danger rounded shadow-sm"
+                                    : formData.bank_account_id
+                                    ? "border border-success rounded shadow-sm"
                                     : ""
                                   : ""
-                              }`}
-                              maxLength={10}
-                              value={formData.work_phone}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  work_phone: e.target.value.replace(/\D/g, ""),
-                                })
                               }
-                            />
-                          </div>
-                          {isSubmitted && errors.work_phone && (
-                            <div className="text-danger fs-11 mt-1">
-                              {errors.work_phone}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Email - MANDATORY */}
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Personal Email{" "}
-                            <span className="text-danger">*</span>
-                          </label>
-                          <input
-                            type="email"
-                            className={`form-control ${
-                              isSubmitted
-                                ? errors.private_email
-                                  ? "is-invalid"
-                                  : formData.private_email
-                                  ? "is-valid"
-                                  : ""
-                                : ""
-                            }`}
-                            placeholder="example@gmail.com"
-                            value={formData.private_email}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                private_email: e.target.value,
-                              })
-                            }
-                          />
-                          {isSubmitted && errors.private_email && (
-                            <div className="text-danger fs-11 mt-1">
-                              {errors.private_email}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Secondary Mobile
-                          </label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            maxLength={10}
-                            value={formData.mobile_phone}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                mobile_phone: e.target.value.replace(/\D/g, ""),
-                              })
-                            }
-                          />
-                        </div>
-
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">Religion</label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            value={formData.religion}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                religion: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Upload Passbook
-                          </label>
-                          <div className="upload-box border rounded p-1 bg-white">
-                            <input
-                              type="file"
-                              className="form-control border-0 shadow-none"
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  upload_passbook: e.target.files?.[0] || null,
-                                })
-                              }
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {/* 3. Address Details */}
-                {activeTab === "address" && (
-                  <div className="address-info-wrapper animate__animated animate__fadeIn">
-                    {/* --- Section 1: Residential Information --- */}
-                    <div className="form-section mb-4">
-                      <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
-                        <i className="ti ti-home fs-18 me-2"></i> Residential
-                        Information
-                      </h6>
-                      <div className="row g-3">
-                        {/* Present Address - MANDATORY */}
-                        <div className="col-md-6">
-                          <label className="form-label fs-13">
-                            Present Address{" "}
-                            <span className="text-danger">*</span>
-                          </label>
-                          <textarea
-                            rows={2}
-                            className={`form-control ${
-                              isSubmitted
-                                ? errors.present_address
-                                  ? "is-invalid"
-                                  : formData.present_address
-                                  ? "is-valid"
-                                  : ""
-                                : ""
-                            }`}
-                            placeholder="House no, Building, Street..."
-                            value={formData.present_address}
-                            onChange={(e) => {
-                              setFormData({
-                                ...formData,
-                                present_address: e.target.value,
-                              });
-                              if (errors.present_address)
-                                setErrors({ ...errors, present_address: "" });
-                            }}
-                          />
-                          {isSubmitted && errors.present_address && (
-                            <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
-                              <i className="ti ti-info-circle me-1"></i>
-                              {errors.present_address}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Permanent Address - MANDATORY */}
-                        <div className="col-md-6">
-                          <label className="form-label fs-13">
-                            Permanent Address{" "}
-                            <span className="text-danger">*</span>
-                          </label>
-                          <textarea
-                            rows={2}
-                            className={`form-control ${
-                              isSubmitted
-                                ? errors.permanent_address
-                                  ? "is-invalid"
-                                  : formData.permanent_address
-                                  ? "is-valid"
-                                  : ""
-                                : ""
-                            }`}
-                            placeholder="Same as present or different..."
-                            value={formData.permanent_address}
-                            onChange={(e) => {
-                              setFormData({
-                                ...formData,
-                                permanent_address: e.target.value,
-                              });
-                              if (errors.permanent_address)
-                                setErrors({ ...errors, permanent_address: "" });
-                            }}
-                          />
-                          {isSubmitted && errors.permanent_address && (
-                            <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
-                              <i className="ti ti-info-circle me-1"></i>
-                              {errors.permanent_address}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <hr className="my-4 opacity-25" />
-
-                    {/* --- Section 2: Regional Geography --- */}
-                    <div className="form-section">
-                      <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
-                        <i className="ti ti-map-pin fs-18 me-2"></i> Regional
-                        Details
-                      </h6>
-                      <div className="row g-3">
-                        {/* Pin Code - OPTIONAL */}
-                        <div className="col-md-3">
-                          <label className="form-label fs-13">Pin Code</label>
-                          <input
-                            type="text"
-                            className={`form-control ${
-                              isSubmitted && formData.pin_code ? "is-valid" : ""
-                            }`}
-                            maxLength={6}
-                            placeholder="6-Digits"
-                            value={formData.pin_code}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                pin_code: e.target.value.replace(/\D/g, ""),
-                              })
-                            }
-                          />
-                        </div>
-
-                        {/* District - OPTIONAL */}
-                        <div className="col-md-3">
-                          <label className="form-label fs-13">District</label>
-                          <CommonSelect
-                            options={districts}
-                            placeholder="Select City/District"
-                            defaultValue={districts.find(
-                              (d) => d.value === String(formData.district_id)
-                            )}
-                            onChange={(opt) =>
-                              setFormData({
-                                ...formData,
-                                district_id: opt?.value || "",
-                              })
-                            }
-                          />
-                        </div>
-
-                        {/* State - OPTIONAL */}
-                        <div className="col-md-3">
-                          <label className="form-label fs-13">State</label>
-                          <CommonSelect
-                            options={states}
-                            placeholder="Select State"
-                            defaultValue={states.find(
-                              (s) => s.value === String(formData.state_id)
-                            )}
-                            onChange={(opt) =>
-                              setFormData({
-                                ...formData,
-                                state_id: opt?.value || "",
-                              })
-                            }
-                          />
-                        </div>
-
-                        {/* Country - OPTIONAL */}
-                        <div className="col-md-3">
-                          <label className="form-label fs-13">Country</label>
-                          <CommonSelect
-                            options={countries}
-                            placeholder="Select Country"
-                            defaultValue={countries.find(
-                              (c) => c.value === String(formData.country_id)
-                            )}
-                            onChange={(opt) =>
-                              setFormData({
-                                ...formData,
-                                country_id: opt?.value || "",
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {/* 4. Emergency Contact */}
-                {activeTab === "emergency" && (
-                  <div className="emergency-info-wrapper animate__animated animate__fadeIn">
-                    {/* --- Section: Emergency Details --- */}
-                    <div className="form-section mb-4">
-                      <h6 className="fw-bold text-danger mb-3 d-flex align-items-center">
-                        <i className="ti ti-phone-call fs-18 me-2"></i>{" "}
-                        Immediate Contact Details
-                      </h6>
-                      <div className="row g-3">
-                        {/* Contact Person Name - MANDATORY */}
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Emergency Contact Name{" "}
-                            <span className="text-danger">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            className={`form-control ${
-                              isSubmitted
-                                ? errors.emergency_contact_name
-                                  ? "is-invalid"
-                                  : formData.emergency_contact_name
-                                  ? "is-valid"
-                                  : ""
-                                : ""
-                            }`}
-                            placeholder="Full Name"
-                            value={formData.emergency_contact_name}
-                            onChange={(e) => {
-                              setFormData({
-                                ...formData,
-                                emergency_contact_name: e.target.value,
-                              });
-                              if (errors.emergency_contact_name)
-                                setErrors({
-                                  ...errors,
-                                  emergency_contact_name: "",
-                                });
-                            }}
-                          />
-                          {isSubmitted && errors.emergency_contact_name && (
-                            <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
-                              <i className="ti ti-info-circle me-1"></i>
-                              {errors.emergency_contact_name}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Relation - MANDATORY */}
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Relation <span className="text-danger">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            className={`form-control ${
-                              isSubmitted
-                                ? errors.emergency_contact_relation
-                                  ? "is-invalid"
-                                  : formData.emergency_contact_relation
-                                  ? "is-valid"
-                                  : ""
-                                : ""
-                            }`}
-                            placeholder="e.g. Spouse, Father, Brother"
-                            value={formData.emergency_contact_relation}
-                            onChange={(e) => {
-                              setFormData({
-                                ...formData,
-                                emergency_contact_relation: e.target.value,
-                              });
-                              if (errors.emergency_contact_relation)
-                                setErrors({
-                                  ...errors,
-                                  emergency_contact_relation: "",
-                                });
-                            }}
-                          />
-                          {isSubmitted && errors.emergency_contact_relation && (
-                            <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
-                              <i className="ti ti-info-circle me-1"></i>
-                              {errors.emergency_contact_relation}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Mobile Number - MANDATORY */}
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Mobile Number <span className="text-danger">*</span>
-                          </label>
-                          <div className="input-group">
-                            <span className="input-group-text bg-light fs-12">
-                              +91
-                            </span>
-                            <input
-                              type="text"
-                              className={`form-control ${
-                                isSubmitted
-                                  ? errors.emergency_contact_mobile
-                                    ? "is-invalid"
-                                    : formData.emergency_contact_mobile
-                                    ? "is-valid"
-                                    : ""
-                                  : ""
-                              }`}
-                              maxLength={10}
-                              placeholder="10-Digit Mobile"
-                              value={formData.emergency_contact_mobile}
-                              onChange={(e) => {
-                                const val = e.target.value.replace(/\D/g, "");
-                                setFormData({
-                                  ...formData,
-                                  emergency_contact_mobile: val,
-                                });
-                                if (errors.emergency_contact_mobile)
-                                  setErrors({
-                                    ...errors,
-                                    emergency_contact_mobile: "",
-                                  });
-                              }}
-                            />
-                          </div>
-                          {isSubmitted && errors.emergency_contact_mobile && (
-                            <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
-                              <i className="ti ti-info-circle me-1"></i>
-                              {errors.emergency_contact_mobile}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Contact Address - OPTIONAL */}
-                        <div className="col-md-12">
-                          <label className="form-label fs-13">
-                            Contact Address
-                          </label>
-                          <textarea
-                            rows={3}
-                            className={`form-control ${
-                              isSubmitted && formData.emergency_contact_address
-                                ? "is-valid"
-                                : ""
-                            }`}
-                            placeholder="Full Residential Address of the contact person"
-                            value={formData.emergency_contact_address}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                emergency_contact_address: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div
-                      className="alert alert-soft-warning d-flex align-items-center border-0 p-2"
-                      role="alert"
-                    >
-                      <i className="ti ti-info-circle fs-16 me-2"></i>
-                      <div className="fs-12">
-                        Please ensure the contact details provided are accurate
-                        for use in case of emergencies.
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {/* 5. Employment Information */}
-                {activeTab === "employment" && (
-                  <div className="employment-wrapper animate__animated animate__fadeIn">
-                    {/* --- Section 1: Organizational Role --- */}
-                    <div className="form-section mb-4">
-                      <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
-                        <i className="ti ti-briefcase fs-18 me-2"></i>{" "}
-                        Organizational Role
-                      </h6>
-                      <div className="row g-3">
-                        {/* Department - MANDATORY */}
-                        <div className="col-md-3">
-                          <label className="form-label fs-13">
-                            Department <span className="text-danger">*</span>
-                          </label>
-                          <div
-                            className={
-                              isSubmitted
-                                ? errors.department_id
-                                  ? "border border-danger rounded shadow-sm"
-                                  : formData.department_id
-                                  ? "border border-success rounded shadow-sm"
-                                  : ""
-                                : ""
-                            }
-                          >
-                            <CommonSelect
-                              options={departments}
-                              placeholder="Select Department"
-                              defaultValue={departments.find(
-                                (o) =>
-                                  o.value === String(formData.department_id)
-                              )}
-                              onChange={(opt) => {
-                                setFormData({
-                                  ...formData,
-                                  department_id: opt?.value || "",
-                                });
-                                if (errors.department_id)
-                                  setErrors({ ...errors, department_id: "" });
-                              }}
-                            />
-                          </div>
-                          {isSubmitted && errors.department_id && (
-                            <div className="text-danger fs-11 mt-1">
-                              {errors.department_id}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Designation - MANDATORY */}
-                        <div className="col-md-3">
-                          <label className="form-label fs-13">
-                            Designation <span className="text-danger">*</span>
-                          </label>
-                          <div
-                            className={
-                              isSubmitted
-                                ? errors.job_id
-                                  ? "border border-danger rounded shadow-sm"
-                                  : formData.job_id
-                                  ? "border border-success rounded shadow-sm"
-                                  : ""
-                                : ""
-                            }
-                          >
-                            <CommonSelect
-                              options={designations}
-                              placeholder="Select Designation"
-                              defaultValue={designations.find(
-                                (o) => o.value === String(formData.job_id)
-                              )}
-                              onChange={(opt) => {
-                                setFormData({
-                                  ...formData,
-                                  job_id: opt?.value || "",
-                                });
-                                if (errors.job_id)
-                                  setErrors({ ...errors, job_id: "" });
-                              }}
-                            />
-                          </div>
-                          {isSubmitted && errors.job_id && (
-                            <div className="text-danger fs-11 mt-1">
-                              {errors.job_id}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="col-md-3">
-                          <label className="form-label fs-13">
-                            Employment Type
-                          </label>
-                          <CommonSelect
-                            options={[
-                              { value: "permanent", label: "Permanent" },
-                              { value: "fixed_term", label: "Fixed Term" },
-                              { value: "temporary", label: "Temporary" },
-                            ]}
-                            placeholder="Select Type"
-                            defaultValue={[
-                              { value: "permanent", label: "Permanent" },
-                              { value: "fixed_term", label: "Fixed Term" },
-                              { value: "temporary", label: "Temporary" },
-                            ].find(
-                              (opt) => opt.value === formData.employment_type
-                            )}
-                            onChange={(opt) =>
-                              setFormData({
-                                ...formData,
-                                employment_type: opt?.value || "",
-                              })
-                            }
-                          />
-                        </div>
-
-                        <div className="col-md-3">
-                          <label className="form-label fs-13">
-                            Grade / Band
-                          </label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            placeholder="e.g. A1, Senior"
-                            value={formData.grade_band}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                grade_band: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <hr className="my-4 opacity-25" />
-
-                    {/* --- Section 2: Tenure & Probation --- */}
-                    <div className="form-section mb-4">
-                      <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
-                        <i className="ti ti-calendar-event fs-18 me-2"></i>{" "}
-                        Joining & Probation
-                      </h6>
-                      <div className="row g-3">
-                        {/* Joining Date - MANDATORY */}
-                        <div className="col-md-3">
-                          <label className="form-label fs-13">
-                            Joining Date <span className="text-danger">*</span>
-                          </label>
-                          <DatePicker
-                            className={`w-100 form-control ${
-                              isSubmitted
-                                ? errors.joining_date
-                                  ? "is-invalid"
-                                  : formData.joining_date
-                                  ? "is-valid"
-                                  : ""
-                                : ""
-                            }`}
-                            value={
-                              formData.joining_date
-                                ? dayjs(formData.joining_date)
-                                : null
-                            }
-                            onChange={(_, dateStr) => {
-                              setFormData({
-                                ...formData,
-                                joining_date: dateStr,
-                              });
-                              if (errors.joining_date)
-                                setErrors({ ...errors, joining_date: "" });
-                            }}
-                          />
-                          {isSubmitted && errors.joining_date && (
-                            <div className="text-danger fs-11 mt-1">
-                              {errors.joining_date}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="col-md-3">
-                          <label className="form-label fs-13">
-                            Group Joining Date
-                          </label>
-                          <DatePicker
-                            className="w-100 form-control"
-                            value={
-                              formData.group_company_joining_date
-                                ? dayjs(formData.group_company_joining_date)
-                                : null
-                            }
-                            onChange={(_, dateStr) =>
-                              setFormData({
-                                ...formData,
-                                group_company_joining_date: dateStr,
-                              })
-                            }
-                          />
-                        </div>
-
-                        <div className="col-md-3">
-                          <label className="form-label fs-13">
-                            Confirmation Date
-                          </label>
-                          <DatePicker
-                            className="w-100 form-control"
-                            value={
-                              formData.confirmation_date
-                                ? dayjs(formData.confirmation_date)
-                                : null
-                            }
-                            onChange={(_, dateStr) =>
-                              setFormData({
-                                ...formData,
-                                confirmation_date: dateStr,
-                              })
-                            }
-                          />
-                        </div>
-
-                        {/* Employee Password - MANDATORY */}
-                        <div className="col-md-3">
-                          <label className="form-label fs-13">
-                            Login Password{" "}
-                            <span className="text-danger">*</span>
-                          </label>
-                          <input
-                            type="password"
-                            className={`form-control ${
-                              isSubmitted
-                                ? errors.employee_password
-                                  ? "is-invalid"
-                                  : formData.employee_password
-                                  ? "is-valid"
-                                  : ""
-                                : ""
-                            }`}
-                            placeholder="System Access Password"
-                            value={formData.employee_password}
-                            onChange={(e) => {
-                              setFormData({
-                                ...formData,
-                                employee_password: e.target.value,
-                              });
-                              if (errors.employee_password)
-                                setErrors({ ...errors, employee_password: "" });
-                            }}
-                          />
-                          {isSubmitted && errors.employee_password && (
-                            <div className="text-danger fs-11 mt-1">
-                              {errors.employee_password}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="col-md-2">
-                          <label className="form-label fs-13">
-                            Probation (Months)
-                          </label>
-                          <input
-                            type="number"
-                            className="form-control"
-                            value={formData.probation_period}
-                            onChange={(e) =>
-                              handleProbationChange(Number(e.target.value))
-                            }
-                          />
-                        </div>
-
-                        <div className="col-md-2">
-                          <label className="form-label fs-13 text-muted">
-                            Probation End Date
-                          </label>
-                          <DatePicker
-                            className="w-100 form-control bg-light"
-                            value={
-                              formData.probation_end_date
-                                ? dayjs(formData.probation_end_date)
-                                : null
-                            }
-                            disabled
-                          />
-                        </div>
-
-                        <div className="col-md-2 d-flex align-items-center pt-4">
-                          <div className="form-check">
-                            <input
-                              type="checkbox"
-                              className="form-check-input"
-                              id="probCheck"
-                              checked={formData.in_probation}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  in_probation: e.target.checked,
-                                })
-                              }
-                            />
-                            <label
-                              className="form-check-label fs-13 ms-1"
-                              htmlFor="probCheck"
                             >
-                              In Probation
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <hr className="my-4 opacity-25" />
-
-                    {/* --- Section 3: Administration --- */}
-                    <div className="form-section">
-                      <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
-                        <i className="ti ti-settings-cog fs-18 me-2"></i>{" "}
-                        Administration & Reporting
-                      </h6>
-                      <div className="row g-3">
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Reporting Manager
-                          </label>
-                          <CommonSelect
-                            options={managers}
-                            defaultValue={managers.find(
-                              (o) =>
-                                o.value ===
-                                String(formData.reporting_manager_id)
-                            )}
-                            onChange={(opt) =>
-                              setFormData({
-                                ...formData,
-                                reporting_manager_id: opt?.value || "",
-                              })
-                            }
-                          />
-                        </div>
-
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Head of Department
-                          </label>
-                          <CommonSelect
-                            options={managers}
-                            defaultValue={managers.find(
-                              (o) =>
-                                o.value ===
-                                String(formData.head_of_department_id)
-                            )}
-                            onChange={(opt) =>
-                              setFormData({
-                                ...formData,
-                                head_of_department_id: opt?.value || "",
-                              })
-                            }
-                          />
-                        </div>
-
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Attendance Mode
-                          </label>
-                          <CommonSelect
-                            options={[
-                              { value: "qr", label: "QR CODE" },
-                              { value: "biometric", label: "BIOMETRIC" },
-                              { value: "mobile", label: "MobileAPP" },
-                            ]}
-                            placeholder="Capture Mode"
-                            onChange={(opt) =>
-                              setFormData({
-                                ...formData,
-                                attendance_capture_mode: opt?.value || "",
-                              })
-                            }
-                          />
-                        </div>
-
-                        {/* Status - MANDATORY */}
-                        <div className="col-md-3">
-                          <label className="form-label fs-13">
-                            Status <span className="text-danger">*</span>
-                          </label>
-                          <div
-                            className={
-                              isSubmitted
-                                ? errors.status
-                                  ? "border border-danger rounded shadow-sm"
-                                  : formData.status
-                                  ? "border border-success rounded shadow-sm"
-                                  : ""
-                                : ""
-                            }
-                          >
-                            <CommonSelect
-                              options={[
-                                { value: "active", label: "Active" },
-                                { value: "inactive", label: "Inactive" },
-                              ]}
-                              defaultValue={
-                                formData.status
-                                  ? {
-                                      value: formData.status,
-                                      label: formData.status.toUpperCase(),
-                                    }
-                                  : undefined
-                              }
-                              onChange={(opt) => {
-                                setFormData({
-                                  ...formData,
-                                  status: opt?.value || "",
-                                });
-                                if (errors.status)
-                                  setErrors({ ...errors, status: "" });
-                              }}
-                            />
-                          </div>
-                          {isSubmitted && errors.status && (
-                            <div className="text-danger fs-11 mt-1">
-                              {errors.status}
+                              <CommonSelect
+                                options={banks}
+                                placeholder="Select Bank Account"
+                                defaultValue={banks.find(
+                                  (opt) =>
+                                    opt.value ===
+                                    String(formData.bank_account_id)
+                                )}
+                                onChange={(option) =>
+                                  setFormData({
+                                    ...formData,
+                                    bank_account_id: option?.value || "",
+                                  })
+                                }
+                              />
                             </div>
-                          )}
-                        </div>
 
-                        <div className="col-md-3">
-                          <label className="form-label fs-13">Week Off</label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            placeholder="e.g. Sunday"
-                            value={formData.week_off}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                week_off: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-
-                        <div className="col-md-2 d-flex align-items-center pt-4">
-                          <div className="form-check">
-                            <input
-                              type="checkbox"
-                              className="form-check-input"
-                              id="holdCheck"
-                              checked={formData.hold_status}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  hold_status: e.target.checked,
-                                })
-                              }
-                            />
-                            <label
-                              className="form-check-label fs-13 ms-1 text-warning fw-bold"
-                              htmlFor="holdCheck"
-                            >
-                              On Hold
-                            </label>
-                          </div>
-                        </div>
-
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Hold Remarks
-                          </label>
-                          <textarea
-                            rows={1}
-                            className={`form-control ${
-                              isSubmitted &&
-                              formData.hold_status &&
-                              errors.hold_remarks
-                                ? "is-invalid"
-                                : ""
-                            }`}
-                            placeholder="Reason for hold..."
-                            disabled={!formData.hold_status}
-                            value={formData.hold_remarks}
-                            onChange={(e) => {
-                              setFormData({
-                                ...formData,
-                                hold_remarks: e.target.value,
-                              });
-                              if (errors.hold_remarks)
-                                setErrors({ ...errors, hold_remarks: "" });
-                            }}
-                          />
-                          {isSubmitted &&
-                            formData.hold_status &&
-                            errors.hold_remarks && (
-                              <div className="invalid-feedback">
-                                {errors.hold_remarks}
+                            {/* Validation Error Message */}
+                            {isSubmitted && errors.bank_account_id && (
+                              <div className="text-danger fs-11 mt-1">
+                                {errors.bank_account_id}
                               </div>
                             )}
+
+                            {/* Helper Message for Missing Options */}
+                            <div className="mt-3 p-2 border border-dashed rounded bg-light d-flex align-items-start">
+                              <i className="ti ti-info-circle text-muted fs-16 me-2 mt-1"></i>
+                              <div className="fs-12 text-muted">
+                                <strong>Can't find the account?</strong>
+                                <br />
+                                Please contact the{" "}
+                                <strong>HR Department</strong> or{" "}
+                                <strong>Administration</strong> to add the bank
+                                details to the master list.
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
-                {/* 6. Banking Information */}
-                {/* 6. Banking Information Tab Content */}
-                {activeTab === "banking" && (
-                  <div className="banking-info-wrapper animate__animated animate__fadeIn">
-                    <div className="form-section mb-4">
-                      <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
-                        <i className="ti ti-building-bank fs-18 me-2"></i>{" "}
-                        Salary Payment Details
-                      </h6>
-
-                      <div className="row g-3 align-items-end">
-                        <div className="col-md-6">
-                          <label className="form-label fs-13">
-                            Bank Account <span className="text-danger">*</span>
-                          </label>
-                          <CommonSelect
-                            options={banks}
-                            placeholder="Select Bank Account"
-                            defaultValue={banks.find(
-                              (opt) =>
-                                opt.value === String(formData.bank_account_id)
-                            )}
-                            onChange={(option) =>
-                              setFormData({
-                                ...formData,
-                                bank_account_id: option?.value || "",
-                              })
-                            }
-                          />
-                        </div>
-
-                        <div className="banking-info-wrapper">
-                          {" "}
-                          {/* FIX: Ensure data-bs-toggle and data-bs-target are present */}
-                          <button
-                            type="button"
-                            className="btn btn-primary w-100 fs-12"
-                            data-bs-toggle="modal"
-                            data-bs-target="#add_bank_account_modal"
-                          >
-                            <i className="ti ti-plus me-1"></i> New Account
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* FIX: Move the Modal component outside of the tab-content conditional check.
+                  )}
+                  {/* FIX: Move the Modal component outside of the tab-content conditional check.
    If it's inside {activeTab === "banking" && ...}, it might unmount when you 
-   switch tabs, causing issues. Place it at the very bottom of the main modal-body.
-*/}
-                <AddEditBankAccountModal
-                  onSuccess={async (newId: string) => {
-                    // Refresh banks list and select new ID
-                    const bankList = await getBanks();
-                    const formatted = bankList.map((b: any) => ({
-                      value: String(b.id),
-                      label: `${b.acc_number} - ${
-                        Array.isArray(b.bank_id) ? b.bank_id[1] : "Bank"
-                      }`,
-                    }));
-                    setBanks(formatted);
-                    setFormData({ ...formData, bank_account_id: newId });
-                  }}
-                />
-                {/* 7.Device */}
-                {activeTab === "device" && (
-                  <div className="device-info-wrapper animate__animated animate__fadeIn">
-                    <div className="form-section mb-4">
-                      <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
-                        <i className="ti ti-device-mobile fs-18 me-2"></i>{" "}
-                        Registered Device Details
-                      </h6>
-                      <div className="row g-3">
-                        {/* Device Unique ID */}
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Device Unique ID{" "}
-                            <span className="text-danger">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            className={`form-control ${
-                              isSubmitted && errors.device_unique_id
-                                ? "is-invalid"
-                                : ""
-                            }`}
-                            value={formData.device_unique_id}
-                            placeholder="e.g. 3d60c7079ea1ea51"
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                device_unique_id: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
+   switch tabs, causing issues. Place it at the very bottom of the main modal-body.*/}
 
-                        {/* Device Name */}
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Device Name
-                          </label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            value={formData.device_name}
-                            placeholder="e.g. Pixel 6 Pro"
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                device_name: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-
-                        {/* Device ID */}
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">Device ID</label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            value={formData.device_id}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                device_id: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-
-                        {/* Platform & Version */}
-                        <div className="col-md-3">
-                          <label className="form-label fs-13">Platform</label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            value={formData.device_platform}
-                            placeholder="Android / iOS"
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                device_platform: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-
-                        <div className="col-md-3">
-                          <label className="form-label fs-13">
-                            System Version
-                          </label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            value={formData.system_version}
-                            placeholder="e.g. 15"
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                system_version: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-
-                        {/* IP Address */}
-                        <div className="col-md-3">
-                          <label className="form-label fs-13">IP Address</label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            value={formData.ip_address}
-                            placeholder="0.0.0.0"
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                ip_address: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-
-                        {/* Random Registration Code */}
-                        <div className="col-md-3">
-                          <label className="form-label fs-13">Reg. Code</label>
-                          <input
-                            type="text"
-                            className="form-control bg-light"
-                            value={formData.random_code_for_reg}
-                            placeholder="!gGzd!"
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                random_code_for_reg: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="alert alert-soft-info d-flex align-items-center border-0 p-2 shadow-sm">
-                      <i className="ti ti-info-circle-filled fs-20 me-2 text-info"></i>
-                      <div className="fs-11">
-                        This information is typically captured automatically
-                        when an employee logs into the mobile app for the first
-                        time.
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {/* 7. Notice Information */}
-                {activeTab === "notice" && (
-                  <div className="notice-info-wrapper animate__animated animate__fadeIn">
-                    {/* --- Section: Separation Details --- */}
-                    <div className="form-section mb-4">
-                      <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
-                        <i className="ti ti-door-exit fs-18 me-2"></i>{" "}
-                        Separation & Notice Details
-                      </h6>
-                      <div className="row g-3">
-                        {/* Type Of Separation */}
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Type Of Separation
-                          </label>
-                          <div
-                            className={
-                              isSubmitted
-                                ? errors.type_of_sepration
-                                  ? "border border-danger rounded shadow-sm"
-                                  : formData.type_of_sepration
-                                  ? "border border-success rounded shadow-sm"
-                                  : ""
-                                : ""
-                            }
-                          >
-                            <CommonSelect
-                              options={[
-                                { value: "voluntary", label: "Voluntary" },
-                                { value: "involuntary", label: "Involuntary" },
-                                { value: "absconding", label: "Absconding" },
-                                { value: "retirement", label: "Retirement" },
-                              ]}
-                              placeholder="Select Type"
-                              defaultValue={
-                                formData.type_of_sepration
-                                  ? {
-                                      value: formData.type_of_sepration,
-                                      label:
-                                        formData.type_of_sepration
-                                          .charAt(0)
-                                          .toUpperCase() +
-                                        formData.type_of_sepration.slice(1),
-                                    }
-                                  : undefined
-                              }
-                              onChange={(opt) => {
+                  {/* 7. Device Information */}
+                  {activeTab === "device" && (
+                    <div className="device-info-wrapper animate__animated animate__fadeIn">
+                      <div className="form-section mb-4">
+                        <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
+                          <i className="ti ti-device-mobile fs-18 me-2"></i>{" "}
+                          Registered Device Details
+                        </h6>
+                        <div className="row g-3">
+                          {/* Device Unique ID - OPTIONAL */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Device Unique ID
+                            </label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={formData.device_unique_id}
+                              placeholder="e.g. 3d60c7079ea1ea51"
+                              onChange={(e) =>
                                 setFormData({
                                   ...formData,
-                                  type_of_sepration: opt?.value || "",
-                                });
-                                if (errors.type_of_sepration)
-                                  setErrors({
-                                    ...errors,
-                                    type_of_sepration: "",
-                                  });
-                              }}
+                                  device_unique_id: e.target.value,
+                                })
+                              }
                             />
                           </div>
-                          {isSubmitted && errors.type_of_sepration && (
-                            <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
-                              <i className="ti ti-info-circle me-1"></i>
-                              {errors.type_of_sepration}
-                            </div>
-                          )}
-                        </div>
 
-                        {/* Resignation Date */}
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Resignation Date
-                          </label>
-                          <DatePicker
-                            className={`w-100 form-control ${
-                              isSubmitted
-                                ? errors.resignation_date
-                                  ? "is-invalid"
-                                  : formData.resignation_date
-                                  ? "is-valid"
-                                  : ""
-                                : ""
-                            }`}
-                            value={
-                              formData.resignation_date
-                                ? dayjs(formData.resignation_date)
-                                : null
-                            }
-                            onChange={(_, dateStr) => {
-                              setFormData({
-                                ...formData,
-                                resignation_date: dateStr,
-                              });
-                              if (errors.resignation_date)
-                                setErrors({ ...errors, resignation_date: "" });
-                              // Trigger calculation helper if it exists in your component
-                              if (
-                                typeof calculateNoticeEndDate === "function"
-                              ) {
-                                calculateNoticeEndDate(
-                                  Number(formData.notice_period_days),
-                                  dateStr
-                                );
-                              }
-                            }}
-                          />
-                          {isSubmitted && errors.resignation_date && (
-                            <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
-                              <i className="ti ti-info-circle me-1"></i>
-                              {errors.resignation_date}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Notice Period (Days) */}
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Notice Period (Days)
-                          </label>
-                          <input
-                            type="number"
-                            className={`form-control ${
-                              isSubmitted
-                                ? errors.notice_period_days
-                                  ? "is-invalid"
-                                  : formData.notice_period_days > 0
-                                  ? "is-valid"
-                                  : ""
-                                : ""
-                            }`}
-                            placeholder="e.g. 30"
-                            value={formData.notice_period_days}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setFormData({
-                                ...formData,
-                                notice_period_days: Number(val),
-                              });
-                              if (errors.notice_period_days)
-                                setErrors({
-                                  ...errors,
-                                  notice_period_days: "",
-                                });
-                              if (
-                                typeof calculateNoticeEndDate === "function"
-                              ) {
-                                calculateNoticeEndDate(
-                                  Number(val),
-                                  formData.resignation_date
-                                );
-                              }
-                            }}
-                          />
-                          {isSubmitted && errors.notice_period_days && (
-                            <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
-                              <i className="ti ti-info-circle me-1"></i>
-                              {errors.notice_period_days}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Status Checkbox (Calculated) */}
-                        <div className="col-md-4 d-flex align-items-center pt-4">
-                          <div className="form-check form-switch">
-                            <input
-                              type="checkbox"
-                              className="form-check-input"
-                              id="noticeCheck"
-                              checked={formData.in_notice_period}
-                              disabled // Field is system-calculated based on dates
-                            />
-                            <label
-                              className="form-check-label fs-13 ms-2 fw-bold text-info"
-                              htmlFor="noticeCheck"
-                            >
-                              Currently In Notice Period
+                          {/* Device Name */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Device Name
                             </label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={formData.device_name}
+                              placeholder="e.g. Pixel 6 Pro"
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  device_name: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+
+                          {/* Device ID */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Device ID
+                            </label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={formData.device_id}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  device_id: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+
+                          {/* Platform & Version */}
+                          <div className="col-md-3">
+                            <label className="form-label fs-13">Platform</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={formData.device_platform}
+                              placeholder="Android / iOS"
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  device_platform: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+
+                          <div className="col-md-3">
+                            <label className="form-label fs-13">
+                              System Version
+                            </label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={formData.system_version}
+                              placeholder="e.g. 15"
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  system_version: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+
+                          {/* IP Address */}
+                          <div className="col-md-3">
+                            <label className="form-label fs-13">
+                              IP Address
+                            </label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={formData.ip_address}
+                              placeholder="0.0.0.0"
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  ip_address: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+
+                          {/* Random Registration Code */}
+                          <div className="col-md-3">
+                            <label className="form-label fs-13">
+                              Reg. Code
+                            </label>
+                            <input
+                              type="text"
+                              className="form-control bg-light"
+                              value={formData.random_code_for_reg}
+                              placeholder="!gGzd!"
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  random_code_for_reg: e.target.value,
+                                })
+                              }
+                            />
                           </div>
                         </div>
+                      </div>
 
-                        {/* Notice Period End Date (Read-only) */}
-                        <div className="col-md-4">
-                          <label className="form-label fs-13 text-muted italic">
-                            Calculated Last Working Day
-                          </label>
-                          <DatePicker
-                            className="w-100 form-control bg-light border-dashed"
-                            value={
-                              formData.notice_period_end_date
-                                ? dayjs(formData.notice_period_end_date)
-                                : null
-                            }
-                            disabled
-                            placeholder="System Calculated"
-                          />
+                      <div className="alert alert-soft-info d-flex align-items-center border-0 p-2 shadow-sm">
+                        <i className="ti ti-info-circle-filled fs-20 me-2 text-info"></i>
+                        <div className="fs-11">
+                          This information is typically captured automatically
+                          when an employee logs into the mobile app for the
+                          first time.
                         </div>
                       </div>
                     </div>
+                  )}
 
-                    {/* Warning Footer */}
-                    <div
-                      className="alert alert-soft-danger d-flex align-items-center border-0 p-2 shadow-sm"
-                      role="alert"
-                    >
-                      <i className="ti ti-alert-triangle-filled fs-20 me-2 text-danger"></i>
-                      <div className="fs-11">
-                        <strong>Warning:</strong> Entering separation details
-                        will automatically update the employee's status to{" "}
-                        <em>Resigned</em> across payroll and attendance modules
-                        upon reaching the end date.
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {/* 8. Settings */}
-                {activeTab === "setting" && (
-                  <div className="settings-info-wrapper animate__animated animate__fadeIn">
-                    {/* --- Section: Security & Access --- */}
-                    <div className="form-section mb-4">
-                      <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
-                        <i className="ti ti-lock-access fs-18 me-2"></i>{" "}
-                        Security & Access Credentials
-                      </h6>
-                      <div className="row g-3">
-                        {/* PIN Code Field - MANDATORY */}
-                        <div className="col-md-4">
-                          <label className="form-label fs-13">
-                            Employee PIN <span className="text-danger">*</span>
-                          </label>
-                          <div className="input-group">
-                            <span
-                              className={`input-group-text bg-light border-end-0 ${
+                  {/* 7. Notice Information */}
+                  {activeTab === "notice" && (
+                    <div className="notice-info-wrapper animate__animated animate__fadeIn">
+                      {/* --- Section: Separation Details --- */}
+                      <div className="form-section mb-4">
+                        <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
+                          <i className="ti ti-door-exit fs-18 me-2"></i>{" "}
+                          Separation & Notice Details
+                        </h6>
+                        <div className="row g-3">
+                          {/* Type Of Separation */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Type Of Separation
+                            </label>
+                            <div
+                              className={
                                 isSubmitted
-                                  ? errors.pin
-                                    ? "border-danger"
-                                    : formData.pin
-                                    ? "border-success"
+                                  ? errors.type_of_sepration
+                                    ? "border border-danger rounded shadow-sm"
+                                    : formData.type_of_sepration
+                                    ? "border border-success rounded shadow-sm"
                                     : ""
                                   : ""
-                              }`}
+                              }
                             >
-                              <i className="ti ti-key fs-14 text-muted"></i>
-                            </span>
-                            <input
-                              type="text" // Changed to text to allow maxLength and manual masking if needed, or keep password
-                              className={`form-control border-start-0 ${
+                              <CommonSelect
+                                options={[
+                                  { value: "voluntary", label: "Voluntary" },
+                                  {
+                                    value: "involuntary",
+                                    label: "Involuntary",
+                                  },
+                                  { value: "absconding", label: "Absconding" },
+                                  { value: "retirement", label: "Retirement" },
+                                ]}
+                                placeholder="Select Type"
+                                defaultValue={
+                                  formData.type_of_sepration
+                                    ? {
+                                        value: formData.type_of_sepration,
+                                        label:
+                                          formData.type_of_sepration
+                                            .charAt(0)
+                                            .toUpperCase() +
+                                          formData.type_of_sepration.slice(1),
+                                      }
+                                    : undefined
+                                }
+                                onChange={(opt) => {
+                                  setFormData({
+                                    ...formData,
+                                    type_of_sepration: opt?.value || "",
+                                  });
+                                  if (errors.type_of_sepration)
+                                    setErrors({
+                                      ...errors,
+                                      type_of_sepration: "",
+                                    });
+                                }}
+                              />
+                            </div>
+                            {isSubmitted && errors.type_of_sepration && (
+                              <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                                <i className="ti ti-info-circle me-1"></i>
+                                {errors.type_of_sepration}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Resignation Date */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Resignation Date
+                            </label>
+                            <DatePicker
+                              className={`w-100 form-control ${
                                 isSubmitted
-                                  ? errors.pin
+                                  ? errors.resignation_date
                                     ? "is-invalid"
-                                    : formData.pin
+                                    : formData.resignation_date
                                     ? "is-valid"
                                     : ""
                                   : ""
                               }`}
-                              placeholder="Enter 4-6 Digit PIN"
-                              maxLength={6}
-                              value={formData.pin}
-                              onChange={(e) => {
-                                const val = e.target.value.replace(/\D/g, "");
-                                setFormData({ ...formData, pin: val });
-                                if (errors.pin)
-                                  setErrors({ ...errors, pin: "" });
+                              value={
+                                formData.resignation_date
+                                  ? dayjs(formData.resignation_date)
+                                  : null
+                              }
+                              onChange={(_, dateStr) => {
+                                setFormData({
+                                  ...formData,
+                                  resignation_date: dateStr,
+                                });
+                                if (errors.resignation_date)
+                                  setErrors({
+                                    ...errors,
+                                    resignation_date: "",
+                                  });
+                                // Trigger calculation helper if it exists in your component
+                                if (
+                                  typeof calculateNoticeEndDate === "function"
+                                ) {
+                                  calculateNoticeEndDate(
+                                    Number(formData.notice_period_days),
+                                    dateStr
+                                  );
+                                }
                               }}
                             />
+                            {isSubmitted && errors.resignation_date && (
+                              <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                                <i className="ti ti-info-circle me-1"></i>
+                                {errors.resignation_date}
+                              </div>
+                            )}
                           </div>
-                          {isSubmitted && errors.pin && (
-                            <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
-                              <i className="ti ti-info-circle me-1"></i>
-                              {errors.pin}
+
+                          {/* Notice Period (Days) */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Notice Period (Days)
+                            </label>
+                            <input
+                              type="number"
+                              className={`form-control ${
+                                isSubmitted
+                                  ? errors.notice_period_days
+                                    ? "is-invalid"
+                                    : formData.notice_period_days > 0
+                                    ? "is-valid"
+                                    : ""
+                                  : ""
+                              }`}
+                              placeholder="e.g. 30"
+                              value={formData.notice_period_days}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setFormData({
+                                  ...formData,
+                                  notice_period_days: Number(val),
+                                });
+                                if (errors.notice_period_days)
+                                  setErrors({
+                                    ...errors,
+                                    notice_period_days: "",
+                                  });
+                                if (
+                                  typeof calculateNoticeEndDate === "function"
+                                ) {
+                                  calculateNoticeEndDate(
+                                    Number(val),
+                                    formData.resignation_date
+                                  );
+                                }
+                              }}
+                            />
+                            {isSubmitted && errors.notice_period_days && (
+                              <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                                <i className="ti ti-info-circle me-1"></i>
+                                {errors.notice_period_days}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Status Checkbox (Calculated) */}
+                          <div className="col-md-4 d-flex align-items-center pt-4">
+                            <div className="form-check form-switch">
+                              <input
+                                type="checkbox"
+                                className="form-check-input"
+                                id="noticeCheck"
+                                checked={formData.in_notice_period}
+                                disabled // Field is system-calculated based on dates
+                              />
+                              <label
+                                className="form-check-label fs-13 ms-2 fw-bold text-info"
+                                htmlFor="noticeCheck"
+                              >
+                                Currently In Notice Period
+                              </label>
                             </div>
-                          )}
+                          </div>
+
+                          {/* Notice Period End Date (Read-only) */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13 text-muted italic">
+                              Calculated Last Working Day
+                            </label>
+                            <DatePicker
+                              className="w-100 form-control bg-light border-dashed"
+                              value={
+                                formData.notice_period_end_date
+                                  ? dayjs(formData.notice_period_end_date)
+                                  : null
+                              }
+                              disabled
+                              placeholder="System Calculated"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Warning Footer */}
+                      <div
+                        className="alert alert-soft-danger d-flex align-items-center border-0 p-2 shadow-sm"
+                        role="alert"
+                      >
+                        <i className="ti ti-alert-triangle-filled fs-20 me-2 text-danger"></i>
+                        <div className="fs-11">
+                          <strong>Warning:</strong> Entering separation details
+                          will automatically update the employee's status to{" "}
+                          <em>Resigned</em> across payroll and attendance
+                          modules upon reaching the end date.
                         </div>
                       </div>
                     </div>
+                  )}
 
-                    {/* Security Advisory Card */}
-                    <div
-                      className="alert alert-soft-secondary d-flex align-items-start border-0 p-3 shadow-sm"
-                      role="alert"
-                    >
-                      <div className="bg-white rounded-circle p-2 me-3 shadow-sm">
-                        <i className="ti ti-shield-lock fs-24 text-success"></i>
-                      </div>
-                      <div>
-                        <h6 className="fs-13 fw-bold mb-1 text-dark">
-                          Access PIN Security
+                  {/* 8. Settings */}
+                  {activeTab === "setting" && (
+                    <div className="settings-info-wrapper animate__animated animate__fadeIn">
+                      {/* --- Section: Security & Access --- */}
+                      <div className="form-section mb-4">
+                        <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
+                          <i className="ti ti-lock-access fs-18 me-2"></i>{" "}
+                          Security & Access Credentials
                         </h6>
-                        <p className="fs-12 mb-0 text-muted lh-base">
-                          This PIN is used for employee authentication on shared
-                          kiosks, QR-based attendance, and mobile app
-                          verification. Please ensure the PIN is unique. For
-                          security reasons, do not use simple sequences like
-                          "1234".
-                        </p>
+                        <div className="row g-3">
+                          {/* PIN Code Field - OPTIONAL */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13">
+                              Employee PIN
+                            </label>
+                            <div className="input-group">
+                              <span className="input-group-text bg-light border-end-0">
+                                <i className="ti ti-key fs-14 text-muted"></i>
+                              </span>
+                              <input
+                                type="text"
+                                className="form-control border-start-0"
+                                placeholder="Enter 4-6 Digit PIN"
+                                maxLength={6}
+                                value={formData.pin}
+                                onChange={(e) => {
+                                  const val = e.target.value.replace(/\D/g, "");
+                                  setFormData({ ...formData, pin: val });
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Security Advisory Card */}
+                      <div
+                        className="alert alert-soft-secondary d-flex align-items-start border-0 p-3 shadow-sm"
+                        role="alert"
+                      >
+                        <div className="bg-white rounded-circle p-2 me-3 shadow-sm">
+                          <i className="ti ti-shield-lock fs-24 text-success"></i>
+                        </div>
+                        <div>
+                          <h6 className="fs-13 fw-bold mb-1 text-dark">
+                            Access PIN Security
+                          </h6>
+                          <p className="fs-12 mb-0 text-muted lh-base">
+                            This PIN is used for employee authentication on
+                            shared kiosks, QR-based attendance, and mobile app
+                            verification. Please ensure the PIN is unique. For
+                            security reasons, do not use simple sequences like
+                            "1234".
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
 
-              <div className="modal-footer border-0 bg-white px-0 mt-4">
-                <button
-                  type="button"
-                  className="btn btn-light"
-                  data-bs-dismiss="modal"
-                  onClick={resetForm} // Explicitly reset state on click
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary px-5"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Processing..." : "Save Employee Master"}
-                </button>
-              </div>
-            </form>
+                <div className="modal-footer border-0 bg-white px-0 mt-4">
+                  <button
+                    type="button"
+                    className="btn btn-light"
+                    data-bs-dismiss="modal"
+                    onClick={resetForm} // Explicitly reset state on click
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary px-5"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Processing..." : "Save Employee Master"}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

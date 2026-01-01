@@ -504,7 +504,7 @@ const EmployeeAttendanceKHR = () => {
         </div>
       </div>
 
-      {showQueryModal && selectedAttendancee && (
+      {showQueryModal && selectedAttendancee && employeeId && (
         <AttendanceQueryModal
           attendance={selectedAttendancee}
           employeeId={employeeId}

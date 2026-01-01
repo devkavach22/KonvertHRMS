@@ -26,7 +26,6 @@ export const useFormValidation = () => {
     return errors;
   };
 
-
   const validateEmployeeContract = (data: any) => {
     const errors: any = {};
 
@@ -48,8 +47,7 @@ export const useFormValidation = () => {
       data.contract_end_date &&
       new Date(data.contract_end_date) < new Date(data.contract_start_date)
     ) {
-      errors.contract_end_date =
-        "Contract end date must be after start date";
+      errors.contract_end_date = "Contract end date must be after start date";
     }
 
     if (!data.working_schedule) {
@@ -205,8 +203,7 @@ export const useFormValidation = () => {
 
     // COMPUTATION
     if (data.amount_select === "fix") {
-      if (!data.amount_fix)
-        errors.amount_fix = "Fixed amount is required";
+      if (!data.amount_fix) errors.amount_fix = "Fixed amount is required";
       if (!data.quantity) errors.quantity = "Quantity is required";
     }
 
@@ -231,5 +228,11 @@ export const useFormValidation = () => {
     return errors;
   };
 
-  return { validateAttendancePolicy, validateSalaryRule, validateEmployeeContract, EmpAttendancevalidateForm, validateStructureType };
+  return {
+    validateAttendancePolicy,
+    validateSalaryRule,
+    validateEmployeeContract,
+    EmpAttendancevalidateForm,
+    validateStructureType,
+  };
 };

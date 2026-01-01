@@ -67,13 +67,17 @@ export const AddEditBankAccountModal: React.FC<Props> = ({ onSuccess }) => {
     <>
       <style>
         {`
-        /* This modal needs a higher z-index than the employee modal (1055) */
+        /* 1. Force the Bank Modal to be on top of the Employee Modal */
+        .bank-modal-layered {
+          z-index: 1070 !important; 
+        }
+        /* 2. Force the second backdrop to sit between the two modals */
+        .bank-modal-layered.modal-backdrop {
+          z-index: 1065 !important;
+        }
+        /* 3. Ensure the modal dialog itself is also high enough */
         #add_bank_account_modal {
           z-index: 1080 !important;
-        }
-        /* Ensure the backdrop for this specific modal is also layered higher */
-        #add_bank_account_modal ~ .modal-backdrop {
-          z-index: 1075 !important;
         }
       `}
       </style>
@@ -83,6 +87,8 @@ export const AddEditBankAccountModal: React.FC<Props> = ({ onSuccess }) => {
         id="add_bank_account_modal"
         tabIndex={-1}
         aria-hidden="true"
+        data-bs-backdrop="static" // Recommended so clicking background doesn't close it
+        style={{ background: "rgba(0,0,0,0.5)" }} // Manual overlay if backdrop fails
       >
         <div className="modal-dialog modal-dialog-centered modal-lg">
           <div className="modal-content shadow-lg border-0">
