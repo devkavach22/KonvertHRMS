@@ -301,22 +301,18 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
               <div className="col-md-6">
                 <div className="form-group mb-3">
                   <label className="form-label">Responsible IDs</label>
-                  <select
-                    className="form-select"
-                    multiple
-                    value={responsibleIds.map(String)}
-                    onChange={(e) => {
-                      const selected = Array.from(e.target.selectedOptions, option => Number(option.value));
-                      setResponsibleIds(selected);
-                    }}
-                  >
-                    {employeesOptions.map((emp) => (
-                      <option key={emp.id} value={emp.id}>
-                        {emp.name}
-                      </option>
-                    ))}
-                  </select>
+                  <input
+                  min={"1"}
+      type="number"
+      className="form-control"
+      value={responsibleIds.length ? responsibleIds[0] : ""}
+      onChange={(e) => {
+        const val = e.target.value;
+        setResponsibleIds(val ? [Number(val)] : []);
+      }}
+    />
                 </div>
+                
               </div>
 
               <div className="col-md-6">
@@ -378,34 +374,41 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
 
               <div className="col-md-6">
                 <div className="form-group mb-3">
-                  <label className="form-label">Include Public Holidays in Duration</label>
+                  <br />
+                  <br />
                   <input
                     type="checkbox"
                     checked={includePublicHolidaysInDuration}
                     onChange={(e) => setIncludePublicHolidaysInDuration(e.target.checked)}
                   />
+                  {" "}{"  "}{" "}
+                  <label className="form-label">Include Public Holidays in Duration</label>
                 </div>
               </div>
 
               <div className="col-md-6">
                 <div className="form-group mb-3">
-                  <label className="form-label">Overtime Deductible</label>
+                  <br />
                   <input
                     type="checkbox"
                     checked={overtimeDeductible}
                     onChange={(e) => setOvertimeDeductible(e.target.checked)}
                   />
+                  {" "}{"  "}{" "}
+                  <label className="form-label">Overtime Deductible</label>
                 </div>
               </div>
 
               <div className="col-md-6">
                 <div className="form-group mb-3">
-                  <label className="form-label">Is Earned Leave</label>
+                  <br />
                   <input
                     type="checkbox"
                     checked={isEarnedLeave}
                     onChange={(e) => setIsEarnedLeave(e.target.checked)}
                   />
+                  {" "}{"  "}{" "}
+                  <label className="form-label">Is Earned Leave</label>
                 </div>
               </div>
             </div>

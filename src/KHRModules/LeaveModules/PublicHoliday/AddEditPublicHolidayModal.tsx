@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import {
   AttendancePolicy,
   createHoliday,
-  updateHoliday
+  updateHoliday,
+  getCalenderId,
+  getWorkEntryType
 } from "./PublicHolidayServices";
 import { DatePicker, Radio, Checkbox } from "antd";
 import dayjs from "dayjs";
@@ -25,22 +27,48 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
   const [validated, setValidated] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<any>({});
+  const [calendarOptions, setCalendarOptions] = useState<any[]>([]);
+  const [workEntryOptions, setWorkEntryOptions] = useState<any[]>([]);
 
-  console.log("data", data)
 
   useEffect(() => {
     if (data) {
       setFormData({
         name: (data as any).name ?? "",
-        start_date: (data as any).start_date ?? "",
-        end_date: (data as any).end_date ?? "",
-        calendar: (data as any).calendar ?? "",
-        work_entry_type: (data as any).work_entry_type ?? "",
+        start_date: (data as any).date_from ?? "",
+        end_date: (data as any).date_to ?? "",
+        calendar: (data as any).calendar_id[0] ?? "",
+        work_entry_type: (data as any).work_entry_type_id[0] ?? "",
       });
     } else {
       setFormData(initialFormState);
     }
   }, [data]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [calendarResponse, workEntryResponse] = await Promise.all([
+          getCalenderId(),
+          getWorkEntryType()
+        ]);
+        const calendars = calendarResponse.data.data;
+        setCalendarOptions(calendars.map((c: any) => ({ value: c.id, label: c.name })));
+        const workEntries = workEntryResponse.data.data;
+        setWorkEntryOptions(workEntries.map((w: any) => ({ value: w.id, label: w.name })));
+        // Set defaults if not set
+        if (!formData.calendar && calendars.length > 0) {
+          setFormData((prev: any) => ({ ...prev, calendar: calendars[0].id }));
+        }
+        if (!formData.work_entry_type && workEntries.length > 0) {
+          setFormData((prev: any) => ({ ...prev, work_entry_type: workEntries[0].id }));
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      }
+    };
+    fetchData();
+  }, []);
 
 
 
@@ -82,6 +110,7 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
         await updateHoliday(Number(data.id), payload);
       } else {
         await createHoliday(payload);
+        console.log("done here")
       }
       const closeBtn = document.getElementById("close-btn-policy");
       closeBtn?.click();
@@ -150,8 +179,13 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
                 </div>
 
                 <div className="col-md-6 mb-3">
-                  <label className="form-label">Calendar</label>
-                  <input type="number" name="calendar" className="form-control" value={formData.calendar ?? ""} onChange={handleChange} min="1" required />
+                  <label className="form-label">Working Hours</label>
+                  <select name="calendar" className="form-select" value={formData.calendar ?? ""} onChange={handleChange} required>
+                    <option value="">Select Working Hours</option>
+                    {calendarOptions.map((opt: any) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
                   {validated && !(formData.calendar) && (
                     <span className="text-danger small">Required</span>
                   )}
@@ -159,7 +193,12 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
 
                 <div className="col-md-6 mb-3">
                   <label className="form-label">Work Entry Type</label>
-                  <input type="number" name="work_entry_type" className="form-control" value={formData.work_entry_type ?? ""} onChange={handleChange} min="1" required />
+                  <select name="work_entry_type" className="form-select" value={formData.work_entry_type ?? ""} onChange={handleChange} required>
+                    <option value="">Select Work Entry Type</option>
+                    {workEntryOptions.map((opt: any) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
                   {validated && !(formData.work_entry_type) && (
                     <span className="text-danger small">Required</span>
                   )}

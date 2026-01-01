@@ -275,9 +275,9 @@ const LeaveAdminKHR = () => {
           <div className="content">
             <div onClick={() => setSelectedPolicy(null)}>
               <CommonHeader
-                title="Leave List"
+                title="Leave Request"
                 parentMenu="HR"
-                activeMenu="Leave List"
+                activeMenu="Leave Request"
                 routes={routes}
                 buttonText="Add leave Request"
                 modalTarget="#add_leave_request"

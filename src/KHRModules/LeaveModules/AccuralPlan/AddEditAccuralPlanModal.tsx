@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
-  createAccuralPlan
+  createAccuralPlan,
+  updateAccuralPlan
 } from "./AccuralPlanServices";
 
 interface Props {
@@ -9,6 +10,8 @@ interface Props {
 }
 
 const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
+  
+  // console.log(data)
   const initialFormState = {
     name: "",
     accrued_gain_time: "",
@@ -23,12 +26,15 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
 
   useEffect(() => {
     if (data) {
+      const accruedGainTime = (data as any).accrued_gain_time === "start" ? "start_of_accrual" : "end_of_accrual";
+      const carryOverTime = (data as any).carryover_date === "year_start" ? "start_of_year" :
+                            (data as any).carryover_date === "allocation_date" ? "allocation_date" : "other";
       setFormData({
         name: (data as any).name ?? "",
-        accrued_gain_time: (data as any).accrued_gain_time ?? "",
-        carry_over_time: (data as any).carry_over_time ?? "",
-        based_on_worked_time: Boolean((data as any).based_on_worked_time),
-        company: (data as any).company ?? "",
+        accrued_gain_time: accruedGainTime,
+        carry_over_time: carryOverTime,
+        based_on_worked_time: Boolean((data as any).is_based_on_worked_time),
+        company: Array.isArray((data as any).company_id) ? (data as any).company_id[1] ?? "" : "",
       });
     } else {
       setFormData(initialFormState);
@@ -105,7 +111,11 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
     };
 
     try {
-      await createAccuralPlan(payload);
+      if (data) {
+        await updateAccuralPlan(Number(data.id), payload);
+      } else {
+        await createAccuralPlan(payload);
+      }
       // console.log("done here")
       const closeBtn = document.getElementById("close-btn-policy");
       closeBtn?.click();

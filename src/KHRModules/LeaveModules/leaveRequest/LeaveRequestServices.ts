@@ -49,6 +49,7 @@ export const addAttendancePolicy = async (data: any) => {
   return await Instance.post("/employee/create/attendance-policy", data);
 };
 
+// get :- http://192.168.11.245:4000/api/leave-request?user_id=219
 // GET: /leave-request
 export const getLeaveRequests = async () => {
   let user_id = localStorage.getItem("user_id") || localStorage.getItem("userId") || localStorage.getItem("id");
@@ -59,7 +60,7 @@ export const getLeaveRequests = async () => {
 export const createLeaveRequest = async (data: any) => {
   let user_id = localStorage.getItem("user_id") || localStorage.getItem("userId") || localStorage.getItem("id");
 
-  return await Instance.post(`/api/create/leave-request?user_id=${data.user_id}`, data);
+  return await Instance.post(`/api/create/leave-request?user_id=${user_id}`, data);
 };
 
 // GET employees for leave request selection

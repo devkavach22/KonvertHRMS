@@ -75,7 +75,7 @@ export const getHolidays = async (): Promise<any> => {
   return await Instance.get(`/api/public-holiday?user_id=${user_id}`);
 } 
 
-// GET :- http://localhost:4000/api/work-entry-types?user_id=159
+// GET :- http://192.168.11.245:4000/api/work-entry-types?user_id=159
 // work entry type
 export const getWorkEntryType = async (): Promise<any> => {
   let user_id = localStorage.getItem("user_id");    
@@ -88,6 +88,13 @@ export const getCalenderId = async (): Promise<any> => {
   let user_id = localStorage.getItem("user_id");    
   return await Instance.get(`/api/WorkingSchedules?user_id=${user_id}`);
 }
+
+// get :- http://192.168.11.245:4000/api/work-entry-types?user_id=219
+// work entry type
+// export const getWorkEntryType = async () =>{
+//   let user_id = localStorage.getItem("user_id");    
+//   return await Instance.get(`/api/work-entry-types?user_id=${user_id}`);
+// }
 
 // put :- http://192.168.11.245:4000/api/public-holiday/70?user_id=3145
 export const updateHoliday = async (id: number, data: any): Promise<any> => {

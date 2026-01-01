@@ -302,7 +302,7 @@ const LeaveAdminKHR = () => {
                 parentMenu="HR"
                 activeMenu="Leave Allocation"
                 routes={routes}
-                buttonText="Add Leave"
+                buttonText="Add Leave Allocation"
                 modalTarget="#add_attendance_policy"
               />
             </div>

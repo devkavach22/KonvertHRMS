@@ -7,7 +7,7 @@ import moment from "moment";
 import { Link } from "react-router-dom";
 
 import {
-  getAllMandatoryDays
+  getAllMandatoryDays,deleteMandatoryDays
 } from "./mendetoryDaysServices";
 
 const MendetoryDaysKHR = () => {
@@ -69,7 +69,7 @@ const MendetoryDaysKHR = () => {
                 to="#"
                 className="me-2"
                 data-bs-toggle="modal"
-                data-bs-target="#add_department"
+                data-bs-target="#add_attendance_policy"
   onClick={() => {
               setSelectedPolicy(record);
               const jq = (window as any).jQuery || (window as any).$;
@@ -84,8 +84,8 @@ const MendetoryDaysKHR = () => {
                 <i className="ti ti-edit text-blue" />
               </Link>
               <Link to="#" 
-              // onClick={() => 
-              //   handleDelete(record.id!)}
+              onClick={() => 
+                handleDelete(record.id!)}
                 >
                 <i className="ti ti-trash text-danger" />
               </Link>
@@ -108,6 +108,19 @@ const MendetoryDaysKHR = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const handleDelete = async (id: number) => {
+    if (window.confirm("Are you sure you want to delete this mandatory day?")) {
+      try {
+        await deleteMandatoryDays(id);
+        console.log("done here")
+        fetchData(); // Refresh the list
+      } catch (error) {
+        console.error("Error deleting mandatory day:", error);
+        alert("Failed to delete mandatory day.");
+      }
+    }
+  };
 
   return (
     <div className="main-wrapper">

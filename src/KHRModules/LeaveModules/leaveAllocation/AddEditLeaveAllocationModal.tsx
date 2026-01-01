@@ -68,13 +68,23 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
         }
       }
 
+      // Mapping for leave_type string to select value
+      const leaveTypeMapping: any = {
+        "Paid Time Off": "1",
+        "Compensatory Days": "2",
+        "Earned Leave (EL)": "3",
+        "Sick Leave": "4",
+        "Annual Leave": "5",
+        "Casual Leave (CL)": "6"
+      };
+
       const mapped = {
         // map to new keys
-        leave_type: (data as any).holiday_status_id ?? (data as any).leave_type ?? (data as any).type ?? "",
+        leave_type: leaveTypeMapping[(data as any).leave_type] || (data as any).leave_type || "",
         allocation_type: (data as any).allocation_type ?? "regular",
-        date_from: (data as any).date_from ?? (data as any).from_date ?? (data as any).start_date ?? "",
-        date_to: (data as any).date_to ?? (data as any).to_date ?? (data as any).end_date ?? "",
-        allocation_days: (data as any).number_of_days ?? (data as any).allocation ?? (data as any).no_of_days ?? null,
+        date_from: (data as any).from_date ?? (data as any).date_from ?? (data as any).start_date ?? "",
+        date_to: (data as any).to_date ?? (data as any).date_to ?? (data as any).end_date ?? "",
+        allocation_days: (data as any).number_of_days ?? (data as any).allocation_date ?? (data as any).allocation ?? (data as any).no_of_days ?? null,
         description: (data as any).description ?? (data as any).reason ?? "",
       };
 
