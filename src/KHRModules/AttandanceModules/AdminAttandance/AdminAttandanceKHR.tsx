@@ -7,23 +7,13 @@ import { all_routes } from "@/router/all_routes";
 // import ImageWithBasePath from '../../../core/common/imageWithBasePath';
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
 // import CommonSelect from '../../../core/common/commonSelect';
-import { DatePicker, TimePicker } from "antd";
 // import CollapseHeader from '../../../core/common/collapse-header/collapse-header';
 import { toast } from "react-toastify";
 import attendanceData from "./CommonAttendanceStatus.json";
 
-// import {
-// getEmployeeAttendance,
-// EmployeeAttendance,
-// // deleteDepartment,
-// // Department,
-// } from "./emloyeeAttendence";
 import { useEffect, useState } from "react";
 import DatatableKHR from "@/CommonComponent/DataTableKHR/DatatableKHR";
 import CommonHeader from "@/CommonComponent/HeaderKHR/HeaderKHR";
-// import SummaryCards from "@/CommonComponent/CommanAttenceCard/SummaryCards";
-// import WorkStatsWithTimeline from "@/CommonComponent/CommanAttenceCard/WorkStatsWithTimeline";
-// import { attendance_admin_details } from "@/core/data/json/attendanceadmin";
 
 import {
   getAdminAttendance,

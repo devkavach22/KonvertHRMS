@@ -9,8 +9,15 @@ import CommonHeader from "@/CommonComponent/HeaderKHR/HeaderKHR";
 import SummaryCards from "@/CommonComponent/CommonAttendanceStatus/SummaryCards";
 import WorkStatsWithTimeline from "./WorksWithTimeline";
 import AttendanceQueryModal from "./AttendanceQueryModal";
-import { AdminWorkingHours, EmployeeAttendanceApi, TBSelector, updateState } from "@/Store/Reducers/TBSlice";
+import {
+  AdminWorkingHours,
+  CheckinCheckout,
+  EmployeeAttendanceApi,
+  TBSelector,
+  updateState,
+} from "@/Store/Reducers/TBSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 
 interface AttendanceAdminData {
   EndDate: any;
@@ -26,7 +33,6 @@ interface AttendanceAdminData {
   Late: string;
   ProductionHours: string;
   employeeId: number;
-
 }
 
 // Define a type for employee attendance
@@ -40,42 +46,6 @@ interface EmployeeAttendance {
 }
 
 const EmployeeAttendanceKHR = () => {
-  // const attendanceTableDummyData: AttendanceAdminData[] = [
-  //   {
-  //     Employee: "John Doe",
-  //     Image: "avatar-1.jpg",
-  //     Role: "Developer",
-  //     Status: "Present",
-  //     CheckIn: "09:30 AM",
-  //     CheckOut: "06:30 PM",
-  //     Break: "45 min",
-  //     Late: "No",
-  //     ProductionHours: "8.5",
-  //   },
-  //   {
-  //     Employee: "Sarah Smith",
-  //     Image: "avatar-2.jpg",
-  //     Role: "Designer",
-  //     Status: "Absent",
-  //     CheckIn: "-",
-  //     CheckOut: "-",
-  //     Break: "-",
-  //     Late: "Yes",
-  //     ProductionHours: "0",
-  //   },
-  //   {
-  //     Employee: "Rahul Patel",
-  //     Image: "avatar-3.jpg",
-  //     Role: "HR",
-  //     Status: "Present",
-  //     CheckIn: "10:00 AM",
-  //     CheckOut: "07:00 PM",
-  //     Break: "30 min",
-  //     Late: "No",
-  //     ProductionHours: "9",
-  //   },
-  // ];
-
   const routes = all_routes;
 
   // const [data, setData] = useState<EmployeeAttendance[]>([]);
@@ -85,15 +55,28 @@ const EmployeeAttendanceKHR = () => {
   const dispatch = useDispatch();
   const [summaryCards, setSummaryCards] = useState<any[]>([]);
 
-  const { isEmployeeAttendanceApi, isEmployeeAttendanceApiFetching, EmployeeAttendanceApiData, AdminWorkingHoursData, isAdminWorkingHours } = useSelector(TBSelector)
+  const {
+    isEmployeeAttendanceApi,
+    isEmployeeAttendanceApiFetching,
+    EmployeeAttendanceApiData,
+    AdminWorkingHoursData,
+    isAdminWorkingHours,
+  } = useSelector(TBSelector);
 
   const [selectedAttendancee, setSelectedAttendancee] = useState<any>(null);
 
-  const [loading, setLoading] = useState<boolean>(true);
   const [selectedAttendance, setSelectedAttendance] =
     useState<EmployeeAttendance | null>(null);
 
-  // Dummy async function for fetching employee attendance
+  const { CheckinCheckoutData, isCheckinCheckoutFetching } =
+    useSelector(TBSelector);
+
+  if (!CheckinCheckoutData) return null;
+
+  const isCheckedIn = CheckinCheckoutData.status === "CheckedIn";
+  const datass = CheckinCheckoutData.data;
+
+  console.log(datass, "datatat");
 
   const formatDateOnly = (dateTime: string | false) => {
     if (!dateTime) return "-";
@@ -107,47 +90,75 @@ const EmployeeAttendanceKHR = () => {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
   console.log(AdminWorkingHoursData, "AdminWorkingHoursData");
+  const formatDate = (dateStr: string) =>
+    dateStr
+      ? new Date(dateStr).toLocaleDateString([], {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+      : "";
+
+  const handleAction = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        dispatch(
+          CheckinCheckout({
+            Latitude: latitude,
+            Longitude: longitude,
+          })
+        );
+      },
+      (error) => {
+        console.error(error);
+        toast.error("Unable to get your location");
+      },
+      { enableHighAccuracy: true }
+    );
+  };
 
   useEffect(() => {
-    dispatch(AdminWorkingHours())
-    dispatch(EmployeeAttendanceApi())
+    dispatch(AdminWorkingHours());
+    dispatch(EmployeeAttendanceApi());
   }, []);
   useEffect(() => {
-
     if (isEmployeeAttendanceApi) {
       setEmployeeId(EmployeeAttendanceApiData?.meta?.employee_id || null);
 
-      const mappedData: AttendanceAdminData[] = EmployeeAttendanceApiData?.data?.map((item: any) => {
-
-        return {
-          Image: item.employee?.avatar || "avatar-1.jpg",
-          Role: item.employee?.role || "Employee",
-          Status: item.check_in ? "Present" : "Absent",
-          StartDate: formatDateOnly(item.check_in),
-          EndDate: item.check_out
-            ? formatDateOnly(item.check_out)
-            : "-",
-          CheckIn: formatTime(item.check_in),
-          CheckOut: formatTime(item.check_out),
-          LateTime: item.late_time_display,
-          Late: item.is_late_in ? "Yes" : "No",
-          Overtime:
-            typeof item.overtime_hours === "number"
-              ? item.overtime_hours.toFixed(2)
-              : item.overtime_hours
+      const mappedData: AttendanceAdminData[] =
+        EmployeeAttendanceApiData?.data?.map((item: any) => {
+          return {
+            Image: item.employee?.avatar || "avatar-1.jpg",
+            Role: item.employee?.role || "Employee",
+            Status: item.check_in ? "Present" : "Absent",
+            StartDate: formatDateOnly(item.check_in),
+            EndDate: item.check_out ? formatDateOnly(item.check_out) : "-",
+            CheckIn: formatTime(item.check_in),
+            CheckOut: formatTime(item.check_out),
+            LateTime: item.late_time_display,
+            Late: item.is_late_in ? "Yes" : "No",
+            Overtime:
+              typeof item.overtime_hours === "number"
+                ? item.overtime_hours.toFixed(2)
+                : item.overtime_hours
                 ? String(item.overtime_hours)
                 : "0",
-          ProductionHours:
-            typeof item.worked_hours === "number"
-              ? item.worked_hours.toFixed(2)
-              : item.worked_hours
+            ProductionHours:
+              typeof item.worked_hours === "number"
+                ? item.worked_hours.toFixed(2)
+                : item.worked_hours
                 ? String(item.worked_hours)
                 : "0",
-        }
-
-      });
+          };
+        });
       setData(mappedData);
-      dispatch(updateState({ isEmployeeAttendanceApi: false }))
+      dispatch(updateState({ isEmployeeAttendanceApi: false }));
     }
   }, [isEmployeeAttendanceApi, isEmployeeAttendanceApiFetching]);
 
@@ -225,10 +236,11 @@ const EmployeeAttendanceKHR = () => {
       dataIndex: "Status",
       render: (text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge ${text === "Present"
-            ? "badge-success-transparent"
-            : "badge-danger-transparent"
-            } d-inline-flex align-items-center`}
+          className={`badge ${
+            text === "Present"
+              ? "badge-success-transparent"
+              : "badge-danger-transparent"
+          } d-inline-flex align-items-center`}
         >
           <i className="ti ti-point-filled me-1" />
           {record.Status}
@@ -266,13 +278,14 @@ const EmployeeAttendanceKHR = () => {
       dataIndex: "ProductionHours",
       render: (_text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge d-inline-flex align-items-center badge-sm ${parseFloat(record.ProductionHours) < 8
-            ? "badge-danger"
-            : parseFloat(record.ProductionHours) >= 8 &&
-              parseFloat(record.ProductionHours) <= 9
+          className={`badge d-inline-flex align-items-center badge-sm ${
+            parseFloat(record.ProductionHours) < 8
+              ? "badge-danger"
+              : parseFloat(record.ProductionHours) >= 8 &&
+                parseFloat(record.ProductionHours) <= 9
               ? "badge-success"
               : "badge-info"
-            }`}
+          }`}
         >
           <i className="ti ti-clock-hour-11 me-1"></i>
           {record.ProductionHours}
@@ -312,14 +325,11 @@ const EmployeeAttendanceKHR = () => {
           Raise Query
         </button>
       ),
-    }
+    },
   ];
-
-
 
   return (
     <>
-
       <div className="page-wrapper">
         <div className="content">
           <div onClick={() => setSelectedAttendance(null)}>
@@ -387,16 +397,23 @@ const EmployeeAttendanceKHR = () => {
               <div className="card flex-fill">
                 <div className="card-body">
                   <div className="mb-3 text-center">
-                    {/* <h6 className="fw-medium text-gray-5 mb-2">
-Good Morning, Adrian
-</h6>
-<h4>08:35 AM, 11 Mar 2025</h4> */}
                     <h6 className="fw-medium text-gray-5 mb-2">
-                      {attendanceData.user.greeting}, {attendanceData.user.name}
+                      {CheckinCheckoutData.user?.greeting},{" "}
+                      {CheckinCheckoutData.user?.name}
                     </h6>
 
-                    <h4>{attendanceData.user.time}</h4>
+                    <h4>
+                      {datass?.check_in_time
+                        ? formatTime(datass.check_in_time)
+                        : "--:--"}
+                    </h4>
+                    <small>
+                      {datass?.check_in_time
+                        ? formatDate(datass.check_in_time)
+                        : "Not Checked In Yet"}
+                    </small>
                   </div>
+
                   <div
                     className="attendance-circle-progress mx-auto mb-3"
                     data-value={65}
@@ -408,32 +425,47 @@ Good Morning, Adrian
                       <span className="progress-bar border-success" />
                     </span>
                     <div className="avatar avatar-xxl avatar-rounded">
-                      {/* <ImageWithBasePath src="assets/img/profiles/avatar-27.jpg" alt="avatar" /> */}
                       <ImageWithBasePath
-                        src={attendanceData.user.avatar}
-                        alt="avatar"
+                        src="assets/img/profiles/avatar-23.jpg"
+                        alt="Logo"
                       />
                     </div>
                   </div>
+
                   <div className="text-center">
-                    {/* <div className="badge badge-md badge-primary mb-3">
-Production : 3.45 hrs
-</div>
-<h6 className="fw-medium d-flex align-items-center justify-content-center mb-3">
-<i className="ti ti-fingerprint text-primary me-1" />
-Punch In at 10.00 AM
-</h6> */}
                     <div className="badge badge-md badge-primary mb-3">
-                      Production : {attendanceData.user.productionHours} hrs
+                      Production:{" "}
+                      {datass?.worked_hours ||
+                        (CheckinCheckoutData?.status === "CheckedIn"
+                          ? "In Progress"
+                          : "0.00")}{" "}
+                      hrs
                     </div>
 
                     <h6 className="fw-medium d-flex align-items-center justify-content-center mb-3">
                       <i className="ti ti-fingerprint text-primary me-1" />
-                      Punch In at {attendanceData.user.punchIn}
+                      {datass?.check_out_time
+                        ? `Checked Out at ${formatTime(datass.check_out_time)}`
+                        : datass?.check_in_time
+                        ? `Punch In at ${formatTime(datass.check_in_time)}`
+                        : "Not Checked In Yet"}
                     </h6>
-                    <Link to="#" className="btn btn-dark w-100">
-                      Punch Out
-                    </Link>
+
+                    <button
+                      className={`btn w-100 ${
+                        isCheckedIn ? "btn-warning" : "btn-success"
+                      }`}
+                      onClick={handleAction}
+                      disabled={isCheckinCheckoutFetching}
+                    >
+                      {isCheckinCheckoutFetching
+                        ? isCheckedIn
+                          ? "Checking Out..."
+                          : "Checking In..."
+                        : isCheckedIn
+                        ? "Punch Out ↪"
+                        : "Punch In"}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -465,11 +497,7 @@ Punch In at 10.00 AM
                   <div className="mt-2">Loading Attendence...</div>
                 </div>
               ) : (
-                <DatatableKHR
-                  data={data}
-                  columns={columns}
-                  selection={true}
-                />
+                <DatatableKHR data={data} columns={columns} selection={true} />
               )}
             </div>
           </div>
@@ -483,7 +511,6 @@ Punch In at 10.00 AM
           onClose={() => setShowQueryModal(false)}
         />
       )}
-
     </>
   );
 };

@@ -3,9 +3,13 @@ import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import CommonSelect from "@/core/common/commonSelect";
-import { getCategories, createRegularization } from "./EmployeeAttandanceServices";
 import { useFormValidation } from "@/KHRModules/commanForm/FormValidation";
-
+import {
+  EmployeeRegcategories,
+  Employeeregularization,
+  TBSelector,
+} from "@/Store/Reducers/TBSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 interface Props {
   attendance: any;
@@ -23,7 +27,6 @@ const AttendanceQueryModal: React.FC<Props> = ({
   employeeId,
   onClose,
 }) => {
-
   console.log(employeeId, "employeeId");
 
   const [formData, setFormData] = useState({
@@ -39,8 +42,15 @@ const AttendanceQueryModal: React.FC<Props> = ({
   const [errors, setErrors] = useState<any>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-    const { EmpAttendancevalidateForm } = useFormValidation();
-  
+  const dispatch = useDispatch();
+  const {
+    isEmployeeRegcategories,
+    EmployeeRegcategoriesData,
+    isEmployeeRegularizationLoading,
+    isEmployeeRegcategoriesFetching,
+  } = useSelector(TBSelector);
+
+  const { EmpAttendancevalidateForm } = useFormValidation();
 
   /* =========================
      INIT DATE FROM CHECK-IN
@@ -59,41 +69,35 @@ const AttendanceQueryModal: React.FC<Props> = ({
   /* =========================
      FETCH CATEGORY API
      ========================= */
+
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await getCategories();
-        setCategories(
-          res?.data?.map((item: any) => ({
-            label: item.type,
-            value: item.id,
-          })) || []
-        );
-      } catch {
-        toast.error("Failed to load categories");
-      }
-    };
+    // if (isEmployeeRegcategories) {
 
-    fetchCategories();
+    dispatch(EmployeeRegcategories());
+    // }
   }, []);
+  console.log(EmployeeRegcategoriesData, "EmployeeRegcategoriesData");
 
-  /* =========================
-     VALIDATION
-     ========================= */
+  useEffect(() => {
+    if (EmployeeRegcategoriesData?.data?.length) {
+      setCategories(
+        EmployeeRegcategoriesData.data.map((item: any) => ({
+          label: item.type,
+          value: item.id,
+        }))
+      );
+    }
+  }, [EmployeeRegcategoriesData]);
 
-
-  /* =========================
-     SUBMIT
-     ========================= */
   const handleSubmit = async () => {
-    setIsSubmitted(true);
-     const validationErrors = EmpAttendancevalidateForm(formData);
+    // setIsSubmitted(true);
+    const validationErrors = EmpAttendancevalidateForm(formData);
     if (Object.keys(validationErrors).length) {
       setErrors(validationErrors);
       return;
     }
 
-    setIsSubmitting(true);
+    // setIsSubmitting(true);
 
     const payload = {
       employee_id: employeeId,
@@ -102,22 +106,22 @@ const AttendanceQueryModal: React.FC<Props> = ({
       reg_category: formData.reg_category,
       reg_reason: formData.reg_reason,
     };
+    console.log(payload, "line109");
 
-    try {
-      await createRegularization(payload);
+    dispatch(Employeeregularization(payload));
+    // try {
+    //   await Employeeregularization(payload);
 
-      toast.success("Attendance regularization submitted successfully");
-      onClose();
-    } catch (error: any) {
-      toast.error(
-        error?.response?.data?.message ||
-        "Failed to submit regularization"
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
+    //   toast.success("Attendance regularization submitted successfully");
+    //   onClose();
+    // } catch (error: any) {
+    //   toast.error(
+    //     error?.response?.data?.message || "Failed to submit regularization"
+    //   );
+    // } finally {
+    //   setIsSubmitting(false);
+    // }
   };
-
 
   /* =========================
      UI
@@ -129,7 +133,6 @@ const AttendanceQueryModal: React.FC<Props> = ({
     >
       <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content">
-
           <div className="modal-header">
             <h5 className="modal-title">Attendance Regularization</h5>
             <button className="btn-close" onClick={onClose} />
@@ -137,7 +140,6 @@ const AttendanceQueryModal: React.FC<Props> = ({
 
           <div className="modal-body">
             <div className="row">
-
               <div className="col-md-6 mb-3">
                 <label className="fw-bold">
                   Date <span className="text-danger">*</span>
@@ -198,7 +200,6 @@ const AttendanceQueryModal: React.FC<Props> = ({
                   <div className="text-danger fs-11">{errors.reg_reason}</div>
                 )}
               </div>
-
             </div>
           </div>
 
@@ -208,13 +209,12 @@ const AttendanceQueryModal: React.FC<Props> = ({
             </button>
             <button
               className="btn btn-primary"
-              disabled={isSubmitting}
+              disabled={isEmployeeRegularizationLoading}
               onClick={handleSubmit}
             >
-              {isSubmitting ? "Submitting..." : "Submit"}
+              {isEmployeeRegularizationLoading ? "Submitting..." : "Submit"}
             </button>
           </div>
-
         </div>
       </div>
     </div>
