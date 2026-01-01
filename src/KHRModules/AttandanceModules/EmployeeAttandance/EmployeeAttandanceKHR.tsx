@@ -1,16 +1,6 @@
 import { Link } from "react-router-dom";
-// import { attendance_admin_details } from '../../../core/data/json/attendanceadmin';
-
-// import { all_routes } from '../../../router/all_routes';
 import { all_routes } from "@/router/all_routes";
-// import PredefinedDateRanges from '../../../core/common/datePicker';
-// import Table from "../../../core/common/dataTable/index";
-// import ImageWithBasePath from '../../../core/common/imageWithBasePath';
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
-// import CommonSelect from '../../../core/common/commonSelect';
-import { DatePicker, TimePicker } from "antd";
-// import CollapseHeader from '../../../core/common/collapse-header/collapse-header';
-import { toast } from "react-toastify";
 import attendanceData from "./empoloyeeAttendanceCard.json";
 
 import { useEffect, useState } from "react";
@@ -18,13 +8,17 @@ import DatatableKHR from "@/CommonComponent/DataTableKHR/DatatableKHR";
 import CommonHeader from "@/CommonComponent/HeaderKHR/HeaderKHR";
 import SummaryCards from "@/CommonComponent/CommonAttendanceStatus/SummaryCards";
 import WorkStatsWithTimeline from "./WorksWithTimeline";
-// import { all } from 'node_modules/axios/index.d.cts';
-import { attendance_admin_details } from "@/core/data/json/attendanceadmin";
-import { attendance_employee_details } from "@/core/data/json/attendanceemployee";
-import { getAttendance } from "./EmployeeAttandanceServices";
 import AttendanceQueryModal from "./AttendanceQueryModal";
+import {
+  AdminWorkingHours,
+  CheckinCheckout,
+  EmployeeAttendanceApi,
+  TBSelector,
+  updateState,
+} from "@/Store/Reducers/TBSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 
-// Define a type for attendance admin data
 interface AttendanceAdminData {
   EndDate: any;
   StartDate: any;
@@ -38,8 +32,7 @@ interface AttendanceAdminData {
   Break: string;
   Late: string;
   ProductionHours: string;
-  employeeId:number;
-  
+  employeeId: number;
 }
 
 // Define a type for employee attendance
@@ -53,56 +46,37 @@ interface EmployeeAttendance {
 }
 
 const EmployeeAttendanceKHR = () => {
-  // const attendanceTableDummyData: AttendanceAdminData[] = [
-  //   {
-  //     Employee: "John Doe",
-  //     Image: "avatar-1.jpg",
-  //     Role: "Developer",
-  //     Status: "Present",
-  //     CheckIn: "09:30 AM",
-  //     CheckOut: "06:30 PM",
-  //     Break: "45 min",
-  //     Late: "No",
-  //     ProductionHours: "8.5",
-  //   },
-  //   {
-  //     Employee: "Sarah Smith",
-  //     Image: "avatar-2.jpg",
-  //     Role: "Designer",
-  //     Status: "Absent",
-  //     CheckIn: "-",
-  //     CheckOut: "-",
-  //     Break: "-",
-  //     Late: "Yes",
-  //     ProductionHours: "0",
-  //   },
-  //   {
-  //     Employee: "Rahul Patel",
-  //     Image: "avatar-3.jpg",
-  //     Role: "HR",
-  //     Status: "Present",
-  //     CheckIn: "10:00 AM",
-  //     CheckOut: "07:00 PM",
-  //     Break: "30 min",
-  //     Late: "No",
-  //     ProductionHours: "9",
-  //   },
-  // ];
-
   const routes = all_routes;
 
   // const [data, setData] = useState<EmployeeAttendance[]>([]);
   const [data, setData] = useState<AttendanceAdminData[]>([]);
   const [showQueryModal, setShowQueryModal] = useState(false);
   const [employeeId, setEmployeeId] = useState<string | null>(null);
+  const dispatch = useDispatch();
+  const [summaryCards, setSummaryCards] = useState<any[]>([]);
+
+  const {
+    isEmployeeAttendanceApi,
+    isEmployeeAttendanceApiFetching,
+    EmployeeAttendanceApiData,
+    AdminWorkingHoursData,
+    isAdminWorkingHours,
+  } = useSelector(TBSelector);
 
   const [selectedAttendancee, setSelectedAttendancee] = useState<any>(null);
 
-  const [loading, setLoading] = useState<boolean>(true);
   const [selectedAttendance, setSelectedAttendance] =
     useState<EmployeeAttendance | null>(null);
 
-  // Dummy async function for fetching employee attendance
+  const { CheckinCheckoutData, isCheckinCheckoutFetching } =
+    useSelector(TBSelector);
+
+  if (!CheckinCheckoutData) return null;
+
+  const isCheckedIn = CheckinCheckoutData.status === "CheckedIn";
+  const datass = CheckinCheckoutData.data;
+
+  console.log(datass, "datatat");
 
   const formatDateOnly = (dateTime: string | false) => {
     if (!dateTime) return "-";
@@ -115,91 +89,129 @@ const EmployeeAttendanceKHR = () => {
     const date = new Date(dateTime.replace(" ", "T"));
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
-  console.log(selectedAttendancee, "selectedAttendancee");
+  console.log(AdminWorkingHoursData, "AdminWorkingHoursData");
+  const formatDate = (dateStr: string) =>
+    dateStr
+      ? new Date(dateStr).toLocaleDateString([], {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+      : "";
 
-  // 1. Fetch & Map Data
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const response: any = await getAttendance();
-      console.log(response, "responce");
-
-      // Support both: service returning the array directly, or an object with `.data`
-      const attendanceArray = Array.isArray(response)
-        ? response
-        : Array.isArray(response.data)
-          ? response.data
-          : [];
-
-      const empId = response?.meta?.employee_id || null;
-      setEmployeeId(empId);
-
-      // const meta = response?.meta || response?.data?.meta || {};
-
-      const mappedData: AttendanceAdminData[] = attendanceArray.map((item: any) => ({
-        // Employee: meta?.employee_name || "Employee",
-
-        Image: item.employee?.avatar || "avatar-1.jpg",
-        Role: item.employee?.role || "Employee",
-        Status: item.status_code ? "Present" : "Absent",
-        StartDate: formatDateOnly(item.check_in),
-        EndDate: item.check_out
-          ? formatDateOnly(item.check_out)
-          : "-",
-        CheckIn: formatTime(item.check_in),
-        CheckOut: formatTime(item.check_out),
-        LateTime: item.late_time_display,
-        Late: item.is_late_in ? "Yes" : "No",
-        Overtime:
-          typeof item.overtime_hours === "number"
-            ? item.overtime_hours.toFixed(2)
-            : item.overtime_hours
-              ? String(item.overtime_hours)
-              : "0",
-        ProductionHours:
-          typeof item.worked_hours === "number"
-            ? item.worked_hours.toFixed(2)
-            : item.worked_hours
-              ? String(item.worked_hours)
-              : "0",
-      }));
-
-      setData(mappedData);
-    } catch (error) {
-      console.error("Failed to load employee attendance", error);
-      toast.error("Failed to load employee attendance list");
-    } finally {
-      setLoading(false);
+  const handleAction = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      return;
     }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        dispatch(
+          CheckinCheckout({
+            Latitude: latitude,
+            Longitude: longitude,
+          })
+        );
+      },
+      (error) => {
+        console.error(error);
+        toast.error("Unable to get your location");
+      },
+      { enableHighAccuracy: true }
+    );
   };
 
+  useEffect(() => {
+    dispatch(AdminWorkingHours());
+    dispatch(EmployeeAttendanceApi());
+  }, []);
+  useEffect(() => {
+    if (isEmployeeAttendanceApi) {
+      setEmployeeId(EmployeeAttendanceApiData?.meta?.employee_id || null);
+
+      const mappedData: AttendanceAdminData[] =
+        EmployeeAttendanceApiData?.data?.map((item: any) => {
+          return {
+            Image: item.employee?.avatar || "avatar-1.jpg",
+            Role: item.employee?.role || "Employee",
+            Status: item.check_in ? "Present" : "Absent",
+            StartDate: formatDateOnly(item.check_in),
+            EndDate: item.check_out ? formatDateOnly(item.check_out) : "-",
+            CheckIn: formatTime(item.check_in),
+            CheckOut: formatTime(item.check_out),
+            LateTime: item.late_time_display,
+            Late: item.is_late_in ? "Yes" : "No",
+            Overtime:
+              typeof item.overtime_hours === "number"
+                ? item.overtime_hours.toFixed(2)
+                : item.overtime_hours
+                ? String(item.overtime_hours)
+                : "0",
+            ProductionHours:
+              typeof item.worked_hours === "number"
+                ? item.worked_hours.toFixed(2)
+                : item.worked_hours
+                ? String(item.worked_hours)
+                : "0",
+          };
+        });
+      setData(mappedData);
+      dispatch(updateState({ isEmployeeAttendanceApi: false }));
+    }
+  }, [isEmployeeAttendanceApi, isEmployeeAttendanceApiFetching]);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (!isAdminWorkingHours || !AdminWorkingHoursData?.data) return;
+
+    const { today, week, month } = AdminWorkingHoursData.data;
+
+    const cards = [
+      {
+        icon: "ti ti-clock-stop",
+        bg: "primary",
+        title: "Total Hours Today",
+        value: today.worked_hours.toFixed(2),
+        total: today.allowed_hours.toString(),
+        trend: `${today.percentage}% Today`,
+        trendType: today.percentage >= 0 ? "up" : "down",
+      },
+      {
+        icon: "ti ti-clock-up",
+        bg: "dark",
+        title: "Total Hours This Week",
+        value: week.worked_hours.toFixed(2),
+        total: week.allowed_hours.toString(),
+        trend: `${week.percentage}% This Week`,
+        trendType: week.percentage >= 0 ? "up" : "down",
+      },
+      {
+        icon: "ti ti-calendar-up",
+        bg: "info",
+        title: "Total Hours This Month",
+        value: month.worked_hours.toFixed(2),
+        total: month.allowed_hours.toString(),
+        trend: `${month.percentage}% This Month`,
+        trendType: month.percentage >= 0 ? "up" : "down",
+      },
+      {
+        icon: "ti ti-calendar-star",
+        bg: "pink",
+        title: "Break Hours This Month",
+        value: month.total_break_hours?.toFixed(2) || "0",
+        total: month.allowed_hours.toString(),
+        trend: "Break Usage",
+        trendType: "down",
+      },
+    ];
+
+    setSummaryCards(cards);
+
+    dispatch(updateState({ isAdminWorkingHours: false }));
+  }, [isAdminWorkingHours]);
 
   const columns = [
-    // {
-    //   title: "Employee",
-    //   dataIndex: "Employee",
-    //   render: (_text: string, record: AttendanceAdminData) => (
-    //     <div className="d-flex align-items-center file-name-icon">
-    //       <span className="avatar avatar-md border avatar-rounded">
-    //         <ImageWithBasePath
-    //           src={`assets/img/users/${record.Image}`}
-    //           className="img-fluid"
-    //           alt={`${record.Employee} Profile`}
-    //         />
-    //       </span>
-    //       <div className="ms-2">
-    //         <h6 className="fw-medium">{record.Employee}</h6>
-    //         <span className="fs-12 fw-normal ">{record.Role}</span>
-    //       </div>
-    //     </div>
-    //   ),
-    //   sorter: (a: AttendanceAdminData, b: AttendanceAdminData) =>
-    //     a.Employee.length - b.Employee.length,
-    // },
     {
       title: "Start Date",
       dataIndex: "StartDate",
@@ -224,10 +236,11 @@ const EmployeeAttendanceKHR = () => {
       dataIndex: "Status",
       render: (text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge ${text === "Present"
-            ? "badge-success-transparent"
-            : "badge-danger-transparent"
-            } d-inline-flex align-items-center`}
+          className={`badge ${
+            text === "Present"
+              ? "badge-success-transparent"
+              : "badge-danger-transparent"
+          } d-inline-flex align-items-center`}
         >
           <i className="ti ti-point-filled me-1" />
           {record.Status}
@@ -265,13 +278,14 @@ const EmployeeAttendanceKHR = () => {
       dataIndex: "ProductionHours",
       render: (_text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge d-inline-flex align-items-center badge-sm ${parseFloat(record.ProductionHours) < 8
-            ? "badge-danger"
-            : parseFloat(record.ProductionHours) >= 8 &&
-              parseFloat(record.ProductionHours) <= 9
+          className={`badge d-inline-flex align-items-center badge-sm ${
+            parseFloat(record.ProductionHours) < 8
+              ? "badge-danger"
+              : parseFloat(record.ProductionHours) >= 8 &&
+                parseFloat(record.ProductionHours) <= 9
               ? "badge-success"
               : "badge-info"
-            }`}
+          }`}
         >
           <i className="ti ti-clock-hour-11 me-1"></i>
           {record.ProductionHours}
@@ -311,30 +325,11 @@ const EmployeeAttendanceKHR = () => {
           Raise Query
         </button>
       ),
-    }
+    },
   ];
-
-  const statusChoose = [
-    { value: "Select", label: "Select" },
-    { value: "Present", label: "Present" },
-    { value: "Absent", label: "Absent" },
-  ];
-
-  const getModalContainer = () => {
-    const modalElement = document.getElementById("modal-datepicker");
-    return modalElement ? modalElement : document.body;
-  };
-  const getModalContainer2 = () => {
-    const modalElement = document.getElementById("modal_datepicker");
-    return modalElement ? modalElement : document.body;
-  };
 
   return (
     <>
-      {/* Page Wrapper */}
-
-      {/* /Page Wrapper */}
-
       <div className="page-wrapper">
         <div className="content">
           <div onClick={() => setSelectedAttendance(null)}>
@@ -402,16 +397,23 @@ const EmployeeAttendanceKHR = () => {
               <div className="card flex-fill">
                 <div className="card-body">
                   <div className="mb-3 text-center">
-                    {/* <h6 className="fw-medium text-gray-5 mb-2">
-Good Morning, Adrian
-</h6>
-<h4>08:35 AM, 11 Mar 2025</h4> */}
                     <h6 className="fw-medium text-gray-5 mb-2">
-                      {attendanceData.user.greeting}, {attendanceData.user.name}
+                      {CheckinCheckoutData.user?.greeting},{" "}
+                      {CheckinCheckoutData.user?.name}
                     </h6>
 
-                    <h4>{attendanceData.user.time}</h4>
+                    <h4>
+                      {datass?.check_in_time
+                        ? formatTime(datass.check_in_time)
+                        : "--:--"}
+                    </h4>
+                    <small>
+                      {datass?.check_in_time
+                        ? formatDate(datass.check_in_time)
+                        : "Not Checked In Yet"}
+                    </small>
                   </div>
+
                   <div
                     className="attendance-circle-progress mx-auto mb-3"
                     data-value={65}
@@ -423,44 +425,61 @@ Good Morning, Adrian
                       <span className="progress-bar border-success" />
                     </span>
                     <div className="avatar avatar-xxl avatar-rounded">
-                      {/* <ImageWithBasePath src="assets/img/profiles/avatar-27.jpg" alt="avatar" /> */}
                       <ImageWithBasePath
-                        src={attendanceData.user.avatar}
-                        alt="avatar"
+                        src="assets/img/profiles/avatar-23.jpg"
+                        alt="Logo"
                       />
                     </div>
                   </div>
+
                   <div className="text-center">
-                    {/* <div className="badge badge-md badge-primary mb-3">
-Production : 3.45 hrs
-</div>
-<h6 className="fw-medium d-flex align-items-center justify-content-center mb-3">
-<i className="ti ti-fingerprint text-primary me-1" />
-Punch In at 10.00 AM
-</h6> */}
                     <div className="badge badge-md badge-primary mb-3">
-                      Production : {attendanceData.user.productionHours} hrs
+                      Production:{" "}
+                      {datass?.worked_hours ||
+                        (CheckinCheckoutData?.status === "CheckedIn"
+                          ? "In Progress"
+                          : "0.00")}{" "}
+                      hrs
                     </div>
 
                     <h6 className="fw-medium d-flex align-items-center justify-content-center mb-3">
                       <i className="ti ti-fingerprint text-primary me-1" />
-                      Punch In at {attendanceData.user.punchIn}
+                      {datass?.check_out_time
+                        ? `Checked Out at ${formatTime(datass.check_out_time)}`
+                        : datass?.check_in_time
+                        ? `Punch In at ${formatTime(datass.check_in_time)}`
+                        : "Not Checked In Yet"}
                     </h6>
-                    <Link to="#" className="btn btn-dark w-100">
-                      Punch Out
-                    </Link>
+
+                    <button
+                      className={`btn w-100 ${
+                        isCheckedIn ? "btn-warning" : "btn-success"
+                      }`}
+                      onClick={handleAction}
+                      disabled={isCheckinCheckoutFetching}
+                    >
+                      {isCheckinCheckoutFetching
+                        ? isCheckedIn
+                          ? "Checking Out..."
+                          : "Checking In..."
+                        : isCheckedIn
+                        ? "Punch Out ↪"
+                        : "Punch In"}
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
             <div className="col-xl-9 col-lg-8 d-flex">
               <div className="row flex-fill">
-                <SummaryCards
+                {/* <SummaryCards
                   cards={attendanceData.summaryCards.map((card: any) => ({
                     ...card,
                     trendType: card.trendType === "up" ? "up" : "down",
                   }))}
-                />
+                /> */}
+                <SummaryCards cards={summaryCards} />
+
                 <WorkStatsWithTimeline stats={attendanceData.workStats} />
               </div>
             </div>
@@ -469,7 +488,7 @@ Punch In at 10.00 AM
           <div className="card">
             <div className="card-body p-0">
               {" "}
-              {loading ? (
+              {isEmployeeAttendanceApiFetching ? (
                 <div className="text-center p-5">
                   <div
                     className="spinner-border text-primary"
@@ -478,21 +497,12 @@ Punch In at 10.00 AM
                   <div className="mt-2">Loading Attendence...</div>
                 </div>
               ) : (
-                <DatatableKHR
-                  data={data}
-                  columns={columns}
-                  selection={true}
-                // Ensure these keys match what DatatableKHR expects
-                // textKey="Department_Name"
-                />
+                <DatatableKHR data={data} columns={columns} selection={true} />
               )}
             </div>
           </div>
         </div>
       </div>
-
-      {/* Modal Component */}
-      {/* <AddDepartmentModal onSuccess={fetchData} data={selectedDepartment} /> */}
 
       {showQueryModal && selectedAttendancee && (
         <AttendanceQueryModal
@@ -501,7 +511,6 @@ Punch In at 10.00 AM
           onClose={() => setShowQueryModal(false)}
         />
       )}
-
     </>
   );
 };

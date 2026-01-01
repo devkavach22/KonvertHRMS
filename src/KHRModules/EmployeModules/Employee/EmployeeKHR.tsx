@@ -14,8 +14,7 @@ const EmployeeKHR = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEmp, setSelectedEmp] = useState<Employee | null>(null);
-  const [editData, setEditData] = useState<any>(null); // State for editing
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editData, setEditData] = useState<any>(null); 
 
   const fetchEmployees = async () => {
     setLoading(true);
