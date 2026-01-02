@@ -126,4 +126,9 @@ export const getAllLeaveTypes = async () => {
   return response.data;
 }
 
-
+// delete :- http://192.168.11.245:4000/api/leave-type/29?user_id=3145
+export const deleteLeaveType = async (id: number) => {
+  let user_id = localStorage.getItem("user_id");
+  const response = await Instance.delete(`/api/leave-type/${id}?user_id=${user_id}`);
+  return response.data;
+}

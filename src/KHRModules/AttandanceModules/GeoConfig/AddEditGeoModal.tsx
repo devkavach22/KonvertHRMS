@@ -37,10 +37,10 @@ const AddEditGeoModal: React.FC<Props> = ({ data, onSuccess, onClose }) => {
   const [employeesList, setEmployeeList] = useState<Option[]>();
   const user_id = Number(localStorage.getItem("user_id") || 0);
 
-    useEffect(() => {
+  useEffect(() => {
     const fetchEmploymentData = async () => {
       try {
-        const employees = await getEmployees(); 
+        const employees = await getEmployees();
         setEmployeeList(employees || []);
       } catch (error) {
         console.error("Error loading employees:", error);
@@ -73,15 +73,14 @@ const AddEditGeoModal: React.FC<Props> = ({ data, onSuccess, onClose }) => {
     }
   }, [data]);
 
-
-  
-
   const handleSubmit = async () => {
     setIsSubmitted(true);
+    console.log("handle SUbnmit Called ");
 
     const validationErrors = validateAttendancePolicy(formData);
     if (Object.keys(validationErrors).length) {
       setErrors(validationErrors);
+      console.log("handle SUbnmit Validate", validationErrors);
       return;
     }
 
@@ -92,14 +91,16 @@ const AddEditGeoModal: React.FC<Props> = ({ data, onSuccess, onClose }) => {
       longitude: Number(formData.longitude),
       radius_km: Number(formData.radius_km),
       hr_employee_ids: formData.employees_selection.map((e: any) => e.id),
-
     };
+    console.log("Payload", payload);
 
     try {
       if (data && data.id) {
         await updateGeoConfig(data.id, payload);
+        console.log("UpdateGEO CONFIGUR", payload);
       } else {
         await addGeoConfig(payload);
+        console.log("add GEO COnfigur", payload);
       }
       const modalElement = document.getElementById("add_geo_config");
       if (modalElement) {
@@ -128,8 +129,6 @@ const AddEditGeoModal: React.FC<Props> = ({ data, onSuccess, onClose }) => {
     setIsSubmitted(false);
     onClose && onClose();
   };
-
-
 
   return (
     <CommonModal
@@ -190,36 +189,35 @@ const AddEditGeoModal: React.FC<Props> = ({ data, onSuccess, onClose }) => {
       </div>
 
       {/* <MultiSelect
+label="Employees"
+value={formData.employees_selection.map((e: any) => e.id)}
+options={employeesList || []}
+isSubmitted={isSubmitted}
+error={errors.employees_selection}
+onChange={(ids) =>
+setFormData({
+...formData,
+employees_selection: employeesList.filter((e) =>
+ids.includes(e.id)
+),
+})
+}
+/> */}
+      <MultiSelect
         label="Employees"
-        value={formData.employees_selection.map((e: any) => e.id)}
-        options={employeesList || []}
-        isSubmitted={isSubmitted}
-        error={errors.employees_selection}
-        onChange={(ids) =>
+        value={formData.employees_selection.map((e: { id: any }) => e.id)}
+        options={employeesList || []} // always defined as array
+        // isSubmitted={false}
+        // error={""}
+        onChange={(selectedIds: number[]) =>
           setFormData({
             ...formData,
-            employees_selection: employeesList.filter((e) =>
-              ids.includes(e.id)
+            employees_selection: employeesList?.filter((e) =>
+              selectedIds.includes(e.id)
             ),
           })
         }
-      /> */}
-   <MultiSelect
-      label="Employees"
-      value={formData.employees_selection.map((e: { id: any; }) => e.id)}
-      options={employeesList || []} // always defined as array
-      isSubmitted={false}
-      error={""}
-      onChange={(selectedIds: number[]) =>
-        setFormData({
-          ...formData,
-          employees_selection: employeesList?.filter((e) =>
-            selectedIds.includes(e.id)
-          ),
-        })
-      }
-    />
-
+      />
     </CommonModal>
   );
 };

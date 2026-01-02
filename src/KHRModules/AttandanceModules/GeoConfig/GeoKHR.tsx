@@ -20,15 +20,13 @@ const GeoKHR = () => {
   const [selectedGeo, setSelectedGeo] = useState<GeoConfig | null>(null);
   const [deleteGeoId, setDeleteGeoId] = useState<string | null>(null);
 
-
-
   const fetchData = async () => {
     setLoading(true);
     try {
       const result = await getGeoConfigs();
       const safeResult = Array.isArray(result) ? result : [];
 
-      const mappedData: GeoConfig[] = safeResult.map((item: APIGeoConfig) => ({
+      const mappedData: any[] = safeResult.map((item: any) => ({
         id: String(item.id),
         key: String(item.id),
         name: typeof item.name === "string" ? item.name : "-",
@@ -71,7 +69,6 @@ const GeoKHR = () => {
     }
   };
 
-
   const confirmDelete = async () => {
     if (!deleteGeoId) return;
 
@@ -91,7 +88,6 @@ const GeoKHR = () => {
       }
     }
   };
-
 
   /* =====================
      DELETE
@@ -125,8 +121,7 @@ const GeoKHR = () => {
     {
       title: "Name",
       dataIndex: "name",
-      sorter: (a: any, b: any) =>
-        String(a.name).localeCompare(String(b.name)),
+      sorter: (a: any, b: any) => String(a.name).localeCompare(String(b.name)),
     },
     {
       title: "Latitude",

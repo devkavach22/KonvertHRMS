@@ -17,9 +17,9 @@ interface Props {
   onClose: () => void;
 }
 
-interface CategoryOption {
+interface Option {
   label: string;
-  value: number;
+  value: string;
 }
 
 const AttendanceQueryModal: React.FC<Props> = ({
@@ -33,11 +33,11 @@ const AttendanceQueryModal: React.FC<Props> = ({
     // employee_id: employeeId,
     from_date: "",
     to_date: "",
-    reg_category: null as number | null,
+    reg_category: null as string | null,
     reg_reason: "",
   });
 
-  const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [categories, setCategories] = useState<Option[]>([]);
 
   const [errors, setErrors] = useState<any>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
