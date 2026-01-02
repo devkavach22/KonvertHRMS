@@ -4,11 +4,15 @@ import { all_routes } from "../../../router/all_routes";
 import DatatableKHR from "../../../CommonComponent/DataTableKHR/DatatableKHR";
 import CommonHeader from "../../../CommonComponent/HeaderKHR/HeaderKHR";
 import AddEditLeaveTypesModal from "./AddEditLeaveTypesModal";
-import { getAllLeaveTypes } from "./LeavetypesServices";
+import { getAllLeaveTypes,deleteLeaveType } from "./LeavetypesServices";
 import moment from "moment";
 
-const LeaveAdminKHR = () => {
+
+// service imports removed (not used here) — keep file focused on UI
+
+const LeaveAdminKHR = () => { 
   const routes = all_routes;
+  const [loading, setLoading] = useState<boolean>(true);
   const [data, setData] = useState<any[]>([]);
   const [selectedPolicy, setSelectedPolicy] = useState<any | null>(null);
 
@@ -26,6 +30,18 @@ const LeaveAdminKHR = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const handleDelete = async (id: number) => {
+    if (window.confirm("Are you sure you want to delete this leave type?")) {
+      try {
+        await deleteLeaveType(id);
+        fetchData(); // Refresh the list
+      } catch (error) {
+        console.error("Error deleting leave type:", error);
+        alert("Failed to delete leave type.");
+      }
+    }
+  };
 
   const columns: any[] = [
     {
@@ -64,19 +80,11 @@ const LeaveAdminKHR = () => {
             data-bs-target="#add_leave_type_modal"
             onClick={() => {
               setSelectedPolicy(record);
-              const jq = (window as any).jQuery || (window as any).$;
-              if (jq && typeof jq === "function" && jq("#add_leave_type_modal").modal) {
-                try {
-                  jq("#add_leave_type_modal").modal("show");
-                } catch (e) {
-                  // ignore if modal call fails
-                }
-              }
             }}
           >
             <i className="ti ti-edit text-blue" />
           </Link>
-          <Link to="#" className="me-2">
+          <Link to="#" className="me-2" onClick={() => handleDelete(record.id)}>
             <i className="ti ti-trash text-danger" />
           </Link>
         </div>
@@ -108,6 +116,7 @@ const LeaveAdminKHR = () => {
 
           </div>
         </div>
+
 
         <AddEditLeaveTypesModal
           onSuccess={fetchData}

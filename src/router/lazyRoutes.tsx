@@ -426,6 +426,10 @@ export const BanksKHR = createLazyComponent(
   () => import("../KHRModules/Master Modules/BanksKHR/BanksKHR")
 );
 
+export const BanksAccountKHR = createLazyComponent(
+  () => import("../KHRModules/Master Modules/BankAccount/BankAccountKHR")
+);
+
 export const ShiftModulesKHR = createLazyComponent(
   () => import("../KHRModules/AttandanceModules/ShiftModules/ShiftModulesKHR")
 );
@@ -464,7 +468,6 @@ export const PublicHolidayKHR = createLazyComponent(
 export const MendetoryDaysKHR = createLazyComponent(
   () => import("../KHRModules/LeaveModules/MendetoryDays/mendetoryDaysKHR")
 );
-
 
 export const Designations = createLazyComponent(
   () => import("../feature-module/hrm/employees/designations")

@@ -65,3 +65,31 @@ export const getAllMandatoryDays = async (): Promise<any> =>{
   return await Instance.get(`/api/mandatory-days?user_id=${user_id}`);
 
 }
+
+// put :- http://192.168.11.245:4000/api/mandatory-days/2?user_id=3145
+// Update a mandatory days
+export const updateMandatoryDays = async (id: number, data: any): Promise<any> =>{
+  let user_id = localStorage.getItem("user_id");
+  return await Instance.put(`/api/mandatory-days/${id}?user_id=${user_id}`, data);
+}
+
+// delete :- http://192.168.11.245:4000/api/mandatory-days/2?user_id=3145
+// delete mandatory day
+export const deleteMandatoryDays = async (id: number): Promise<any> =>{
+  let user_id = localStorage.getItem("user_id");
+  return await Instance.delete(`/api/mandatory-days/${id}?user_id=${user_id}`);
+}
+
+export const getBranches = async () => {
+  let user_id = localStorage.getItem("user_id");
+try {
+const response = await Instance.get("/api/branch", {
+params: { user_id: user_id },
+});
+// Assuming the API returns { status: "success", data: [...] }
+return response.data.data || response.data || [];
+} catch (error) {
+console.error("Error fetching branches:", error);
+return [];
+}
+};

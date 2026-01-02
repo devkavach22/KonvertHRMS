@@ -2,12 +2,13 @@ import React, { useEffect, useState } from "react";
 import { all_routes } from "../../../router/all_routes";
 import DatatableKHR from "../../../CommonComponent/DataTableKHR/DatatableKHR";
 import CommonHeader from "../../../CommonComponent/HeaderKHR/HeaderKHR";
-import AddEditAttendancePolicyModal from "./AddEditPublicHolidayModal";
+import AddEditPublicHolidayModal from "./AddEditPublicHolidayModal";
 import moment from "moment";
 import { Link } from "react-router-dom";
 
 import {
-  getHolidays
+  getHolidays,
+  deleteHoliday
 } from "./PublicHolidayServices";
 
 const PublicHolidayKHR = () => {
@@ -63,7 +64,7 @@ const PublicHolidayKHR = () => {
                 to="#"
                 className="me-2"
                 data-bs-toggle="modal"
-                data-bs-target="#add_department"
+                data-bs-target="#add_attendance_policy"
   onClick={() => {
               setSelectedPolicy(record);
               const jq = (window as any).jQuery || (window as any).$;
@@ -77,10 +78,10 @@ const PublicHolidayKHR = () => {
             }}              >
                 <i className="ti ti-edit text-blue" />
               </Link>
-              <Link to="#" 
-              // onClick={() => 
-              //   handleDelete(record.id!)}
-                >
+              <Link
+                to="#"
+                onClick={() => handleDelete(record.id)}
+              >
                 <i className="ti ti-trash text-danger" />
               </Link>
             </div>
@@ -103,6 +104,19 @@ const PublicHolidayKHR = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const handleDelete = async (id: string | number) => {
+    if (window.confirm("Are you sure you want to delete this public holiday?")) {
+      try {
+        await deleteHoliday(Number(id));
+        fetchData(); // Refresh the list after successful deletion
+        alert("Public holiday deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting public holiday:", error);
+        alert("Failed to delete public holiday.");
+      }
+    }
+  };
 
   return (
     <div className="main-wrapper">
@@ -130,7 +144,7 @@ const PublicHolidayKHR = () => {
         </div>
       </div>
 
-      <AddEditAttendancePolicyModal onSuccess={fetchData} data={selectedPolicy} />
+      <AddEditPublicHolidayModal onSuccess={fetchData} data={selectedPolicy} />
     </div>
   );
 };

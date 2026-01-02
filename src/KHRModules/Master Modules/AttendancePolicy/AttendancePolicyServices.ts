@@ -35,13 +35,19 @@ export interface APIAttendancePolicy {
 }
 
 // 3. SERVICE FUNCTIONS
+const getUserId = () => {
+  const id = localStorage.getItem("user_id");
+  return id ? Number(id) : 219; // Defaulting to 219 based on your API specs
+};
 
 // GET: /employee/attendance-policies
 export const getAttendancePolicies = async (): Promise<
   APIAttendancePolicy[]
 > => {
   try {
-    const response = await Instance.get("/employee/attendance-policies");
+    const response = await Instance.get("/employee/attendance-policies", {
+      params: { user_id: getUserId() },
+    });
     return response.data.data || [];
   } catch (error) {
     console.error("Error fetching attendance policies:", error);

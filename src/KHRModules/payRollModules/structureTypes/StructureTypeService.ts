@@ -72,16 +72,16 @@ export const getWorkingSchedules = async () => {
 
 
 
-// Add to EmployeeServices.ts
-export const getCountries = async () => {
-  try {
-    const response = await Instance.get("/api/countries");
-    // Assuming it returns { data: [{ id: 1, name: 'India' }] }
-    return response.data.data || response.data || [];
-  } catch (error) {
-    return [];
-  }
-};
+// // Add to EmployeeServices.ts
+// export const getCountries = async () => {
+//   try {
+//     const response = await Instance.get("/api/countries");
+//     // Assuming it returns { data: [{ id: 1, name: 'India' }] }
+//     return response.data.data || response.data || [];
+//   } catch (error) {
+//     return [];
+//   }
+// };
 
 
 export const getWorkingHours = async () => {
