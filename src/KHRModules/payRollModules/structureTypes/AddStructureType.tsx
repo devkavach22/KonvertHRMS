@@ -3,11 +3,9 @@ import CommonModal from "@/KHRModules/commanForm/CommanModal/CommanModal";
 import FormInput from "@/KHRModules/commanForm/inputComman/FormInput";
 import CommonSelect, { Option } from "@/core/common/commonSelect";
 import { useFormValidation } from "@/KHRModules/commanForm/FormValidation";
-import { getRegularPayStructure, getWorkEntryType, getWorkingHours } from "./StructureTypeService";
 import { useDispatch, useSelector } from "react-redux";
 import { getWorkingSchedules, TBSelector } from "@/Store/Reducers/TBSlice";
-import {getCountries
-} from "@/Store/Reducers/TBSlice";
+import { getCountries, getRegularPayStructure,getWorkEntryType } from "@/Store/Reducers/TBSlice";
 
 interface Props {
   onSubmit: (data: any) => void;
@@ -22,13 +20,15 @@ const AddStructureTypeModal: React.FC<Props> = ({ onSubmit }) => {
   const [errors, setErrors] = useState<any>({});
   const [countryOptions, setCountryOptions] = useState<Option[]>([]);
   const [workingHoursOptions, setWorkingHoursOptions] = useState<Option[]>([]);
-  const [workEntryTypeOptions, setWorkEntryTypeOptions] = useState<Option[]>([]);
-  const [regularPayStructureOptions, setRegularPayStructureOptions] = useState<Option[]>([]);
-    const {
-    GetCountriesData,
-    getWorkingSchedulesData,
-    } = useSelector(TBSelector);
-  const dispatch = useDispatch()
+  const [workEntryTypeOptions, setWorkEntryTypeOptions] = useState<Option[]>(
+    []
+  );
+  const [regularPayStructureOptions, setRegularPayStructureOptions] = useState<
+    Option[]
+  >([]);
+  const { GetCountriesData, getWorkingSchedulesData,
+    getRegularPayStructureData,getWorkEntryTypeData } = useSelector(TBSelector);
+  const dispatch = useDispatch();
 
   const [formData, setFormData] = useState<any>({
     name: "",
@@ -40,86 +40,73 @@ const AddStructureTypeModal: React.FC<Props> = ({ onSubmit }) => {
     default_work_entry_type: "",
   });
 
-  
   useEffect(() => {
-    dispatch(getCountries())
-    dispatch(getWorkingSchedules())
+    dispatch(getCountries());
+    dispatch(getWorkingSchedules());
+    dispatch(getRegularPayStructure());
+    dispatch(getWorkEntryType())
   }, []);
 
-    useEffect(() => {
-      if (GetCountriesData?.data?.length) {
-        setCountryOptions(
-          GetCountriesData.data.map((item: any) => ({
-            label: item.name,
-            value: item.id,
-          }))
-        );
-      }
-      if (getWorkingSchedulesData?.data?.length) {
-          setWorkingHoursOptions(
-          GetCountriesData.data.map((item: any) => ({
-            label: item.name,
-            value: item.id,
-          }))
-        );
-      }
-    }, [GetCountriesData,getWorkingSchedulesData]);
 
-
-
-
-
+  useEffect(() => {
+    if (GetCountriesData?.data?.length) {
+      setCountryOptions(
+        GetCountriesData.data.map((item: any) => ({
+          label: item.name,
+          value: item.id,
+        }))
+      );
+    }
+    if (getWorkingSchedulesData?.data?.length) {
+      setWorkingHoursOptions(
+        getWorkingSchedulesData.data.map((item: any) => ({
+          label: item.name,
+          value: item.id,
+        }))
+      );
+    }
+      if (getRegularPayStructureData?.data?.length) {
+      setRegularPayStructureOptions(
+        getRegularPayStructureData.data.map((item: any) => ({
+           label: item.name,
+          value: item.id,
+        }))
+      );
+    }
+        if (getWorkEntryTypeData?.data?.length) {
+      setWorkEntryTypeOptions(
+        getWorkEntryTypeData.data.map((item: any) => ({
+           label: item.name,
+          value: item.id,
+        }))
+      );
+    }
+  }, [GetCountriesData, getWorkingSchedulesData,getRegularPayStructureData,getWorkEntryTypeData]);
   
 
-
-
-  console.log(getWorkingSchedulesData,"getWorkingSchedulesData");
+  console.log(getWorkEntryTypeData,"getWorkEntryTypeData");
   
 
-   useEffect(() => {
-    const fetchgetWorkEntryType = async () => {
-      try {
-        const response = await getWorkEntryType();
-        console.log(response,"...81");
-        
+  // useEffect(() => {
+  //   const fetchgetWorkEntryType = async () => {
+  //     try {
+  //       const response = await getWorkEntryType();
+  //       console.log(response, "...81");
 
-        const mapped: Option[] = (response || []).map((item: any) => ({
-          label: item.name, // 👈 PRINTED IN UI
-          value: item.id,   // 👈 STORED IN FORM
-        }));
+  //       const mapped: Option[] = (response || []).map((item: any) => ({
+  //         label: item.name, // 👈 PRINTED IN UI
+  //         value: item.id, // 👈 STORED IN FORM
+  //       }));
 
-        setWorkEntryTypeOptions(mapped);
-      } catch (error) {
-        console.error("Failed to load work entry types", error);
-      }
-    };
+  //       setWorkEntryTypeOptions(mapped);
+  //     } catch (error) {
+  //       console.error("Failed to load work entry types", error);
+  //     }
+  //   };
 
-    fetchgetWorkEntryType();
-  }, []);
-  
+  //   fetchgetWorkEntryType();
+  // }, []);
 
-    useEffect(() => {
-    const fetchgetRegularPayStructure = async () => {
-      try {
-        const response = await getRegularPayStructure();
-        console.log(response,"...105");
-        
-
-        const mapped: Option[] = (response || []).map((item: any) => ({
-          label: item.name, // 👈 PRINTED IN UI
-          value: item.id,   // 👈 STORED IN FORM
-        }));
-
-        setRegularPayStructureOptions(mapped);
-      } catch (error) {
-        console.error("Failed to load work entry types", error);
-      }
-    };
-
-    fetchgetRegularPayStructure();
-  }, []);
-
-  
 
   /* ================= OPTIONS ================= */
 
@@ -128,21 +115,17 @@ const AddStructureTypeModal: React.FC<Props> = ({ onSubmit }) => {
     { label: "Hourly Wage", value: "hourly" },
   ];
 
-const schedulePayOptions: Option[] = [
-  { label: "Annually", value: "annually" },
-  { label: "Semi-Annually", value: "semi_annually" },
-  { label: "Quarterly", value: "quarterly" },
-  { label: "Bi-Monthly", value: "bi_monthly" },
-  { label: "Monthly", value: "monthly" },
-  { label: "Semi-Monthly", value: "semi_monthly" },
-  { label: "Bi-Weekly", value: "bi_weekly" },
-  { label: "Weekly", value: "weekly" },
-  { label: "Daily", value: "daily" },
-];
-
-
-
-
+  const schedulePayOptions: Option[] = [
+    { label: "Annually", value: "annually" },
+    { label: "Semi-Annually", value: "semi_annually" },
+    { label: "Quarterly", value: "quarterly" },
+    { label: "Bi-Monthly", value: "bi_monthly" },
+    { label: "Monthly", value: "monthly" },
+    { label: "Semi-Monthly", value: "semi_monthly" },
+    { label: "Bi-Weekly", value: "bi_weekly" },
+    { label: "Weekly", value: "weekly" },
+    { label: "Daily", value: "daily" },
+  ];
 
   /* ================= SUBMIT ================= */
 
@@ -175,9 +158,7 @@ const schedulePayOptions: Option[] = [
         value={formData.name}
         isSubmitted={isSubmitted}
         error={errors.name}
-        onChange={(e) =>
-          setFormData({ ...formData, name: e.target.value })
-        }
+        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
       />
 
       <div className="row">
@@ -214,9 +195,7 @@ const schedulePayOptions: Option[] = [
             }
           />
           {isSubmitted && errors.default_wage_type && (
-            <small className="text-danger">
-              {errors.default_wage_type}
-            </small>
+            <small className="text-danger">{errors.default_wage_type}</small>
           )}
         </div>
       </div>
@@ -241,9 +220,7 @@ const schedulePayOptions: Option[] = [
             }
           />
           {isSubmitted && errors.default_schedule_pay && (
-            <small className="text-danger">
-              {errors.default_schedule_pay}
-            </small>
+            <small className="text-danger">{errors.default_schedule_pay}</small>
           )}
         </div>
 
