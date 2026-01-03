@@ -23,6 +23,8 @@ const getFreshToken = async () => {
     const response = await axios.post("http://178.236.185.232:4000/api/auth", {
       user_name: "dhaval",
     });
+    console.log(response,"werrw");
+    
     const newToken = response.data.token;
     if (newToken) {
       localStorage.removeItem("authToken");

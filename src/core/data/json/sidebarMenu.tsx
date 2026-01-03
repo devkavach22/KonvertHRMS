@@ -1,44 +1,49 @@
 import { all_routes } from "../../../router/all_routes";
 const routes = all_routes;
 
-export const SidebarDataTest = [
-  {
-    tittle: "Administrative",
-    icon: "airplay",
-    showAsTab: true,
-    separateRoute: false,
-    submenuItems: [
-      {
-        label: "Settings",
-        link: "index",
-        submenu: true,
-        showSubRoute: false,
-        icon: "smart-home",
-        base: "dashboard",
-        materialicons: "start",
-        dot: false,
-        submenuItems: [
-          { label: "Attendence Policy", link: routes.AttendancePolicyKHR },
-          // { label: "Buisness Location", link: routes.buisnessLocationKHR },
-          // { label: "Buisness Type", link: routes.buisnessTypeKHR },
-          { label: "Department", link: routes.departmentsKHR },
-          { label: "Job Postions", link: routes.jobPositionsKHR },
-          { label: "Work Location", link: routes.workLocationKHR },
-          { label: "Working Schedule", link: routes.workingScheduleKHR },
-          { label: "Work Entry Type", link: routes.workEntryTypeKHR },
-          { label: "Skills", link: routes.skillsKHR },
-          { label: "Industries", link: routes.industriesKHR },
-          { label: "Bank", link: routes.banksKHR },
-          { label: "Bank Account", link: routes.banksAccountKHR },
-          { label: "HR Contract Type ", link: routes.hrContractTypeKHR },
-          { label: "Geo Configurations", link: routes.geoKHR },
+// ✅ ONE PLACE CONTROL
+const isAdmin = localStorage.getItem("is_client_employee_admin") === "true";
 
-          // { label: "Country", link: routes.dealsDashboard },
-          // { label: "State", link: routes.leadsDashboard },
-        ],
-      },
-    ],
-  },
+export const SidebarDataTest = [
+  // ================= ADMIN ONLY =================
+  ...(isAdmin
+    ? [
+        {
+          tittle: "Administrative",
+          icon: "airplay",
+          showAsTab: true,
+          separateRoute: false,
+          submenuItems: [
+            {
+              label: "Settings",
+              link: "index",
+              submenu: true,
+              showSubRoute: false,
+              icon: "smart-home",
+              base: "dashboard",
+              materialicons: "start",
+              dot: false,
+              submenuItems: [
+                { label: "Attendence Policy", link: routes.AttendancePolicyKHR },
+                { label: "Department", link: routes.departmentsKHR },
+                { label: "Job Postions", link: routes.jobPositionsKHR },
+                { label: "Work Location", link: routes.workLocationKHR },
+                { label: "Working Schedule", link: routes.workingScheduleKHR },
+                { label: "Work Entry Type", link: routes.workEntryTypeKHR },
+                { label: "Skills", link: routes.skillsKHR },
+                { label: "Industries", link: routes.industriesKHR },
+                { label: "Bank", link: routes.banksKHR },
+                { label: "Bank Account", link: routes.banksAccountKHR },
+                { label: "HR Contract Type", link: routes.hrContractTypeKHR },
+                { label: "Geo Configurations", link: routes.geoKHR },
+              ],
+            },
+          ],
+        },
+      ]
+    : []),
+
+  // ================= COMMON =================
   {
     tittle: "HRMS",
     icon: "airplay",
@@ -57,47 +62,46 @@ export const SidebarDataTest = [
         submenuItems: [
           { label: "Employees", link: routes.employeeKHR },
           { label: "Employee Contract", link: routes.employeeContract },
-          // { label: "Attendance", link: routes.attendanceadmin },
-          // { label: "Leave Management", link: routes.leaveadmin },
-          // { label: "Holidays", link: routes.holidays },
-          // { label: "Timesheet", link: routes.timesheet },
-          // { label: "Payroll", link: routes.employeesalary },
-          // { label: "Performance", link: routes.performanceIndicator },
-          // { label: "Training", link: routes.trainingList },
-          // { label: "Recruitment", link: routes.jobgrid },
-          // { label: "Tickets", link: routes.tickets },
-          // { label: "Reports", link: routes.expensesreport },
-          // { label: "Assets", link: routes.assetList },
-          // { label: "User Management", link: routes.users },
         ],
       },
     ],
   },
 
-  {
-    tittle: "HRMS",
-    icon: "airplay",
-    showAsTab: true,
-    separateRoute: false,
-    submenuItems: [
-      {
-        label: "Attandance Management",
-        link: "index",
-        submenu: true,
-        showSubRoute: false,
-        icon: "settings-2",
-        base: "dashboard",
-        materialicons: "start",
-        dot: false,
-        submenuItems: [
-          { label: "Admin Attendance", link: routes.attendanceAdminKHR },
-          { label: "Employees Attendance", link: routes.attendaceEmployeeKHR },
-          { label: "Shift Modules", link: routes.shiftModulesKHR },
-        ],
-      },
-    ],
-  },
+  // ================= ADMIN ONLY =================
+ {
+  tittle: "HRMS",
+  icon: "airplay",
+  showAsTab: true,
+  separateRoute: false,
+  submenuItems: [
+    {
+      label: "Attandance Management",
+      link: "index",
+      submenu: true,
+      showSubRoute: false,
+      icon: "settings-2",
+      base: "dashboard",
+      materialicons: "start",
+      dot: false,
+      submenuItems: [
+        // ✅ ADMIN ONLY
+        ...(isAdmin
+          ? [{ label: "Admin Attendance", link: routes.attendanceAdminKHR }]
+          : []),
 
+        // ✅ BOTH ADMIN & EMPLOYEE
+        { label: "Employees Attendance", link: routes.attendaceEmployeeKHR },
+
+        // ✅ ADMIN ONLY
+        ...(isAdmin
+          ? [{ label: "Shift Modules", link: routes.shiftModulesKHR }]
+          : []),
+      ],
+    },
+  ],
+},
+
+  // ================= LEAVE =================
   {
     tittle: "Leave Management",
     icon: "airplay",
@@ -114,42 +118,51 @@ export const SidebarDataTest = [
         materialicons: "start",
         dot: false,
         submenuItems: [
-          { label: "Leaves (Admin)", link: routes.leaveAdminKHR },
+          ...(isAdmin ? [{ label: "Leaves (Admin)", link: routes.leaveAdminKHR }] : []),
           { label: "Leaves (Employee)", link: routes.leaveEmployeeKHR },
-          // { label: "Leave Settings", link: routes.leaveSettingsKHR },
-          { label: "Leave Types", link: routes.leaveTypesKHR },
-          { label: "Leave Allocation", link: routes.leaveAllocationKHR },
+          ...(isAdmin
+            ? [
+                { label: "Leave Types", link: routes.leaveTypesKHR },
+                { label: "Leave Allocation", link: routes.leaveAllocationKHR },
+              ]
+            : []),
           { label: "Leave Request", link: routes.leaveRequestKHR },
-          { label: "Accural Plan", link: routes.accuralPlanKHR },
           { label: "Public Holiday", link: routes.publicHolidayKHR },
-          { label: "Mendetory Days", link: routes.mendetoryDaysKHR },
         ],
       },
     ],
   },
 
-  {
-    tittle: "Finance & Accounts",
-    icon: "payroll",
-    showAsTab: true,
-    separateRoute: false,
-    submenuItems: [
-      {
-        label: "payroll",
-        link: "index",
-        submenu: true,
-        showSubRoute: false,
-        icon: "users",
-        base: "dashboard",
-        materialicons: "start",
-        dot: false,
-        submenuItems: [
-          { label: "Structure Types", link: routes.employeeSalaryKHR },
-          { label: "Salary Rules", link: routes.SalaryRuleKHR },
-        ],
-      },
-    ],
-  },
+  // ================= FINANCE (ADMIN ONLY) =================
+  ...(isAdmin
+    ? [
+        {
+          tittle: "Finance & Accounts",
+          icon: "payroll",
+          showAsTab: true,
+          separateRoute: false,
+          submenuItems: [
+            {
+              label: "Payroll",
+              link: "index",
+              submenu: true,
+              showSubRoute: false,
+              icon: "users",
+              base: "dashboard",
+              materialicons: "start",
+              dot: false,
+              submenuItems: [
+                { label: "Structure Types", link: routes.employeeSalaryKHR },
+                { label: "Salary Rules", link: routes.SalaryRuleKHR },
+                { label: "Salary Structure", link: routes.SalaryStructure },
+              ],
+            },
+          ],
+        },
+      ]
+    : []),
+];
+
   // {
   //   tittle: "Main Menu",
   //   icon: "airplay",
@@ -2147,4 +2160,4 @@ export const SidebarDataTest = [
   //     },
   //   ],
   // },
-];
+

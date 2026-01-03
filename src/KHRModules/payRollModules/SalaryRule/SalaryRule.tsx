@@ -6,7 +6,8 @@ import DatatableKHR from "@/CommonComponent/DataTableKHR/DatatableKHR";
 import CommonHeader from "@/CommonComponent/HeaderKHR/HeaderKHR";
 
 import AddSalaryRuleModal from "./AddSalaryRule";
-import { getSalaryRules } from "./SalaryRuleService";
+import { useDispatch, useSelector } from "react-redux";
+import { getSalaryRules, TBSelector, updateState } from "@/Store/Reducers/TBSlice";
 
 /* ================= TYPES ================= */
 
@@ -27,6 +28,12 @@ const SalaryRuleKHR = () => {
 
   const [data, setData] = useState<SalaryRule[]>([]);
   const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const {
+    isgetSalaryRules,
+    isgetSalaryRulesFetching,
+    getSalaryRulesData,
+  } = useSelector(TBSelector);
 
   /* ================= FETCH ================= */
 
@@ -34,8 +41,7 @@ const SalaryRuleKHR = () => {
     setLoading(true);
     try {
       const response = await getSalaryRules();
-      console.log(response,"responseddd");
-      
+      console.log(response, "responseddd");
 
       const mapped: SalaryRule[] = response.map((item: any) => ({
         id: item.id,
@@ -59,8 +65,30 @@ const SalaryRuleKHR = () => {
   };
 
   useEffect(() => {
-    fetchData();
+    dispatch(getSalaryRules());
   }, []);
+
+
+  console.log(getSalaryRulesData,"getSalaryRulesData");
+  
+  useEffect(() => {
+    if (isgetSalaryRules) {
+      const mappedData: SalaryRule[] = getSalaryRulesData?.data.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        code: item.code,
+        category: item.category_name || "-",
+        sequence: item.sequence,
+        amount:
+          item.amount_select === "fix"
+            ? `₹ ${item.amount_fix}`
+            : item.amount_select,
+        active: item.active,
+      }));
+      setData(mappedData);
+      dispatch(updateState({ isgetSalaryRules: false }));
+    }
+  }, [isgetSalaryRules, isgetSalaryRulesFetching]);
 
   /* ================= TABLE ================= */
 
@@ -108,17 +136,13 @@ const SalaryRuleKHR = () => {
 
           <div className="card">
             <div className="card-body p-0">
-              {loading ? (
+              {isgetSalaryRulesFetching ? (
                 <div className="text-center p-5">
                   <div className="spinner-border text-primary" />
                   <div className="mt-2">Loading Salary Rules...</div>
                 </div>
               ) : (
-                <DatatableKHR
-                  data={data}
-                  columns={columns}
-                  selection={false}
-                />
+                <DatatableKHR data={data} columns={columns} selection={false} />
               )}
             </div>
           </div>

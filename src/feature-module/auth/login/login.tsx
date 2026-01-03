@@ -61,7 +61,9 @@ const Login = () => {
         localStorage.setItem("unique_user_id", response.data.unique_user_id);
         localStorage.setItem("user_id", response.data.user_id.toString());
         localStorage.setItem("user_email", response.data.email);
-        localStorage.setItem("user_name", response.data.name);
+        localStorage.setItem("full_name", response.data.full_name);
+           localStorage.setItem("user_name", response.data.name);
+           localStorage.setItem("is_client_employee_admin",response.data.is_client_employee_admin)
 
         toast.success("Login Successful! Redirecting...");
 
@@ -194,7 +196,7 @@ const Login = () => {
                         </div>
                       </div>
                       <div className="d-flex align-items-center justify-content-between mb-3">
-                        <div className="d-flex align-items-center">
+                        {/* <div className="d-flex align-items-center">
                           <div className="form-check form-check-md mb-0">
                             <input
                               className="form-check-input"
@@ -208,7 +210,7 @@ const Login = () => {
                               Remember Me
                             </label>
                           </div>
-                        </div>
+                        </div> */}
                         <div className="text-end">
                           <Link
                             to={all_routes.forgotPassword}
@@ -241,7 +243,7 @@ const Login = () => {
 
                       <div className="mt-5 pb-4 text-center">
                         <p className="mb-0 text-gray-9">
-                          Copyright © 2025 - Konverthr All Rights Reserved
+                          Copyright © 2025 - Kavach 
                         </p>
                       </div>
                     </div>
