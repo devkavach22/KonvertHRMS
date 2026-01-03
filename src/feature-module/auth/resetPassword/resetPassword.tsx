@@ -75,7 +75,7 @@ const ResetPassword = () => {
         passwordResponceText: "",
         passwordResponceKey: "",
       });
-    } else if (password.length < 8) {
+    } else if ( password.length < 8) {
       setPasswordResponce({
         passwordResponceText: "Weak. Must contain at least 8 characters",
         passwordResponceKey: "0",

@@ -28,7 +28,7 @@ const Header = React.memo(() => {
     (state: RootState) => state.themeSetting.dataLayout
   );
   const Location = useLocation();
-  const userName = localStorage.getItem("user_name") || "John Doe";
+  const userName = localStorage.getItem("full_name") || "John Doe";
   const userEmail = localStorage.getItem("user_email") || "Admin";
 
   const avatarSrc = `https://ui-avatars.com/api/?name=${encodeURIComponent(
@@ -88,13 +88,13 @@ const Header = React.memo(() => {
   const toggleFullscreen = useCallback(() => {
     if (!isFullscreen) {
       if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(() => { });
+        document.documentElement.requestFullscreen().catch(() => {});
         setIsFullscreen(true);
       }
     } else {
       if (document.exitFullscreen) {
         if (document.fullscreenElement) {
-          document.exitFullscreen().catch(() => { });
+          document.exitFullscreen().catch(() => {});
         }
         setIsFullscreen(false);
       }
@@ -112,12 +112,13 @@ const Header = React.memo(() => {
                 <Link
                   to="#"
                   className={`
-                ${data?.subMenus
-                      ?.map((link: HorizontalSubMenu) => link?.route)
-                      .includes(Location.pathname)
-                      ? "active"
-                      : ""
-                    } ${subOpen === data.menuValue ? "subdrop" : ""}`}
+                ${
+                  data?.subMenus
+                    ?.map((link: HorizontalSubMenu) => link?.route)
+                    .includes(Location.pathname)
+                    ? "active"
+                    : ""
+                } ${subOpen === data.menuValue ? "subdrop" : ""}`}
                   onClick={() => toggleSidebar(data.menuValue)}
                 >
                   <i className={`ti ti-${data.icon}`}></i>
@@ -139,14 +140,16 @@ const Header = React.memo(() => {
                       >
                         <Link
                           to={subMenu?.route || "#"}
-                          className={`${subMenu?.subMenusTwo
-                            ?.map((link: HorizontalSubMenu) => link?.route)
-                            .includes(Location.pathname) ||
+                          className={`${
+                            subMenu?.subMenusTwo
+                              ?.map((link: HorizontalSubMenu) => link?.route)
+                              .includes(Location.pathname) ||
                             subMenu?.route === Location.pathname
-                            ? "active"
-                            : ""
-                            } ${subsidebar === subMenu.menuValue ? "subdrop" : ""
-                            }`}
+                              ? "active"
+                              : ""
+                          } ${
+                            subsidebar === subMenu.menuValue ? "subdrop" : ""
+                          }`}
                           onClick={() =>
                             toggleSubsidebar(subMenu.menuValue || "")
                           }
@@ -170,10 +173,11 @@ const Header = React.memo(() => {
                             {subMenu.subMenusTwo.map(
                               (subMenuTwo: HorizontalSubMenu, k: number) => (
                                 <li
-                                  key={`submenu-two-${k}-${subMenuTwo.menuValue ||
+                                  key={`submenu-two-${k}-${
+                                    subMenuTwo.menuValue ||
                                     subMenuTwo.label ||
                                     k
-                                    }`}
+                                  }`}
                                 >
                                   <Link
                                     className={
@@ -390,7 +394,7 @@ const Header = React.memo(() => {
               </div>
 
               <div className="d-flex align-items-center">
-              <StatusCheckInPopup />
+                <StatusCheckInPopup />
 
                 <div className="me-1">
                   <Link
@@ -655,10 +659,8 @@ const Header = React.memo(() => {
                             />
                           </span>
                           <div>
-                            <h5 className="mb-0">Kevin Larry</h5>
-                            <p className="fs-12 fw-medium mb-0">
-                              warren@example.com
-                            </p>
+                            <h6 className="mb-0">{userName}</h6>
+                            <p className="fs-12 fw-medium mb-0">{userEmail}</p>
                           </div>
                         </div>
                       </div>
@@ -700,6 +702,10 @@ const Header = React.memo(() => {
                         <Link
                           className="dropdown-item d-inline-flex align-items-center p-0 py-2"
                           to={routes.login}
+                          onClick={() => {
+                            localStorage.clear();
+                            sessionStorage.clear();
+                          }}
                         >
                           <i className="ti ti-login me-2"></i>Logout
                         </Link>
@@ -736,8 +742,8 @@ const Header = React.memo(() => {
                     />
                   </span>
                   <div>
-                    <h6 className="mb-0">Kevin Larry</h6>
-                    <p className="fs-12 fw-medium mb-0">warren@example.com</p>
+                  <h6 className="mb-0">{userName}</h6>
+                            <p className="fs-12 fw-medium mb-0">{userEmail}</p>
                   </div>
                 </div>
               </div>

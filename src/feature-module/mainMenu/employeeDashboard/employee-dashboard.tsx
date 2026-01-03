@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 import { all_routes } from "../../../router/all_routes";
@@ -11,11 +11,22 @@ import { Calendar } from "primereact/calendar";
 import { DatePicker } from "antd";
 import CommonSelect from "../../../core/common/commonSelect";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
+import { getDashboadrdCount, TBSelector } from "@/Store/Reducers/TBSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 const EmployeeDashboard = () => {
   const routes = all_routes;
+    const userName = localStorage.getItem("full_name") || "John Doe";
+
 
   const [date, setDate] = useState(new Date("2024"));
+  const dispatch = useDispatch()
+   const {
+    // getDashboadrdCount
+    isgetDashboadrdCount,
+    isgetDashboadrdCountFetching,
+    getDashboadrdCountData,
+  } = useSelector(TBSelector);
 
   //New Chart
   const [leavesChart] = useState<any>({
@@ -118,6 +129,12 @@ const EmployeeDashboard = () => {
     return modalElement ? modalElement : document.body; // Fallback to document.body if modalElement is null
   };
 
+    useEffect(() => {
+      // fetchData();
+      dispatch(getDashboadrdCount());
+    }, []);
+    console.log(getDashboadrdCountData,"getDashboadrdCountData");
+
   return (
     <>
       {/* Page Wrapper */}
@@ -186,6 +203,40 @@ const EmployeeDashboard = () => {
             </div>
           </div>
           {/* /Breadcrumb */}
+
+              <div className="card border-0">
+            <div className="card-body d-flex align-items-center justify-content-between flex-wrap pb-1">
+              <div className="d-flex align-items-center mb-3">
+                <span className="avatar avatar-xl flex-shrink-0">
+                  <ImageWithBasePath
+                    src="assets/img/profiles/avatar-31.jpg"
+                    className="rounded-circle"
+                    alt="avatar"
+                  />
+                </span>
+                <div className="ms-3">
+                  <h3 className="mb-2">
+                    Welcome Back, {userName}{" "}
+                    <Link to="#" className="edit-icon">
+                      <i className="ti ti-edit fs-14" />
+                    </Link>
+                  </h3>
+                  <p>
+                    You have{" "}
+                    <span className="text-primary text-decoration-underline">
+                      21
+                    </span>{" "}
+                    Pending Approvals &amp;{" "}
+                    <span className="text-primary text-decoration-underline">
+                      14
+                    </span>{" "}
+                    Leave Requests
+                  </p>
+                </div>
+              </div>
+       
+            </div>
+          </div>
           <div className="alert bg-secondary-transparent alert-dismissible fade show mb-4">
             Your Leave Request on“24th April 2024”has been Approved!!!
             <button
@@ -197,6 +248,8 @@ const EmployeeDashboard = () => {
               <i className="ti ti-x" />
             </button>
           </div>
+
+          
           <div className="row">
             <div className="col-xl-4 d-flex">
               <div className="card position-relative flex-fill">

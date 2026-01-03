@@ -319,6 +319,7 @@ import { Video } from "react-feather";
 import EmployeeContractKHR from "@/KHRModules/EmployeeContract/EmployeeContractKHR";
 import StructureTypeKHR from "@/KHRModules/payRollModules/structureTypes/StructureTypes";
 import SalaryRuleKHR from "@/KHRModules/payRollModules/SalaryRule/SalaryRule";
+import SalaryStructure from "@/KHRModules/payRollModules/SalaryStructure/SalaryStructure";
 
 const routes = all_routes;
 
@@ -1678,6 +1679,11 @@ export const publicRoutes = [
   {
     path: routes.SalaryRuleKHR,
     element: <SalaryRuleKHR />,
+    route: Route,
+  },
+   {
+    path: routes.SalaryStructure,
+    element: <SalaryStructure />,
     route: Route,
   },
   {

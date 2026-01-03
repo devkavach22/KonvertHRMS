@@ -5,8 +5,11 @@ import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
 import { updateAdminAttendance } from "./AdminAttandanceServices";
 import { useDispatch, useSelector } from "react-redux";
-import { TBSelector, UpdateAdminAttendanceApi, updateState } from "@/Store/Reducers/TBSlice";
-
+import {
+  TBSelector,
+  UpdateAdminAttendanceApi,
+  updateState,
+} from "@/Store/Reducers/TBSlice";
 
 interface Props {
   attendance: any;
@@ -14,8 +17,20 @@ interface Props {
   onSuccess: () => void;
 }
 
-const EditAttendanceModal: React.FC<Props> = ({ attendance, onClose, onSuccess }) => {
-  const { isUpdateAdminAttendanceApi, isUpdateAdminAttendanceApiFetching, UpdateAdminAttendanceApiData } = useSelector(TBSelector)
+const EditAttendanceModal: React.FC<Props> = ({
+  attendance,
+  onClose,
+  onSuccess,
+}) => {
+  const {
+    isUpdateAdminAttendanceApi,
+    isUpdateAdminAttendanceApiFetching,
+    UpdateAdminAttendanceApiData,
+  } = useSelector(TBSelector);
+
+  console.log("====================================");
+  console.log(attendance, "attendancecdcdcd");
+  console.log("====================================");
 
   const dispatch = useDispatch();
   const [formData, setFormData] = useState<any>({
@@ -39,12 +54,14 @@ const EditAttendanceModal: React.FC<Props> = ({ attendance, onClose, onSuccess }
           : dayjs(),
         check_in:
           attendance.CheckIn && attendance.CheckIn !== "-"
-            ? dayjs(attendance.CheckIn, "hh:mm A")
+            ? dayjs(attendance.CheckIn, "HH:mm")
             : null,
+
         check_out:
           attendance.CheckOut && attendance.CheckOut !== "-"
-            ? dayjs(attendance.CheckOut, "hh:mm A")
+            ? dayjs(attendance.CheckOut, "HH:mm")
             : null,
+
         late_time_display: attendance.Late
           ? Number(attendance.Late.replace(/\D/g, ""))
           : "",
@@ -53,11 +70,7 @@ const EditAttendanceModal: React.FC<Props> = ({ attendance, onClose, onSuccess }
     }
   }, [attendance]);
 
-
   console.log(formData, "formdattatt");
-
-
-
 
   const handleSubmit = async () => {
     const date = formData.date?.format("YYYY-MM-DD");
@@ -78,7 +91,12 @@ const EditAttendanceModal: React.FC<Props> = ({ attendance, onClose, onSuccess }
     };
 
     console.log("EDIT ATTENDANCE PAYLOAD 👉", payload);
-    dispatch(UpdateAdminAttendanceApi({ payload: payload, attendanceId: attendance.id }));
+    dispatch(
+      UpdateAdminAttendanceApi({
+        payload: payload,
+        attendanceId: attendance.id,
+      })
+    );
     // try {
     //   await updateAdminAttendance(attendance.id, payload);
 
@@ -95,7 +113,7 @@ const EditAttendanceModal: React.FC<Props> = ({ attendance, onClose, onSuccess }
     if (isUpdateAdminAttendanceApi) {
       onClose();
       onSuccess();
-      dispatch(updateState({ isUpdateAdminAttendanceApi: false }))
+      dispatch(updateState({ isUpdateAdminAttendanceApi: false }));
     }
   }, [isUpdateAdminAttendanceApi]);
   return (
@@ -110,9 +128,7 @@ const EditAttendanceModal: React.FC<Props> = ({ attendance, onClose, onSuccess }
         <DatePicker
           className="w-100"
           value={formData.date}
-          onChange={(value) =>
-            setFormData({ ...formData, date: value })
-          }
+          onChange={(value) => setFormData({ ...formData, date: value })}
         />
       </div>
 
@@ -124,9 +140,7 @@ const EditAttendanceModal: React.FC<Props> = ({ attendance, onClose, onSuccess }
             className="w-100"
             format="hh:mm A"
             value={formData.check_in}
-            onChange={(value) =>
-              setFormData({ ...formData, check_in: value })
-            }
+            onChange={(value) => setFormData({ ...formData, check_in: value })}
           />
         </div>
 
@@ -136,9 +150,7 @@ const EditAttendanceModal: React.FC<Props> = ({ attendance, onClose, onSuccess }
             className="w-100"
             format="hh:mm A"
             value={formData.check_out}
-            onChange={(value) =>
-              setFormData({ ...formData, check_out: value })
-            }
+            onChange={(value) => setFormData({ ...formData, check_out: value })}
           />
         </div>
       </div>
@@ -150,8 +162,7 @@ const EditAttendanceModal: React.FC<Props> = ({ attendance, onClose, onSuccess }
             label="Late (minutes)"
             name="late_time_display"
             type="number"
-            value={formData.
-              late_time_display}
+            value={formData.late_time_display}
             onChange={(e) =>
               setFormData({
                 ...formData,
@@ -159,8 +170,6 @@ const EditAttendanceModal: React.FC<Props> = ({ attendance, onClose, onSuccess }
               })
             }
           />
-
-
         </div>
       </div>
 

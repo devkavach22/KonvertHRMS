@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { all_routes } from "@/router/all_routes";
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
-import attendanceData from "./empoloyeeAttendanceCard.json";
 
 import { useEffect, useState } from "react";
 import DatatableKHR from "@/CommonComponent/DataTableKHR/DatatableKHR";
@@ -124,48 +123,50 @@ const EmployeeAttendanceKHR = () => {
   };
 
   useEffect(() => {
-    dispatch(AdminWorkingHours());
+    // dispatch(AdminWorkingHours());
     dispatch(EmployeeAttendanceApi());
   }, []);
+  console.log(EmployeeAttendanceApiData,"EmployeeAttendanceApiData")
+  console.log(employeeId, "employeeIdddd");
+
   useEffect(() => {
     if (isEmployeeAttendanceApi) {
-      setEmployeeId(EmployeeAttendanceApiData?.meta?.employee_id || null);
+      setEmployeeId(EmployeeAttendanceApiData?.data?.employee?.employee_id || null);
 
       const mappedData: AttendanceAdminData[] =
-        EmployeeAttendanceApiData?.data?.map((item: any) => {
-          return {
-            Image: item.employee?.avatar || "avatar-1.jpg",
-            Role: item.employee?.role || "Employee",
-            Status: item.check_in ? "Present" : "Absent",
-            StartDate: formatDateOnly(item.check_in),
-            EndDate: item.check_out ? formatDateOnly(item.check_out) : "-",
-            CheckIn: formatTime(item.check_in),
-            CheckOut: formatTime(item.check_out),
-            LateTime: item.late_time_display,
-            Late: item.is_late_in ? "Yes" : "No",
-            Overtime:
-              typeof item.overtime_hours === "number"
-                ? item.overtime_hours.toFixed(2)
-                : item.overtime_hours
-                ? String(item.overtime_hours)
-                : "0",
-            ProductionHours:
-              typeof item.worked_hours === "number"
-                ? item.worked_hours.toFixed(2)
-                : item.worked_hours
-                ? String(item.worked_hours)
-                : "0",
-          };
-        });
+        EmployeeAttendanceApiData?.data?.attendance_records?.map(
+          (item: any) => {
+            return {
+              Image: item.employee?.avatar || "avatar-1.jpg",
+              Role: item.employee?.role || "Employee",
+              Status: item.check_in ? "Present" : "Absent",
+              StartDate: formatDateOnly(item.check_in),
+              EndDate: item.check_out ? formatDateOnly(item.check_out) : "-",
+              CheckIn: formatTime(item.check_in),
+              CheckOut: formatTime(item.check_out),
+              LateTime: item.late_time_display,
+              Late: item.is_late_in ? "Yes" : "No",
+              Overtime:
+                typeof item.overtime_hours === "number"
+                  ? item.overtime_hours.toFixed(2)
+                  : item.overtime_hours
+                  ? String(item.overtime_hours)
+                  : "0",
+            ProductionHours: formatHours(item.total_productive_hours),
+
+            };
+          }
+        );
       setData(mappedData);
       dispatch(updateState({ isEmployeeAttendanceApi: false }));
     }
   }, [isEmployeeAttendanceApi, isEmployeeAttendanceApiFetching]);
 
   useEffect(() => {
-    if (!isAdminWorkingHours || !AdminWorkingHoursData?.data) return;
+    if (!isEmployeeAttendanceApi || !EmployeeAttendanceApiData?.data) return;
 
-    const { today, week, month } = AdminWorkingHoursData.data;
+    const { today, week, month } =
+      EmployeeAttendanceApiData.data.working_hours_summary;
 
     const cards = [
       {
@@ -198,18 +199,88 @@ const EmployeeAttendanceKHR = () => {
       {
         icon: "ti ti-calendar-star",
         bg: "pink",
-        title: "Break Hours This Month",
-        value: month.total_break_hours?.toFixed(2) || "0",
-        total: month.allowed_hours.toString(),
-        trend: "Break Usage",
-        trendType: "down",
+        title: "Overtime Allowed (Month)",
+        value: month.total_overtime_hours_worked.toString(),
+        total: month.total_overtime_hours_allowed.toString(),
+        trend: "Overtime",
+        trendType: "up",
       },
     ];
 
     setSummaryCards(cards);
+  }, [isEmployeeAttendanceApi, EmployeeAttendanceApiData]);
 
-    dispatch(updateState({ isAdminWorkingHours: false }));
-  }, [isAdminWorkingHours]);
+  const [workStats, setWorkStats] = useState<WorkStat[]>([]);
+
+  const formatHours = (hours: number) => {
+  if (!hours || hours <= 0) return "0h 0m";
+
+  const totalMinutes = Math.round(hours * 60);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+
+  return `${h}h ${m}m`;
+};
+
+
+
+  useEffect(() => {
+    if (!EmployeeAttendanceApiData?.data?.attendance_records) return;
+
+    const { attendance_records, working_hours_summary } =
+      EmployeeAttendanceApiData.data;
+
+    // 🧮 Calculations
+    const totalWorkingHours = attendance_records.reduce(
+      (sum: number, r: any) => sum + Number(r.total_working_hours || 0),
+      0
+    );
+
+    console.log(totalWorkingHours,"totalWorkingHours");
+    
+
+    const productiveHours = attendance_records.reduce(
+      (sum: number, r: any) => sum + Number(r.total_productive_hours || 0),
+      0
+    );
+
+    const overtimeHours = attendance_records.reduce(
+      (sum: number, r: any) =>
+        Number(r.overtime_hours) > 0 ? sum + Number(r.overtime_hours) : sum,
+      0
+    );
+
+    const breakHours =
+      Number(working_hours_summary?.today?.total_break_hours) || 0;
+
+    // 🧾 Build stats
+    const stats: WorkStat[] = [
+      {
+        label: "Total Working Hours",
+        value: formatHours(totalWorkingHours),
+        color: "dark",
+      },
+      {
+        label: "Productive Hours",
+        value: formatHours(productiveHours),
+        color: "success",
+      },
+      {
+        label: "Break Hours",
+        value: formatHours(breakHours),
+        color: "warning",
+      },
+      {
+        label: "Overtime",
+        value: formatHours(overtimeHours),
+        color: "info",
+      },
+    ];
+
+    console.log("Final Work Stats 👉", stats);
+
+    setWorkStats(stats);
+  }, [EmployeeAttendanceApiData]);
 
   const columns = [
     {
@@ -294,23 +365,7 @@ const EmployeeAttendanceKHR = () => {
       sorter: (a: AttendanceAdminData, b: AttendanceAdminData) =>
         a.ProductionHours.length - b.ProductionHours.length,
     },
-    {
-      title: "",
-      dataIndex: "actions",
-      render: () => (
-        <div className="action-icon d-inline-flex">
-          <button
-            type="button"
-            className="me-2"
-            data-bs-toggle="modal"
-            data-bs-target="#edit_attendance"
-            aria-label="Edit attendance"
-          >
-            <i className="ti ti-edit" />
-          </button>
-        </div>
-      ),
-    },
+  
     {
       title: "Action",
       dataIndex: "actions",
@@ -480,7 +535,7 @@ trendType: card.trendType === "up" ? "up" : "down",
 /> */}
                 <SummaryCards cards={summaryCards} />
 
-                <WorkStatsWithTimeline stats={attendanceData.workStats} />
+                <WorkStatsWithTimeline stats={workStats} />
               </div>
             </div>
           </div>

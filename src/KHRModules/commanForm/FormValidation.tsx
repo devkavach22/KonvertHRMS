@@ -143,25 +143,25 @@ export const useFormValidation = () => {
       errors.name = "Structure Type is required";
     }
 
-    if (!data.country) {
-      errors.country = "Country is required";
-    }
+    // if (!data.country) {
+    //   errors.country = "Country is required";
+    // }
 
     if (!data.default_wage_type) {
       errors.default_wage_type = "Default Wage Type is required";
     }
 
-    if (!data.default_schedule_pay) {
-      errors.default_schedule_pay = "Default Scheduled Pay is required";
-    }
+    // if (!data.default_schedule_pay) {
+    //   errors.default_schedule_pay = "Default Scheduled Pay is required";
+    // }
 
-    if (!data.default_working_hours) {
-      errors.default_working_hours = "Default Working Hours is required";
-    }
+    // if (!data.default_working_hours) {
+    //   errors.default_working_hours = "Default Working Hours is required";
+    // }
 
-    if (!data.regular_pay_structure) {
-      errors.regular_pay_structure = "Regular Pay Structure is required";
-    }
+    // if (!data.regular_pay_structure) {
+    //   errors.regular_pay_structure = "Regular Pay Structure is required";
+    // }
 
     if (!data.default_work_entry_type) {
       errors.default_work_entry_type = "Default Work Entry Type is required";
