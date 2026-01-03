@@ -13,7 +13,7 @@ const authheader = () => {
   };
 };
 
-console.log(user_id, "user_iddd");
+// console.log(user_id, "user_iddd");
 
 //Usersignin
 export const Usersignin = createAsyncThunk(
@@ -53,7 +53,7 @@ export const AttendancesApi = createAsyncThunk(
         headers: {
           "Content-Type": "application/json",
         },
-        url: `api/admin/attendances`,
+        url: `/api/admin/attendances`,
         params: { user_id },
       });
       // console.log(result.data)
@@ -84,10 +84,9 @@ export const AttendancesGetApi = createAsyncThunk(
           "Content-Type": "application/json",
           authorization: `${localStorage.getItem("authToken")}`,
         },
-        url: `api/admin/attendances`,
+        url: `/api/admin/attendances`,
         params: { user_id },
       });
-      // console.log(result.data)
       if (result.data) {
         return result.data;
       } else {
@@ -246,9 +245,15 @@ export const Employeeregularization = createAsyncThunk(
       if (result.data) {
         return result.data;
       } else {
+        console.log('====================================');
+        console.log(result,"uiui");
+        console.log('====================================');
         return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
       }
     } catch (error: any) {
+      console.log('====================================');
+      console.log(error,"uiui");
+      console.log('====================================');
       console.error(
         "try catch [ AdminWorkingHours ] error.message >>",
         error?.message
@@ -266,7 +271,7 @@ export const CheckinCheckout = createAsyncThunk(
 
       const payload = {
         ...userdata,
-        email, 
+        email,
       };
 
       console.log(payload, "final payload");
@@ -298,7 +303,6 @@ export const CheckinCheckout = createAsyncThunk(
   }
 );
 
-
 export const GetStructureTypes = createAsyncThunk(
   "GetStructureTypes",
   async (userdata, thunkAPI) => {
@@ -329,8 +333,6 @@ export const GetStructureTypes = createAsyncThunk(
     }
   }
 );
-
-
 
 export const getCountries = createAsyncThunk(
   "getCountries",
@@ -394,6 +396,161 @@ export const getWorkingSchedules = createAsyncThunk(
   }
 );
 
+export const getRegularPayStructure = createAsyncThunk(
+  "getRegularPayStructure",
+  async (userdata, thunkAPI) => {
+    console.log(userdata);
+    try {
+      let result = await axios({
+        method: "GET",
+        baseURL: CONFIG.BASE_URL_ALL,
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `${localStorage.getItem("authToken")}`,
+        },
+        url: `/api/salary-structure`,
+        params: { user_id },
+      });
+      // console.log(result.data)
+      if (result.data) {
+        return result.data;
+      } else {
+        return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
+      }
+    } catch (error: any) {
+      console.error(
+        "try catch [ getRegularPayStructure ] error.message >>",
+        error?.message
+      );
+      return thunkAPI.rejectWithValue({ error: error?.message });
+    }
+  }
+);
+
+export const getWorkEntryType = createAsyncThunk(
+  "getWorkEntryType",
+  async (userdata, thunkAPI) => {
+    console.log(userdata);
+    try {
+      let result = await axios({
+        method: "GET",
+        baseURL: CONFIG.BASE_URL_ALL,
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `${localStorage.getItem("authToken")}`,
+        },
+        url: `/api/work-entry-types`,
+        params: { user_id },
+      });
+      // console.log(result.data)
+      if (result.data) {
+        return result.data;
+      } else {
+        return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
+      }
+    } catch (error: any) {
+      console.error(
+        "try catch [ getRegularPayStructure ] error.message >>",
+        error?.message
+      );
+      return thunkAPI.rejectWithValue({ error: error?.message });
+    }
+  }
+);
+
+export const getSalaryRules = createAsyncThunk(
+  "getSalaryRules",
+  async (userdata, thunkAPI) => {
+    console.log(userdata);
+    try {
+      let result = await axios({
+        method: "GET",
+        baseURL: CONFIG.BASE_URL_ALL,
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `${localStorage.getItem("authToken")}`,
+        },
+        url: `/api/salary-rules`,
+        params: { user_id },
+      });
+      // console.log(result.data)
+      if (result.data) {
+        return result.data;
+      } else {
+        return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
+      }
+    } catch (error: any) {
+      console.error(
+        "try catch [ getSalaryRules ] error.message >>",
+        error?.message
+      );
+      return thunkAPI.rejectWithValue({ error: error?.message });
+    }
+  }
+);
+
+export const getSalaryStructure = createAsyncThunk(
+  "getSalaryStructure",
+  async (userdata, thunkAPI) => {
+    console.log(userdata);
+    try {
+      let result = await axios({
+        method: "GET",
+        baseURL: CONFIG.BASE_URL_ALL,
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `${localStorage.getItem("authToken")}`,
+        },
+        url: `/api/salary-structure`,
+        params: { user_id },
+      });
+      // console.log(result.data)
+      if (result.data) {
+        return result.data;
+      } else {
+        return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
+      }
+    } catch (error: any) {
+      console.error(
+        "try catch [ getSalaryRules ] error.message >>",
+        error?.message
+      );
+      return thunkAPI.rejectWithValue({ error: error?.message });
+    }
+  }
+);
+
+
+export const getDashboadrdCount = createAsyncThunk(
+  "getDashboadrdCount",
+  async (userdata, thunkAPI) => {
+    console.log(userdata);
+    try {
+      let result = await axios({
+        method: "GET",
+        baseURL: CONFIG.BASE_URL_ALL,
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `${localStorage.getItem("authToken")}`,
+        },
+        url: `/api/getClientLeaveDashboardCount`,
+        params: { user_id },
+      });
+      // console.log(result.data)
+      if (result.data) {
+        return result.data;
+      } else {
+        return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
+      }
+    } catch (error: any) {
+      console.error(
+        "try catch [ getSalaryRules ] error.message >>",
+        error?.message
+      );
+      return thunkAPI.rejectWithValue({ error: error?.message });
+    }
+  }
+);
 export const TBSlice = createSlice({
   name: "TBSlice",
   initialState: {
@@ -417,6 +574,32 @@ export const TBSlice = createSlice({
     isAdminWorkingHoursFetching: false,
     AdminWorkingHoursData: [],
 
+    // getDashboadrdCount
+     isgetDashboadrdCount: false,
+    isgetDashboadrdCountFetching: false,
+    getDashboadrdCountData: [],
+
+
+    // getSalaryStructure
+    isgetSalaryStructure: false,
+    isgetSalaryStructureFetching: false,
+    getSalaryStructureData: [],
+
+    // getWorkEntryType
+    isgetWorkEntryType: false,
+    isgetWorkEntryTypeFetching: false,
+    getWorkEntryTypeData: [],
+
+    //  getSalaryRules
+    isgetSalaryRules: false,
+    isgetSalaryRulesFetching: false,
+    getSalaryRulesData: [],
+
+    // getRegularPayStructure
+    isgetRegularPayStructure: false,
+    isgetRegularPayStructureFetching: false,
+    getRegularPayStructureData: [],
+
     // Employeeregularization
     isEmployeeregularization: false,
     isEmployeeregularizationFetching: false,
@@ -428,7 +611,7 @@ export const TBSlice = createSlice({
     GetCountriesData: [],
 
     // getWorkingSchedules
-        isgetWorkingSchedules: false,
+    isgetWorkingSchedules: false,
     isgetWorkingSchedulesFetching: false,
     getWorkingSchedulesData: [],
 
@@ -485,8 +668,8 @@ export const TBSlice = createSlice({
           ? payload.isAttendancesGetApi
           : state.isAttendancesGetApi;
 
-           // getWorkingSchedules
-     state.isgetWorkingSchedules =
+      // getWorkingSchedules
+      state.isgetWorkingSchedules =
         payload.isgetWorkingSchedules !== undefined
           ? payload.isgetWorkingSchedules
           : state.isgetWorkingSchedules;
@@ -496,7 +679,13 @@ export const TBSlice = createSlice({
           ? payload.isAdminWorkingHours
           : state.isAdminWorkingHours;
 
-          // getCountries
+      // getRegularPayStructure
+
+      state.isgetRegularPayStructure =
+        payload.isgetRegularPayStructure !== undefined
+          ? payload.isgetRegularPayStructure
+          : state.isgetRegularPayStructure;
+      // getCountries
       state.isGetCountries =
         payload.isGetCountries !== undefined
           ? payload.isGetCountries
@@ -519,7 +708,13 @@ export const TBSlice = createSlice({
           ? payload.isCheckinCheckout
           : state.isCheckinCheckout;
 
-          
+      // getWorkEntryType
+
+      state.isgetWorkEntryType =
+        payload.isgetWorkEntryType !== undefined
+          ? payload.isgetWorkEntryType
+          : state.isgetWorkEntryType;
+
       // GetStructureTypes
       state.isGetStructureTypes =
         payload.isGetStructureTypes !== undefined
@@ -535,6 +730,20 @@ export const TBSlice = createSlice({
         payload.isUpdateAdminAttendanceApi !== undefined
           ? payload.isUpdateAdminAttendanceApi
           : state.isUpdateAdminAttendanceApi;
+
+              // getDashboadrdCount
+    
+
+          state.isgetDashboadrdCount =
+        payload.isgetDashboadrdCount !== undefined
+          ? payload.isgetDashboadrdCount
+          : state.isgetDashboadrdCount;
+
+
+      state.isgetSalaryRules =
+        payload.isgetSalaryRules !== undefined
+          ? payload.isgetSalaryRules
+          : state.isgetSalaryRules;
 
       // successUpdate
       state.isSuccess =
@@ -831,6 +1040,7 @@ export const TBSlice = createSlice({
     builder.addCase(
       EmployeeRegcategories.rejected,
       (state, { payload }: { payload: any }) => {
+        
         try {
           state.isEmployeeRegcategories = false;
           state.isEmployeeRegcategoriesFetching = false;
@@ -872,13 +1082,16 @@ export const TBSlice = createSlice({
     builder.addCase(
       Employeeregularization.rejected,
       (state, { payload }: { payload: any }) => {
+        console.log('====================================');
+        console.log(payload,"kpkpkp");
+        console.log('====================================');
         try {
           state.isEmployeeregularization = false;
           state.isEmployeeregularizationFetching = false;
           state.isError = true;
           payload
-            ? (state.errorMessage = payload?.error?.message
-                ? "Please try again (There was some network issue)."
+            ? (state.errorMessage = payload?.error
+                ? payload?.error
                 : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
@@ -933,9 +1146,8 @@ export const TBSlice = createSlice({
     builder.addCase(CheckinCheckout.pending, (state) => {
       state.isCheckinCheckoutFetching = true;
     });
-    
 
-      builder.addCase(GetStructureTypes.fulfilled, (state, { payload }) => {
+    builder.addCase(GetStructureTypes.fulfilled, (state, { payload }) => {
       try {
         state.GetStructureTypesData = payload;
         state.isGetStructureTypes = true;
@@ -975,9 +1187,8 @@ export const TBSlice = createSlice({
     builder.addCase(GetStructureTypes.pending, (state) => {
       state.isGetStructureTypesFetching = true;
     });
- 
 
-       builder.addCase(getCountries.fulfilled, (state, { payload }) => {
+    builder.addCase(getCountries.fulfilled, (state, { payload }) => {
       try {
         state.GetCountriesData = payload;
         state.isGetCountries = true;
@@ -1018,8 +1229,7 @@ export const TBSlice = createSlice({
       state.isGetCountriesFetching = true;
     });
 
-
-        builder.addCase(getWorkingSchedules.fulfilled, (state, { payload }) => {
+    builder.addCase(getWorkingSchedules.fulfilled, (state, { payload }) => {
       try {
         state.getWorkingSchedulesData = payload;
         state.isgetWorkingSchedules = true;
@@ -1058,6 +1268,215 @@ export const TBSlice = createSlice({
     );
     builder.addCase(getWorkingSchedules.pending, (state) => {
       state.isgetWorkingSchedulesFetching = true;
+    });
+
+    builder.addCase(getRegularPayStructure.fulfilled, (state, { payload }) => {
+      try {
+        state.getRegularPayStructureData = payload;
+        state.isgetRegularPayStructure = true;
+        state.isgetRegularPayStructureFetching = false;
+        state.isSuccess = true;
+        state.successMessage = payload?.message || "Hello";
+        state.isError = false;
+        state.errorMessage = "";
+        return state;
+      } catch (error) {
+        console.error(
+          "Error: AttendancesGetApi.fulfilled try catch error >>",
+          error
+        );
+      }
+    });
+    builder.addCase(
+      getRegularPayStructure.rejected,
+      (state, { payload }: { payload: any }) => {
+        try {
+          state.isgetRegularPayStructure = false;
+          state.isgetRegularPayStructureFetching = false;
+          state.isError = true;
+          payload
+            ? (state.errorMessage = payload?.error?.message
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
+            : (state.errorMessage = "API Response Invalid. Please Check API");
+        } catch (error) {
+          console.error(
+            "Error: [AttendancesGetApi.rejected] try catch error >>",
+            error
+          );
+        }
+      }
+    );
+    builder.addCase(getRegularPayStructure.pending, (state) => {
+      state.isgetRegularPayStructureFetching = true;
+    });
+
+    builder.addCase(getWorkEntryType.fulfilled, (state, { payload }) => {
+      try {
+        state.getWorkEntryTypeData = payload;
+        state.isgetWorkEntryType = true;
+        state.isgetWorkEntryTypeFetching = false;
+        state.isSuccess = true;
+        state.successMessage = payload?.message || "Hello";
+        state.isError = false;
+        state.errorMessage = "";
+        return state;
+      } catch (error) {
+        console.error(
+          "Error: AttendancesGetApi.fulfilled try catch error >>",
+          error
+        );
+      }
+    });
+    builder.addCase(
+      getWorkEntryType.rejected,
+      (state, { payload }: { payload: any }) => {
+        try {
+          state.isgetWorkEntryType = false;
+          state.isgetWorkEntryTypeFetching = false;
+          state.isError = true;
+          payload
+            ? (state.errorMessage = payload?.error?.message
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
+            : (state.errorMessage = "API Response Invalid. Please Check API");
+        } catch (error) {
+          console.error(
+            "Error: [AttendancesGetApi.rejected] try catch error >>",
+            error
+          );
+        }
+      }
+    );
+    builder.addCase(getWorkEntryType.pending, (state) => {
+      state.isgetWorkEntryTypeFetching = true;
+    });
+
+    builder.addCase(getSalaryRules.fulfilled, (state, { payload }) => {
+      try {
+        state.getSalaryRulesData = payload;
+        state.isgetSalaryRules = true;
+        state.isgetSalaryRulesFetching = false;
+        state.isSuccess = true;
+        state.successMessage = payload?.message || "Hello";
+        state.isError = false;
+        state.errorMessage = "";
+        return state;
+      } catch (error) {
+        console.error(
+          "Error: AttendancesGetApi.fulfilled try catch error >>",
+          error
+        );
+      }
+    });
+    builder.addCase(
+      getSalaryRules.rejected,
+      (state, { payload }: { payload: any }) => {
+        try {
+          state.isgetSalaryRules = false;
+          state.isgetSalaryRulesFetching = false;
+          state.isError = true;
+          payload
+            ? (state.errorMessage = payload?.error?.message
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
+            : (state.errorMessage = "API Response Invalid. Please Check API");
+        } catch (error) {
+          console.error(
+            "Error: [AttendancesGetApi.rejected] try catch error >>",
+            error
+          );
+        }
+      }
+    );
+    builder.addCase(getSalaryRules.pending, (state) => {
+      state.isgetSalaryRulesFetching = true;
+    });
+
+    
+
+       builder.addCase(getSalaryStructure.fulfilled, (state, { payload }) => {
+      try {
+        state.getSalaryStructureData = payload;
+        state.isgetSalaryStructure = true;
+        state.isgetSalaryStructureFetching = false;
+        state.isSuccess = true;
+        state.successMessage = payload?.message || "Hello";
+        state.isError = false;
+        state.errorMessage = "";
+        return state;
+      } catch (error) {
+        console.error(
+          "Error: AttendancesGetApi.fulfilled try catch error >>",
+          error
+        );
+      }
+    });
+    builder.addCase(
+      getSalaryStructure.rejected,
+      (state, { payload }: { payload: any }) => {
+        try {
+          state.isgetSalaryStructure = false;
+          state.isgetSalaryStructureFetching = false;
+          state.isError = true;
+          payload
+            ? (state.errorMessage = payload?.error?.message
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
+            : (state.errorMessage = "API Response Invalid. Please Check API");
+        } catch (error) {
+          console.error(
+            "Error: [AttendancesGetApi.rejected] try catch error >>",
+            error
+          );
+        }
+      }
+    );
+    builder.addCase(getSalaryStructure.pending, (state) => {
+      state.isgetSalaryStructureFetching = true;
+    });
+
+  
+
+        builder.addCase(getDashboadrdCount.fulfilled, (state, { payload }) => {
+      try {
+        state.getDashboadrdCountData = payload;
+        state.isgetDashboadrdCount = true;
+        state.isgetDashboadrdCountFetching = false;
+        state.isSuccess = true;
+        state.successMessage = payload?.message || "Hello";
+        state.isError = false;
+        state.errorMessage = "";
+        return state;
+      } catch (error) {
+        console.error(
+          "Error: AttendancesGetApi.fulfilled try catch error >>",
+          error
+        );
+      }
+    });
+    builder.addCase(
+      getDashboadrdCount.rejected,
+      (state, { payload }: { payload: any }) => {
+        try {
+          state.isgetDashboadrdCount = false;
+          state.isgetDashboadrdCountFetching = false;
+          state.isError = true;
+          payload
+            ? (state.errorMessage = payload?.error?.message
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
+            : (state.errorMessage = "API Response Invalid. Please Check API");
+        } catch (error) {
+          console.error(
+            "Error: [AttendancesGetApi.rejected] try catch error >>",
+            error
+          );
+        }
+      }
+    );
+    builder.addCase(getDashboadrdCount.pending, (state) => {
+      state.isgetDashboadrdCountFetching = true;
     });
   },
 });

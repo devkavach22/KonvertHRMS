@@ -11,11 +11,21 @@ import ProjectModals from "../../../core/modals/projectModal";
 import RequestModals from "../../../core/modals/requestModal";
 import TodoModal from "../../../core/modals/todoModal";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
+import { useDispatch, useSelector } from "react-redux";
+import { getDashboadrdCount, TBSelector } from "@/Store/Reducers/TBSlice";
 
 const AdminDashboard = () => {
   const routes = all_routes;
 
   const [isTodo, setIsTodo] = useState([false, false, false]);
+  const userName = localStorage.getItem("full_name") || "John Doe";
+  const dispatch = useDispatch();
+  const {
+    // getDashboadrdCount
+    isgetDashboadrdCount,
+    isgetDashboadrdCountFetching,
+    getDashboadrdCountData,
+  } = useSelector(TBSelector);
 
   const [date, setDate] = useState(new Date());
 
@@ -299,6 +309,13 @@ const AdminDashboard = () => {
     setSemidonutOptions(options);
   }, []);
 
+  useEffect(() => {
+    // fetchData();
+    dispatch(getDashboadrdCount());
+  }, []);
+  console.log(getDashboadrdCountData,"getDashboadrdCountData");
+  
+
   return (
     <>
       {/* Page Wrapper */}
@@ -382,7 +399,7 @@ const AdminDashboard = () => {
                 </span>
                 <div className="ms-3">
                   <h3 className="mb-2">
-                    Welcome Back, Adrian{" "}
+                    Welcome Back, {userName}{" "}
                     <Link to="#" className="edit-icon">
                       <i className="ti ti-edit fs-14" />
                     </Link>

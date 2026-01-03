@@ -22,6 +22,7 @@ import React from "react";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary.js";
 import { initializePreloading } from "./router/preloadUtils";
 import { PerformanceProvider } from "./core/providers/PerformanceProvider";
+import { ToastContainer } from "react-toastify";
 
 // Initialize preloading for better performance
 initializePreloading();
@@ -35,6 +36,8 @@ createRoot(document.getElementById("root")!).render(
             <ErrorBoundary
               fallback={<div>Oops! An unexpected error occurred.</div>}
             >
+              
+                <ToastContainer />
               <ALLRoutes />
             </ErrorBoundary>
           </BrowserRouter>

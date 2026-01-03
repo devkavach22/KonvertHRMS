@@ -1,15 +1,5 @@
-// import { attendance_admin_details } from '../../../core/data/json/attendanceadmin';
-
-// import { all_routes } from '../../../router/all_routes';
 import { all_routes } from "@/router/all_routes";
-// import PredefinedDateRanges from '../../../core/common/datePicker';
-// import Table from "../../../core/common/dataTable/index";
-// import ImageWithBasePath from '../../../core/common/imageWithBasePath';
 import ImageWithBasePath from "@/core/common/imageWithBasePath";
-// import CommonSelect from '../../../core/common/commonSelect';
-// import CollapseHeader from '../../../core/common/collapse-header/collapse-header';
-import { toast } from "react-toastify";
-import attendanceData from "./CommonAttendanceStatus.json";
 
 import { useEffect, useState } from "react";
 import DatatableKHR from "@/CommonComponent/DataTableKHR/DatatableKHR";
@@ -418,20 +408,7 @@ const AdminAttandanceKHR = () => {
     },
   ];
 
-  const statusChoose = [
-    { value: "Select", label: "Select" },
-    { value: "Present", label: "Present" },
-    { value: "Absent", label: "Absent" },
-  ];
 
-  const getModalContainer = () => {
-    const modalElement = document.getElementById("modal-datepicker");
-    return modalElement ? modalElement : document.body;
-  };
-  const getModalContainer2 = () => {
-    const modalElement = document.getElementById("modal_datepicker");
-    return modalElement ? modalElement : document.body;
-  };
 
   return (
     <>
