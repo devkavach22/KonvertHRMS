@@ -18,9 +18,9 @@ interface Props {
   onClose: () => void;
 }
 
-interface Option {
+interface CategoryOption {
   label: string;
-  value: string;
+  value: number;
 }
 
 const AttendanceQueryModal: React.FC<Props> = ({
@@ -74,7 +74,7 @@ const AttendanceQueryModal: React.FC<Props> = ({
   
 useEffect(() => {
 
-        if (isError) {
+        if (!isError) {
            console.log(isError,errorMessage,"iiiiiiiii");
             toast.error(
                 errorMessage || "Failed to submit regularization",
@@ -193,7 +193,7 @@ const handleSubmit = async () => {
       className="modal fade show d-block"
       style={{ background: "rgba(0,0,0,.5)" }}
     >
-      <ToastContainer />
+    
       <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content">
           <div className="modal-header">

@@ -26,6 +26,7 @@ const getFreshToken = async () => {
     console.log(response,"werrw");
     
     const newToken = response.data.token;
+
     if (newToken) {
       localStorage.removeItem("authToken");
       localStorage.setItem("authToken", newToken);

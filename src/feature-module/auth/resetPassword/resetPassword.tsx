@@ -227,10 +227,11 @@ const ResetPassword = () => {
                             required
                           />
                           <span
-                            className={`ti toggle-passwords ${passwordVisibility.tempPassword
+                            className={`ti toggle-passwords ${
+                              passwordVisibility.tempPassword
                                 ? "ti-eye"
                                 : "ti-eye-off"
-                              }`}
+                            }`}
                             onClick={() =>
                               togglePasswordVisibility("tempPassword")
                             }
@@ -258,10 +259,11 @@ const ResetPassword = () => {
                             required
                           />
                           <span
-                            className={`ti toggle-passwords ${passwordVisibility.newPassword
+                            className={`ti toggle-passwords ${
+                              passwordVisibility.newPassword
                                 ? "ti-eye"
                                 : "ti-eye-off"
-                              }`}
+                            }`}
                             onClick={() =>
                               togglePasswordVisibility("newPassword")
                             }
@@ -274,10 +276,10 @@ const ResetPassword = () => {
                               passwordResponce.passwordResponceKey === "3"
                                 ? "text-success"
                                 : passwordResponce.passwordResponceKey === "2"
-                                  ? "text-info"
-                                  : passwordResponce.passwordResponceKey === "1"
-                                    ? "text-warning"
-                                    : "text-danger"
+                                ? "text-info"
+                                : passwordResponce.passwordResponceKey === "1"
+                                ? "text-warning"
+                                : "text-danger"
                             }
                           >
                             {passwordResponce.passwordResponceText}
@@ -302,10 +304,11 @@ const ResetPassword = () => {
                             required
                           />
                           <span
-                            className={`ti toggle-passwords ${passwordVisibility.confirmPassword
+                            className={`ti toggle-passwords ${
+                              passwordVisibility.confirmPassword
                                 ? "ti-eye"
                                 : "ti-eye-off"
-                              }`}
+                            }`}
                             onClick={() =>
                               togglePasswordVisibility("confirmPassword")
                             }

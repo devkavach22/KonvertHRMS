@@ -9,6 +9,8 @@ import toast from 'react-hot-toast';
 import moment from "moment";
 import { DatePicker, Radio, Checkbox } from "antd";
 import dayjs from "dayjs";
+import {getHolidays } from "@/KHRModules/LeaveModules/PublicHoliday/PublicHolidayServices"
+import { getEmployees } from "../../EmployeModules/Employee/EmployeeServices";
 
 interface Props {
   onSuccess: () => void;
@@ -17,9 +19,12 @@ interface Props {
 
 const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
   // Initial state for the new geofence-style attendance fields
+  
   const initialFormState = {
     // new simplified allocation form
+    employee_id: "",
     leave_type: "",
+    holiday_status_id: "",
     allocation_type: "regular",
     date_from: "",
     date_to: "",
@@ -30,8 +35,11 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
   const [formData, setFormData] = useState<any>(initialFormState);
   const [validated, setValidated] = useState(false);
   const [employeesOptions, setEmployeesOptions] = useState<any[]>([]);
+  const [holidaysOptions, setHolidaysOptions] = useState<any[]>([]);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [errors, setErrors] = useState<any>({});
+
+  // console.log({employeesOptions})
 
   const computeAllocationDays = (from?: string | null, to?: string | null): number => {
     if (!from || !to) return 0;
@@ -54,78 +62,73 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
 
   // 1. DATA SYNC: Populate form when editing
   useEffect(() => {
-    if (data) {
-      // Map incoming `data` to the new form shape.
-      let employees: any[] = [];
-      if (Array.isArray((data as any).employees_selection)) {
-        employees = (data as any).employees_selection;
-      } else if (typeof (data as any).employees_selection === "string") {
-        try {
-          const parsed = JSON.parse((data as any).employees_selection);
-          if (Array.isArray(parsed)) employees = parsed;
-        } catch (e) {
-          employees = [];
-        }
-      }
+  if (!data) {
+    setFormData(initialFormState);
+    return;
+  }
 
-      // Mapping for leave_type string to select value
-      const leaveTypeMapping: any = {
-        "Paid Time Off": "1",
-        "Compensatory Days": "2",
-        "Earned Leave (EL)": "3",
-        "Sick Leave": "4",
-        "Annual Leave": "5",
-        "Casual Leave (CL)": "6"
-      };
+  // Leave type mapping (string → select value)
+  const leaveTypeMapping: Record<string, string> = {
+    "Paid Time Off": "1",
+    "Compensatory Days": "2",
+    "Earned Leave (EL)": "3",
+    "Sick Leave": "4",
+    "Annual Leave": "5",
+    "Casual Leave (CL)": "6",
+  };
 
-      const mapped = {
-        // map to new keys
-        leave_type: leaveTypeMapping[(data as any).leave_type] || (data as any).leave_type || "",
-        allocation_type: (data as any).allocation_type ?? "regular",
-        date_from: (data as any).from_date ?? (data as any).date_from ?? (data as any).start_date ?? "",
-        date_to: (data as any).to_date ?? (data as any).date_to ?? (data as any).end_date ?? "",
-        allocation_days: (data as any).number_of_days ?? (data as any).allocation_date ?? (data as any).allocation ?? (data as any).no_of_days ?? null,
-        description: (data as any).description ?? (data as any).reason ?? "",
-      };
+  const mappedLeaveType =
+    typeof data.leave_type === "string"
+      ? leaveTypeMapping[data.leave_type] ?? ""
+      : String(data.leave_type ?? "");
 
-      // If allocation_days not provided, compute from dates
-      if ((mapped.allocation_days === null || mapped.allocation_days === undefined || mapped.allocation_days === "") && mapped.date_from && mapped.date_to) {
-        mapped.allocation_days = computeAllocationDays(mapped.date_from, mapped.date_to);
-      }
+  const fromDate = data.from_date ? dayjs(data.from_date).format("YYYY-MM-DD") : "";
+  const toDate = data.to_date ? dayjs(data.to_date).format("YYYY-MM-DD") : "";
 
-      setFormData(mapped as any);
-    } else {
-      setFormData(initialFormState);
-    }
-  }, [data]);
+  setFormData({
+    employee_id: data.employee_id ?? "", // stays empty if not provided
+    leave_type: mappedLeaveType,
+    holiday_status_id: mappedLeaveType,
+    allocation_type: data.allocation_type ?? "regular",
+    date_from: fromDate,
+    date_to: toDate,
+    allocation_days:
+      data.number_of_days ??
+      computeAllocationDays(fromDate, toDate),
+    description: data.description ?? "",
+  });
+}, [data]);
 
-  // (Keep employeesOptions loader in case it's needed later)
+
+  // Fetch employees
   useEffect(() => {
-    let mounted = true;
     (async () => {
       try {
-        const endpoints = ["/api/employees", "/api/users", "/employees", "/users"];
-        let result: any = null;
-        for (const ep of endpoints) {
-          try {
-            const res = await fetch(ep);
-            if (!res.ok) continue;
-            const json = await res.json();
-            if (Array.isArray(json)) { result = json; break; }
-            if (json && Array.isArray(json.data)) { result = json.data; break; }
-          } catch (e) {
-            // continue
-          }
-        }
-        if (mounted && Array.isArray(result)) {
-          const opts = result.map((r: any) => ({ id: r.id ?? r.user_id ?? r.value, name: r.name ?? r.full_name ?? r.label ?? r.username ?? String(r.id) }));
+        const res = await getEmployees();
+        console.log(res)
+        if (res) {
+          const opts = res.map((e: any) => ({ id: e.id, name: e.employee_name || e.name || e.full_name || String(e.id) }));
           setEmployeesOptions(opts);
         }
-      } catch (e) {
-        // ignore
+      } catch (error) {
+        console.error("Failed to fetch employees", error);
       }
     })();
-    return () => { mounted = false; };
+  }, []);
+
+  // Fetch holidays
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await getHolidays();
+        if (res && res.data && Array.isArray(res.data.data)) {
+          const opts = res.data?.data.map((h: any) => ({ id: h.id, name: h.name }));
+          setHolidaysOptions(opts);
+        }
+      } catch (error) {
+        console.error("Failed to fetch holidays", error);
+      }
+    })();
   }, []);
 
   // 2. RESET LOGIC: Listen for Modal Close
@@ -149,7 +152,16 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
-    setFormData((prev: any) => ({ ...prev, [name]: value }));
+    setFormData((prev: any) => {
+      const newData = { ...prev, [name]: value };
+      // If leave_type changes, update holiday_status_id with the same value
+      if (name === "leave_type") {
+        newData.holiday_status_id = value;
+      }
+      return newData;
+    });
+    // Clear error for the changed field
+    setErrors((prev: any) => ({ ...prev, [name]: "" }));
   };
 
   // No date range auto-calculation for the simplified allocation form
@@ -161,24 +173,23 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
     setIsSubmitted(true);
 
     const newErrors: any = {};
+    if (!formData.employee_id) newErrors.employee_id = "Employee is required.";
     if (!formData.leave_type) newErrors.leave_type = "Leave type is required.";
+    if (!formData.holiday_status_id) newErrors.holiday_status_id = "Holiday status is required.";
     if (!formData.allocation_type) newErrors.allocation_type = "Allocation type is required.";
     if (!formData.date_from) newErrors.date_from = "From date is required.";
     if (!formData.date_to) newErrors.date_to = "To date is required.";
     // if (!formData.description) newErrors.description = "Description is required.";
 
+    
     setErrors(newErrors);
-
+    console.log(newErrors)
+    
     if (Object.keys(newErrors).length > 0) {
+      console.log("debug here re")
       return;
     }
 
-    const form = e.currentTarget;
-    setValidated(true);
-
-    if (form.checkValidity() === false) {
-      return;
-    }
 
     // Prepare Payload: convert and validate fields
     const apiPayload: any = { ...formData };
@@ -192,6 +203,8 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
     try {
       // Map form fields to API expected payload
       const allocationPayload: any = {
+        employee_id: apiPayload.employee_id && !isNaN(Number(apiPayload.employee_id)) ? Number(apiPayload.employee_id) : undefined,
+        leave_type: apiPayload.leave_type && !isNaN(Number(apiPayload.leave_type)) ? Number(apiPayload.leave_type) : undefined,
         holiday_status_id: apiPayload.leave_type && !isNaN(Number(apiPayload.leave_type)) ? Number(apiPayload.leave_type) : undefined,
         allocation_type: apiPayload.allocation_type || undefined,
         date_from: apiPayload.date_from || undefined,
@@ -249,13 +262,57 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
 
                 {/* New Leave Allocation fields */}
                 <div className="col-md-6 mb-3">
+                  <label className="form-label">Employee</label>
+                  <select
+                    name="employee_id"
+                    className={`form-select ${isSubmitted ? (formData.employee_id ? "is-valid" : "is-invalid") : ""}`}
+                    value={formData.employee_id ?? ""}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select employee</option>
+                    {employeesOptions.map((e) => (
+                      <option key={e.id} value={e.id}>
+                        {e.name}
+                      </option>
+                    ))}
+                  </select>
+                  {isSubmitted && errors.employee_id && (
+                    <span style={{ color: "red", fontSize: 12, display: "block", marginTop: 6 }}>
+                      {errors.employee_id}
+                    </span>
+                  )}
+                </div>
+
+
+
+                <div className="col-md-6 mb-3">
+                  <label className="form-label">Allocation Type</label>
+                  <select
+                    name="allocation_type"
+                    className={`form-select ${isSubmitted ? (formData.allocation_type ? "is-valid" : "is-invalid") : ""}`}
+                    value={formData.allocation_type ?? ""}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select type</option>
+                    <option value="regular">Regular</option>
+                    <option value="annual">Annual</option>
+                    <option value="sick">Sick</option>
+                    <option value="compensatory">Compensatory</option>
+                  </select>
+                  {isSubmitted && errors.allocation_type && (
+                    <span style={{ color: "red", fontSize: 12, display: "block", marginTop: 6 }}>
+                      {errors.allocation_type}
+                    </span>
+                  )}
+                </div>
+
+                                <div className="col-md-6 mb-3">
                   <label className="form-label">Leave Type</label>
                   <select
                     name="leave_type"
-                    className="form-select"
+                    className={`form-select ${isSubmitted ? (formData.leave_type ? "is-valid" : "is-invalid") : ""}`}
                     value={formData.leave_type ?? ""}
                     onChange={handleChange}
-                    style={{ borderColor: isSubmitted ? (formData.leave_type ? "green" : "red") : undefined }}
                   >
                     <option value="">Select type</option>
                     <option value="1">Paid Time Off</option>
@@ -272,27 +329,28 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
                   )}
                 </div>
 
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Allocation Type</label>
+                {/* <div className="col-md-6 mb-3">
+                  <label className="form-label">Holiday Status</label>
                   <select
-                    name="allocation_type"
+                    name="holiday_status_id"
                     className="form-select"
-                    value={formData.allocation_type ?? ""}
+                    value={formData.holiday_status_id ?? ""}
                     onChange={handleChange}
-                    style={{ borderColor: isSubmitted ? (formData.allocation_type ? "green" : "red") : undefined }}
+                    style={{ borderColor: isSubmitted ? (formData.holiday_status_id ? "green" : "red") : undefined }}
                   >
-                    <option value="">Select type</option>
-                    <option value="regular">Regular</option>
-                    <option value="annual">Annual</option>
-                    <option value="sick">Sick</option>
-                    <option value="compensatory">Compensatory</option>
+                    <option value="">Select holiday</option>
+                    {holidaysOptions.map((h) => (
+                      <option key={h.id} value={h.id}>
+                        {h.name}
+                      </option>
+                    ))}
                   </select>
-                  {isSubmitted && errors.allocation_type && (
+                  {isSubmitted && errors.holiday_status_id && (
                     <span style={{ color: "red", fontSize: 12, display: "block", marginTop: 6 }}>
-                      {errors.allocation_type}
+                      {errors.holiday_status_id}
                     </span>
                   )}
-                </div>
+                </div> */}
 
                 <div className="col-md-4 mb-3">
                   <label className="form-label">From Date</label>

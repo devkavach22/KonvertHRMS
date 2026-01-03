@@ -255,8 +255,10 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
                     placeholder="Enter leave type name"
                   />
                   {leaveNameTouchedValidation && !leaveName && (
-                    <span style={{ color: "red", fontSize: 12 }}>Required</span>
-                  )}
+  <span style={{ color: "red", fontSize: 12 }}>
+    Name is required
+  </span>
+)}
                 </div>
               </div>
 
@@ -363,8 +365,10 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
                     ))}
                   </select>
                   {leaveTypeCodeTouched && !leaveTypeCode && (
-                    <span style={{ color: "red", fontSize: 12 }}>Required</span>
-                  )}
+  <span style={{ color: "red", fontSize: 12 }}>
+    Leave Type Code is required
+  </span>
+)}
                 </div>
               </div>
 
@@ -383,8 +387,10 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
                     <option value="custom">Custom</option>
                   </select>
                   {leaveCategoryTouched && !leaveCategory && (
-                    <span style={{ color: "red", fontSize: 12 }}>Required</span>
-                  )}
+  <span style={{ color: "red", fontSize: 12 }}>
+    Leave Category is required
+  </span>
+)}
                 </div>
               </div>
 

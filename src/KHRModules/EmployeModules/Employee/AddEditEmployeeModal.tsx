@@ -21,6 +21,8 @@ import {
   getWorkingSchedules,
   getWorkLocations,
   updateEmployee,
+  getApprovalGroups,
+  getGroupUsers,
 } from "./EmployeeServices";
 import CommonAlertCard from "@/CommonComponent/AlertKHR/CommonAlertCard";
 import { AddEditBankAccountModal } from "./AddEditBankAccountModal";
@@ -62,7 +64,17 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
   const [banks, setBanks] = useState<Option[]>([]);
   const [branches, setBranches] = useState<Option[]>([]);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
-
+  const [groupOptions, setGroupOptions] = useState<Option[]>([]);
+  const [groupUserOptions, setGroupUserOptions] = useState<
+    Record<string, Option[]>
+  >({});
+  const [groupAccessLines, setGroupAccessLines] = useState<any[]>([
+    {
+      group_id: "",
+      approval_user_id: "",
+      approval_sequance: 0,
+    },
+  ]);
   // Form State matching API Schema
   // Complete Form State matching all Tab fields and API Schema
   const [formData, setFormData] = useState<any>({
@@ -232,6 +244,13 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
     setValidated(false); // Removes Bootstrap's 'was-validated' green/red styles
     setActiveTab("legal"); // Always open back to the first tab
     setShowErrorAlert(false); // Hides the red Alert UI card
+    setGroupAccessLines([
+      {
+        group_id: "",
+        approval_user_id: "",
+        approval_sequance: 0,
+      },
+    ]);
   };
   // ✅ USE THIS CONSOLIDATED EFFECT
   useEffect(() => {
@@ -303,6 +322,70 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
         device_platform: data.device_platform || "",
       });
 
+      let loadedGroupAccess: any[] = [];
+
+      // Check if group_id exists (it might be [8, "Name"] or just 8)
+      // We use getVal() to ensure we get a clean ID string "8"
+      const cleanGroupId = getVal(data.group_id);
+
+      if (cleanGroupId) {
+        // Create the row using cleaned IDs
+        loadedGroupAccess = [
+          {
+            group_id: cleanGroupId,
+            approval_user_id: getVal(data.approval_user_id), // Extracts "41" from [41, "Name"]
+            approval_sequance: data.approval_sequance || 0,
+          },
+        ];
+      }
+      // Fallback: If old array format exists (legacy support)
+      else if (
+        data.group_access &&
+        Array.isArray(data.group_access) &&
+        data.group_access.length > 0
+      ) {
+        loadedGroupAccess = data.group_access;
+      }
+
+      // If we found data, load it and fetch the users for the dropdowns
+      if (loadedGroupAccess.length > 0) {
+        const loadInitialUsers = async () => {
+          const newOptions: Record<string, Option[]> = { ...groupUserOptions };
+
+          for (const line of loadedGroupAccess) {
+            const gId = String(line.group_id);
+            if (gId && !newOptions[gId]) {
+              try {
+                // Fetch Users so the dropdown shows the name "Abhigna Desai" instead of just ID
+                const response = await getGroupUsers(gId);
+
+                // Robust Extraction
+                let userList: any[] = [];
+                if (response?.data?.users) userList = response.data.users;
+                else if (response?.data?.data?.users)
+                  userList = response.data.data.users;
+                else if (response?.users) userList = response.users;
+                else if (Array.isArray(response)) userList = response;
+
+                newOptions[gId] = userList.map((u: any) => ({
+                  value: String(u.user_id || u.id),
+                  label: u.name || u.login,
+                }));
+              } catch (e) {
+                console.error("Error loading group users for edit:", e);
+              }
+            }
+          }
+          setGroupUserOptions(newOptions);
+          setGroupAccessLines(loadedGroupAccess);
+        };
+        loadInitialUsers();
+      } else {
+        // Reset to default empty row if no group data found
+        setGroupAccessLines([
+          { group_id: "", approval_user_id: "", approval_sequance: 0 },
+        ]);
+      }
       // 3. Set Visual Previews
       if (data.image_1920) {
         // Check if it's already a full Data URI or just base64
@@ -318,10 +401,9 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
       }
     }
   }, [data]);
+
   useEffect(() => {
     const modalElement = document.getElementById("add_employee_modal");
-
-    // This function runs every time the modal finishes hiding
     const handleModalHidden = () => {
       resetForm();
     };
@@ -702,6 +784,104 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
     };
     fetchAddressData();
   }, []);
+
+  // --- FETCH GROUPS ON LOAD ---
+  // --- FETCH GROUPS ON LOAD (Robust & Debug Version) ---
+  useEffect(() => {
+    const fetchGroupsData = async () => {
+      try {
+        const response = await getApprovalGroups();
+
+        // 1. Determine where the array is hiding
+        let groupsList: any[] = [];
+        if (Array.isArray(response)) {
+          groupsList = response;
+        } else if (response && Array.isArray(response.data)) {
+          groupsList = response.data;
+        } else if (response?.data?.data && Array.isArray(response.data.data)) {
+          groupsList = response.data.data;
+        }
+
+        console.log("Groups Found:", groupsList.length);
+        if (groupsList.length > 0) {
+          // This log will tell you the EXACT keys your API is sending
+          console.log("First Group Item Keys:", Object.keys(groupsList[0]));
+        }
+
+        // 2. Map with Fallbacks (Checks multiple naming conventions)
+        const options = groupsList.map((g: any) => ({
+          // Try group_id, then id, then _id
+          value: String(g.group_id || g.id || g._id || ""),
+          // Try group_name, then name, then groupName
+          label: g.group_name || g.name || g.groupName || "Unknown Group",
+        }));
+
+        setGroupOptions(options);
+      } catch (err) {
+        console.error("Error setting group options", err);
+      }
+    };
+    fetchGroupsData();
+  }, []);
+
+  // --- HANDLER: Fetch Users when Group is selected ---
+  const handleGroupSelect = async (index: number, groupId: string) => {
+    const list = [...groupAccessLines];
+    list[index].group_id = groupId;
+    list[index].approval_user_id = ""; // Reset user when group changes
+    setGroupAccessLines(list);
+
+    // 2. Fetch users for the selected group
+    if (groupId) {
+      // Check if we already have users for this group to save an API call
+      if (groupUserOptions[groupId]) return;
+
+      try {
+        const response = await getGroupUsers(groupId);
+        console.log("Group Users API Response:", response); // Debug log
+
+        let userList: any[] = [];
+
+        // --- FIXED EXTRACTION LOGIC ---
+        // 1. Check specific path from your JSON: { data: { users: [...] } }
+        if (response?.data?.users && Array.isArray(response.data.users)) {
+          userList = response.data.users;
+        }
+        // 2. Fallback: Sometimes Axios wraps it (response.data.data.users)
+        else if (
+          response?.data?.data?.users &&
+          Array.isArray(response.data.data.users)
+        ) {
+          userList = response.data.data.users;
+        }
+        // 3. Fallback: If response is just { users: [...] }
+        else if (response?.users && Array.isArray(response.users)) {
+          userList = response.users;
+        }
+        // 4. Old fallbacks just in case structure changes
+        else if (Array.isArray(response)) {
+          userList = response;
+        } else if (Array.isArray(response?.data)) {
+          userList = response.data;
+        }
+
+        console.log("Extracted User List:", userList);
+
+        const userOpts = userList.map((u: any) => ({
+          // USE CORRECT KEY: user_id
+          value: String(u.user_id),
+          label: u.name || u.login || "Unknown User",
+        }));
+
+        setGroupUserOptions((prev) => ({
+          ...prev,
+          [groupId]: userOpts,
+        }));
+      } catch (error) {
+        console.error("Failed to load group users", error);
+      }
+    }
+  };
 
   useEffect(() => {
     const fetchCountries = async () => {
@@ -1213,6 +1393,36 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
   //     console.log(">>> Submission flow finished.");
   //   }
   // };
+
+  const handleAddGroupLine = () => {
+    setGroupAccessLines([
+      ...groupAccessLines,
+      {
+        group_id: "",
+        approval_user_id: "",
+        approval_sequance: 0, // Using your specific spelling
+      },
+    ]);
+  };
+
+  const handleRemoveGroupLine = (index: number) => {
+    const list = [...groupAccessLines];
+    list.splice(index, 1);
+    setGroupAccessLines(list);
+  };
+
+  const handleLineChange = (index: number, field: string, value: any) => {
+    const list = [...groupAccessLines];
+    list[index][field] = value;
+    setGroupAccessLines(list);
+  };
+
+  const handleGroupLineChange = (index: number, field: string, value: any) => {
+    const list = [...groupAccessLines];
+    list[index][field] = value;
+    setGroupAccessLines(list);
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitted(true);
@@ -1286,6 +1496,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
           ? imgStr.split("base64,")[1]
           : imgStr;
       }
+
+      const groupData = groupAccessLines.length > 0 ? groupAccessLines[0] : {};
 
       // 4. Construct Final Payload (Mapping values as per your API requirements)
       const finalPayload = {
@@ -1372,6 +1584,13 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
         ip_address: formData.ip_address,
         random_code_for_reg: formData.random_code_for_reg,
         system_version: formData.system_version,
+        group_id: groupData.group_id ? Number(groupData.group_id) : 0,
+        approval_user_id: groupData.approval_user_id
+          ? Number(groupData.approval_user_id)
+          : 0,
+        approval_sequance: groupData.approval_sequance
+          ? Number(groupData.approval_sequance)
+          : 0,
       };
 
       let response;
@@ -1759,17 +1978,25 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                       "Notice",
                       "Setting",
                       "Device",
+                      "Group Access",
                     ].map((tab) => (
                       <li className="nav-item" key={tab}>
                         <button
                           className={`nav-link fw-medium ${
                             activeTab === tab.toLowerCase() ? "active" : ""
                           }`}
-                          onClick={() => setActiveTab(tab.toLowerCase())}
+                          onClick={() =>
+                            setActiveTab(tab.toLowerCase().replace(" ", "_"))
+                          }
                           type="button"
                         >
+                          {/* {tab === "Legal"
+                            ? "Legal / Identification"
+                            : tab + " Information"} */}
                           {tab === "Legal"
                             ? "Legal / Identification"
+                            : tab === "Group Access"
+                            ? "Group Access"
                             : tab + " Information"}
                         </button>
                       </li>
@@ -3870,6 +4097,149 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                             security reasons, do not use simple sequences like
                             "1234".
                           </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {/* 9. Group Access Tab */}
+                  {activeTab === "group_access" && (
+                    <div className="group-access-wrapper animate__animated animate__fadeIn">
+                      <div className="form-section mb-4">
+                        <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
+                          <i className="ti ti-users-group fs-18 me-2"></i> Group
+                          Access Rights
+                        </h6>
+
+                        {/* FIX 1: Removed 'table-responsive' and added style={{ overflow: "visible" }} 
+                            This prevents the dropdown menu from being cut off/hidden */}
+                        <div
+                          className="border rounded bg-white"
+                          style={{ minHeight: "300px", overflow: "visible" }}
+                        >
+                          <table className="table table-borderless align-middle mb-0">
+                            <thead className="bg-light border-bottom">
+                              <tr>
+                                <th
+                                  scope="col"
+                                  className="ps-4"
+                                  style={{ width: "40%" }}
+                                >
+                                  Group
+                                </th>
+                                <th scope="col" style={{ width: "40%" }}>
+                                  Approval User
+                                </th>
+                                <th scope="col" style={{ width: "20%" }}>
+                                  Sequence
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {groupAccessLines.map((line, index) => (
+                                <tr key={index} className="border-bottom">
+                                  {/* 1. Group Dropdown */}
+                                  <td
+                                    className="ps-4 py-2"
+                                    style={{ overflow: "visible" }}
+                                  >
+                                    <CommonSelect
+                                      // FIX 2: Added 'key'. This forces the component to re-render
+                                      // when the options are finally loaded from the API.
+                                      key={`group-select-${index}-${groupOptions.length}`}
+                                      options={groupOptions}
+                                      placeholder="Select Group"
+                                      // FIX 3: Robust matching for string/number types
+                                      defaultValue={groupOptions.find(
+                                        (g) =>
+                                          String(g.value) ===
+                                          String(line.group_id)
+                                      )}
+                                      onChange={(opt) =>
+                                        handleGroupSelect(
+                                          index,
+                                          opt?.value || ""
+                                        )
+                                      }
+                                    />
+                                  </td>
+
+                                  {/* 2. User Dropdown */}
+                                  <td
+                                    className="py-2"
+                                    style={{ overflow: "visible" }}
+                                  >
+                                    <CommonSelect
+                                      // FIX 4: Added 'key' for users dependent dropdown
+                                      key={`user-select-${index}-${
+                                        line.group_id
+                                      }-${
+                                        (
+                                          groupUserOptions[
+                                            String(line.group_id)
+                                          ] || []
+                                        ).length
+                                      }`}
+                                      options={
+                                        groupUserOptions[
+                                          String(line.group_id)
+                                        ] || []
+                                      }
+                                      placeholder={
+                                        line.group_id
+                                          ? "Select User"
+                                          : "Select Group First"
+                                      }
+                                      defaultValue={(
+                                        groupUserOptions[
+                                          String(line.group_id)
+                                        ] || []
+                                      ).find(
+                                        (u) =>
+                                          String(u.value) ===
+                                          String(line.approval_user_id)
+                                      )}
+                                      onChange={(opt) =>
+                                        handleLineChange(
+                                          index,
+                                          "approval_user_id",
+                                          opt?.value
+                                        )
+                                      }
+                                    />
+                                  </td>
+
+                                  {/* 3. Sequence Input */}
+                                  <td className="py-2 pe-4">
+                                    <input
+                                      type="number"
+                                      className="form-control"
+                                      placeholder="0"
+                                      value={line.approval_sequance}
+                                      onChange={(e) =>
+                                        handleLineChange(
+                                          index,
+                                          "approval_sequance",
+                                          e.target.value
+                                        )
+                                      }
+                                    />
+                                  </td>
+                                </tr>
+                              ))}
+
+                              {/* Empty State Check */}
+                              {groupAccessLines.length === 0 && (
+                                <tr>
+                                  <td
+                                    colSpan={3}
+                                    className="text-center py-4 text-muted"
+                                  >
+                                    No access groups configured.
+                                  </td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
                         </div>
                       </div>
                     </div>

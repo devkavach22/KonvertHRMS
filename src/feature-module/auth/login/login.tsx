@@ -64,6 +64,8 @@ const Login = () => {
         localStorage.setItem("full_name", response.data.full_name);
            localStorage.setItem("user_name", response.data.name);
            localStorage.setItem("is_client_employee_admin",response.data.is_client_employee_admin)
+        localStorage.setItem("user_name", response.data.name);
+        localStorage.setItem("user_fullname", response.data.full_name);
 
         toast.success("Login Successful! Redirecting...");
 
