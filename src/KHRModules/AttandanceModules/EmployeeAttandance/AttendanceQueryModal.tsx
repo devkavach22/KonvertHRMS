@@ -51,7 +51,6 @@ const AttendanceQueryModal: React.FC<Props> = ({
 
   const [categories, setCategories] = useState<Option[]>([]);
   const [errors, setErrors] = useState<any>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   /* ========================= INIT FORM DATA FROM ATTENDANCE ========================= */
@@ -72,20 +71,32 @@ const AttendanceQueryModal: React.FC<Props> = ({
 
 
   
-useEffect(() => {
+// useEffect(() => {
 
-        if (!isError) {
-           console.log(isError,errorMessage,"iiiiiiiii");
-            toast.error(
-                errorMessage || "Failed to submit regularization",
-                {
-                    position: "top-right",
-                    autoClose: 3000,
-                }
-            );
-            dispatch(updateState({isError:false}))
-        }
-    }, [isError])
+//         if (!isError) {
+//            console.log(isError,errorMessage,"iiiiiiiii");
+//             toast.error(
+//                 errorMessage || "Failed to submit regularization",
+//                 {
+//                     position: "top-right",
+//                     autoClose: 3000,
+//                 }
+//             );
+//             dispatch(updateState({isError:false}))
+//         }
+//     }, [isError])
+
+useEffect(() => {
+  if (isError) {
+    toast.error(errorMessage || "Failed to submit regularization", {
+      position: "top-right",
+      autoClose: 3000,
+    });
+
+    dispatch(updateState({ isError: false }));
+  }
+}, [isError, errorMessage, dispatch]);
+
 
 
    
@@ -126,7 +137,6 @@ const handleSubmit = async () => {
     check_out: formData.check_out,
   };
 
-  setIsSubmitting(true);
 
   const result: any = await dispatch(Employeeregularization(payload));
 
@@ -147,7 +157,6 @@ const handleSubmit = async () => {
     );
   }
 
-  setIsSubmitting(false);
 };
 
 
@@ -193,6 +202,7 @@ const handleSubmit = async () => {
       className="modal fade show d-block"
       style={{ background: "rgba(0,0,0,.5)" }}
     >
+      
     
       <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content">
@@ -203,13 +213,14 @@ const handleSubmit = async () => {
           <div className="modal-body">
             <div className="row">
               {/* Date */}
-              <div className="col-md-6 mb-3">
+              <div className="col-md-4 mb-3">
                 <label className="fw-bold">
                   Date <span className="text-danger">*</span>
                 </label>
                 <DatePicker
                   className="w-100"
                   format="YYYY-MM-DD"
+                  disabled
                   value={formData.from_date ? dayjs(formData.from_date) : null}
                   onChange={(date) => {
                     const val = date?.format("YYYY-MM-DD") || "";
@@ -220,9 +231,39 @@ const handleSubmit = async () => {
                   <div className="text-danger fs-11">{errors.from_date}</div>
                 )}
               </div>
+               <div className="col-md-4 mb-3">
+                <label className="fw-bold">Check In</label>
+                <TimePicker
+                  className="w-100"
+                  format="HH:mm"
+                  value={formData.check_in ? dayjs(formData.check_in, "HH:mm") : null}
+                  onChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      check_in: value ? value.format("HH:mm") : null,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="col-md-4 mb-3">
+                <label className="fw-bold">Check Out</label>
+                <TimePicker
+                  className="w-100"
+                  format="HH:mm"
+                  value={formData.check_out ? dayjs(formData.check_out, "HH:mm") : null}
+                  onChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      check_out: value ? value.format("HH:mm") : null,
+                    })
+                  }
+                />
+              </div>
+                </div>
 
               {/* Category */}
-              <div className="col-md-6 mb-3">
+              <div className="col-md-12 mb-3">
                 <label className="fw-bold">
                   Category <span className="text-danger">*</span>
                 </label>
@@ -260,36 +301,8 @@ const handleSubmit = async () => {
               </div>
 
               {/* Check-In and Check-Out */}
-              <div className="col-md-6 mb-3">
-                <label className="fw-bold">Check In</label>
-                <TimePicker
-                  className="w-100"
-                  format="HH:mm"
-                  value={formData.check_in ? dayjs(formData.check_in, "HH:mm") : null}
-                  onChange={(value) =>
-                    setFormData({
-                      ...formData,
-                      check_in: value ? value.format("HH:mm") : null,
-                    })
-                  }
-                />
-              </div>
-
-              <div className="col-md-6 mb-3">
-                <label className="fw-bold">Check Out</label>
-                <TimePicker
-                  className="w-100"
-                  format="HH:mm"
-                  value={formData.check_out ? dayjs(formData.check_out, "HH:mm") : null}
-                  onChange={(value) =>
-                    setFormData({
-                      ...formData,
-                      check_out: value ? value.format("HH:mm") : null,
-                    })
-                  }
-                />
-              </div>
-            </div>
+             
+          
           </div>
           <div className="modal-footer">
             <button className="btn btn-light" onClick={onClose}>
@@ -297,8 +310,9 @@ const handleSubmit = async () => {
             </button>
             <button
               className="btn btn-primary"
-              disabled={isEmployeeRegcategoriesFetching}
               onClick={handleSubmit}
+              disabled={isEmployeeRegcategoriesFetching}
+
             >
               {isEmployeeRegcategoriesFetching
                 ? "Submitting..."
