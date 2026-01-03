@@ -22,7 +22,7 @@ const AddEditBankAccountModal: React.FC<Props> = ({ onSuccess, data }) => {
 
   const [formData, setFormData] = useState<any>({
     bank_name: "",
-    partner_name: "", // Now a dropdown
+    // partner_name: "", // Now a dropdown
     acc_number: "",
     bank_swift_code: "",
     bank_iafc_code: "",
@@ -32,9 +32,9 @@ const AddEditBankAccountModal: React.FC<Props> = ({ onSuccess, data }) => {
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const [bankDataRaw, branchData] = await Promise.all([
+        const [bankDataRaw] = await Promise.all([
           getBanks(),
-          getBranches(),
+          // getBranches(),
         ]);
 
         // FIX: Handle the Type 'Bank[]' error by checking raw response structure
@@ -52,12 +52,12 @@ const AddEditBankAccountModal: React.FC<Props> = ({ onSuccess, data }) => {
         );
 
         // Set Partners from Branch API
-        setPartners(
-          branchData.map((branch: any) => ({
-            value: branch.name,
-            label: branch.name,
-          }))
-        );
+        // setPartners(
+        //   branchData.map((branch: any) => ({
+        //     value: branch.name,
+        //     label: branch.name,
+        //   }))
+        // );
       } catch (error) {
         console.error("Error loading data:", error);
       }
@@ -71,7 +71,7 @@ const AddEditBankAccountModal: React.FC<Props> = ({ onSuccess, data }) => {
         bank_name: Array.isArray(data.bank_id)
           ? data.bank_id[1]
           : data.bank_name,
-        partner_name: data.partner_name || "",
+        // partner_name: data.partner_name || "",
         acc_number: data.acc_number || "",
         bank_swift_code: data.bank_swift_code || "",
         bank_iafc_code: data.bank_iafc_code || "",
@@ -85,7 +85,7 @@ const AddEditBankAccountModal: React.FC<Props> = ({ onSuccess, data }) => {
   const resetForm = () => {
     setFormData({
       bank_name: "",
-      partner_name: "",
+      // partner_name: "",
       acc_number: "",
       bank_swift_code: "",
       bank_iafc_code: "",
@@ -98,7 +98,7 @@ const AddEditBankAccountModal: React.FC<Props> = ({ onSuccess, data }) => {
   const validate = () => {
     let tempErrors: any = {};
     if (!formData.acc_number?.trim()) tempErrors.acc_number = true;
-    if (!formData.partner_name) tempErrors.partner_name = true; // Required check
+    // if (!formData.partner_name) tempErrors.partner_name = true; // Required check
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
   };
@@ -220,7 +220,7 @@ const AddEditBankAccountModal: React.FC<Props> = ({ onSuccess, data }) => {
                   </div>
 
                   <div className="col-md-6 border-start ps-4">
-                    <div className="mb-3">
+                    {/* <div className="mb-3">
                       <label className="form-label fs-13 text-danger fw-bold">
                         Account Holder Name *
                       </label>
@@ -245,7 +245,7 @@ const AddEditBankAccountModal: React.FC<Props> = ({ onSuccess, data }) => {
                           }
                         />
                       </div>
-                    </div>
+                    </div> */}
 
                     <div className="mb-3">
                       <label className="form-label fs-13 fw-bold">

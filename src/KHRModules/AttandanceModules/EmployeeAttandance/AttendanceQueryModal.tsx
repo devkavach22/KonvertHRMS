@@ -17,9 +17,9 @@ interface Props {
   onClose: () => void;
 }
 
-interface Option {
+interface CategoryOption {
   label: string;
-  value: string;
+  value: number;
 }
 
 const AttendanceQueryModal: React.FC<Props> = ({
@@ -33,11 +33,11 @@ const AttendanceQueryModal: React.FC<Props> = ({
     // employee_id: employeeId,
     from_date: "",
     to_date: "",
-    reg_category: null as string | null,
+    reg_category: null as number | null,
     reg_reason: "",
   });
 
-  const [categories, setCategories] = useState<Option[]>([]);
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
 
   const [errors, setErrors] = useState<any>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,8 +53,8 @@ const AttendanceQueryModal: React.FC<Props> = ({
   const { EmpAttendancevalidateForm } = useFormValidation();
 
   /* =========================
-     INIT DATE FROM CHECK-IN
-     ========================= */
+INIT DATE FROM CHECK-IN
+========================= */
   useEffect(() => {
     if (attendance?.check_in) {
       const date = dayjs(attendance.check_in).format("YYYY-MM-DD");
@@ -67,8 +67,8 @@ const AttendanceQueryModal: React.FC<Props> = ({
   }, [attendance]);
 
   /* =========================
-     FETCH CATEGORY API
-     ========================= */
+FETCH CATEGORY API
+========================= */
 
   useEffect(() => {
     // if (isEmployeeRegcategories) {
@@ -110,22 +110,22 @@ const AttendanceQueryModal: React.FC<Props> = ({
 
     dispatch(Employeeregularization(payload));
     // try {
-    //   await Employeeregularization(payload);
+    // await Employeeregularization(payload);
 
-    //   toast.success("Attendance regularization submitted successfully");
-    //   onClose();
+    // toast.success("Attendance regularization submitted successfully");
+    // onClose();
     // } catch (error: any) {
-    //   toast.error(
-    //     error?.response?.data?.message || "Failed to submit regularization"
-    //   );
+    // toast.error(
+    // error?.response?.data?.message || "Failed to submit regularization"
+    // );
     // } finally {
-    //   setIsSubmitting(false);
+    // setIsSubmitting(false);
     // }
   };
 
   /* =========================
-     UI
-     ========================= */
+UI
+========================= */
   return (
     <div
       className="modal fade show d-block"
