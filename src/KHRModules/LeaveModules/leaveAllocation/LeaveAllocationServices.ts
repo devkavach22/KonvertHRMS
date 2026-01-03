@@ -1,5 +1,4 @@
 import Instance from "../../../api/axiosInstance";
-import { getHolidays } from "../LeaveModules/PublicHoliday/PublicHolidayServices";
 
 // 1. UI Interface
 export interface AttendancePolicy {
@@ -37,12 +36,10 @@ export interface APIAttendancePolicy {
 
 // 3. SERVICE FUNCTIONS
 
-
 // POST: /employee/create/attendance-policy
 export const addAttendancePolicy = async (data: any) => {
   return await Instance.post("/employee/create/attendance-policy", data);
 };
-
 
 // POST: /api/create/leave-allocate
 export const createLeaveAllocation = async (data: any) => {
@@ -58,10 +55,17 @@ export const createLeaveAllocation = async (data: any) => {
       if (!Number.isNaN(parsed)) config.params = { user_id: parsed };
     }
 
-    const response = await Instance.post("/api/create/leave-allocate", data, config);
+    const response = await Instance.post(
+      "/api/create/leave-allocate",
+      data,
+      config
+    );
     return response.data;
   } catch (error: any) {
-    console.error("Error creating leave allocation:", error.response?.data ?? error.message ?? error);
+    console.error(
+      "Error creating leave allocation:",
+      error.response?.data ?? error.message ?? error
+    );
     throw error;
   }
 };
@@ -86,26 +90,33 @@ export const getLeaveAllocations = async (): Promise<any[]> => {
     const response = await Instance.get("/api/leave-allocate", config);
     // normalize response: support array or { data: [...] }
     if (Array.isArray(response.data)) return response.data;
-    if (response.data && Array.isArray(response.data.data)) return response.data.data;
-    if (response.data && Array.isArray(response.data.items)) return response.data.items;
+    if (response.data && Array.isArray(response.data.data))
+      return response.data.data;
+    if (response.data && Array.isArray(response.data.items))
+      return response.data.items;
     return [];
   } catch (error: any) {
-    console.error("Error fetching leave allocations:", error.response?.data ?? error.message ?? error);
+    console.error(
+      "Error fetching leave allocations:",
+      error.response?.data ?? error.message ?? error
+    );
     return [];
   }
 };
 
-
 // put : http://192.168.11.245:4000/api/leave-allocation/11412?user_id=3145
 export const updateLeaveAllocation = async (id: number, data: any) => {
   let user_id = localStorage.getItem("user_id");
-  return await Instance.put(`/api/leave-allocation/${id}?user_id=${user_id}`, data);
-
-}
+  return await Instance.put(
+    `/api/leave-allocation/${id}?user_id=${user_id}`,
+    data
+  );
+};
 
 // delete : http://192.168.11.245:4000/api/leave-allocation/11412?user_id=3145
 export const deleteLeaveAllocation = async (id: number) => {
   let user_id = localStorage.getItem("user_id");
-  return await Instance.delete(`/api/leave-allocation/${id}?user_id=${user_id}`);
-}
-
+  return await Instance.delete(
+    `/api/leave-allocation/${id}?user_id=${user_id}`
+  );
+};

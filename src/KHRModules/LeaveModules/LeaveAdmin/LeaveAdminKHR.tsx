@@ -224,8 +224,8 @@ const LeaveAdminKHR = () => {
           parentMenu="HR"
           activeMenu="Leaves"
           routes={routes}
-          buttonText="Add Leave Request"
-          modalTarget="#add_leave_modal"
+          // buttonText="Add Leave Request"
+          // modalTarget="#add_leave_modal"
         />
 
         {/* --- CREATIVE CARDS ROW --- */}

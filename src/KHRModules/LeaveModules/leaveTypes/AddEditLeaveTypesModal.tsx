@@ -128,7 +128,9 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
       setLeaveTypeCode(data.leave_type_code || "");
       setLeaveCategory(data.leave_category || "");
       setRequestUnit(data.request_unit || "half_day");
-      setIncludePublicHolidaysInDuration(data.include_public_holidays_in_duration ?? true);
+      setIncludePublicHolidaysInDuration(
+        data.include_public_holidays_in_duration ?? true
+      );
       setOvertimeDeductible(data.overtime_deductible ?? false);
       setIsEarnedLeave(data.is_earned_leave ?? true);
     } else {
@@ -255,10 +257,10 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
                     placeholder="Enter leave type name"
                   />
                   {leaveNameTouchedValidation && !leaveName && (
-  <span style={{ color: "red", fontSize: 12 }}>
-    Name is required
-  </span>
-)}
+                    <span style={{ color: "red", fontSize: 12 }}>
+                      Name is required
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -332,17 +334,16 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
                 <div className="form-group mb-3">
                   <label className="form-label">Responsible IDs</label>
                   <input
-                  min={"1"}
-      type="number"
-      className="form-control"
-      value={responsibleIds.length ? responsibleIds[0] : ""}
-      onChange={(e) => {
-        const val = e.target.value;
-        setResponsibleIds(val ? [Number(val)] : []);
-      }}
-    />
+                    min={"1"}
+                    type="number"
+                    className="form-control"
+                    value={responsibleIds.length ? responsibleIds[0] : ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setResponsibleIds(val ? [Number(val)] : []);
+                    }}
+                  />
                 </div>
-                
               </div>
 
               <div className="col-md-6">
@@ -365,10 +366,10 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
                     ))}
                   </select>
                   {leaveTypeCodeTouched && !leaveTypeCode && (
-  <span style={{ color: "red", fontSize: 12 }}>
-    Leave Type Code is required
-  </span>
-)}
+                    <span style={{ color: "red", fontSize: 12 }}>
+                      Leave Type Code is required
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -387,10 +388,10 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
                     <option value="custom">Custom</option>
                   </select>
                   {leaveCategoryTouched && !leaveCategory && (
-  <span style={{ color: "red", fontSize: 12 }}>
-    Leave Category is required
-  </span>
-)}
+                    <span style={{ color: "red", fontSize: 12 }}>
+                      Leave Category is required
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -419,9 +420,11 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
                     onChange={(e) =>
                       setIncludePublicHolidaysInDuration(e.target.checked)
                     }
-                  />
-                  {" "}{"  "}{" "}
-                  <label className="form-label">Include Public Holidays in Duration</label>
+                  />{" "}
+                  {"  "}{" "}
+                  <label className="form-label">
+                    Include Public Holidays in Duration
+                  </label>
                 </div>
               </div>
 
@@ -432,8 +435,8 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
                     type="checkbox"
                     checked={overtimeDeductible}
                     onChange={(e) => setOvertimeDeductible(e.target.checked)}
-                  />
-                  {" "}{"  "}{" "}
+                  />{" "}
+                  {"  "}{" "}
                   <label className="form-label">Overtime Deductible</label>
                 </div>
               </div>
@@ -445,9 +448,8 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, data }) => {
                     type="checkbox"
                     checked={isEarnedLeave}
                     onChange={(e) => setIsEarnedLeave(e.target.checked)}
-                  />
-                  {" "}{"  "}{" "}
-                  <label className="form-label">Is Earned Leave</label>
+                  />{" "}
+                  {"  "} <label className="form-label">Is Earned Leave</label>
                 </div>
               </div>
             </div>

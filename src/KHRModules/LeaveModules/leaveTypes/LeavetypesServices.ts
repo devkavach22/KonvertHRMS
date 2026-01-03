@@ -1,7 +1,6 @@
 import Instance from "../../../api/axiosInstance";
 import { toast } from "react-toastify";
 
-
 // 1. UI Interface
 export interface AttendancePolicy {
   id?: string;
@@ -37,7 +36,6 @@ export interface APIAttendancePolicy {
 }
 
 // 3. SERVICE FUNCTIONS
-
 
 // --- New: create leave type (POST) ---
 // Example POST payload shape:
@@ -84,10 +82,17 @@ export const createLeaveType = async (data: LeaveTypePayload) => {
     const config: any = {};
     config.params = { user_id: localStorage.getItem("user_id") };
 
-    const response = await Instance.post("/api/create/leave-type", data, config);
+    const response = await Instance.post(
+      "/api/create/leave-type",
+      data,
+      config
+    );
     return response.data;
   } catch (error: any) {
-    console.error("Error creating leave type:", error.response?.data ?? error.message ?? error);
+    console.error(
+      "Error creating leave type:",
+      error.response?.data ?? error.message ?? error
+    );
     throw error;
   }
 };
@@ -104,19 +109,22 @@ export const getLeaveTypesCode = async (): Promise<any[]> => {
     },
   });
   return response.data?.data;
-}
+};
 
 // put :- http://192.168.11.245:4000/api/leave-type/1?user_id=3145
 // Update a leave type
 export const updateLeaveType = async (id: number, data: any) => {
   let user_id = localStorage.getItem("user_id");
   try {
-    const response = await Instance.put(`/api/leave-type/${id}?user_id=${user_id}`, data);
+    const response = await Instance.put(
+      `/api/leave-type/${id}?user_id=${user_id}`,
+      data
+    );
     return response.data;
   } catch (error: any) {
-    console.log("error occure",error)
+    console.log("error occure", error);
   }
-}
+};
 
 // Get :- http://192.168.11.245:4000/api/leave-type?user_id=3145
 // Get all leave types
@@ -124,11 +132,13 @@ export const getAllLeaveTypes = async () => {
   let user_id = localStorage.getItem("user_id");
   const response = await Instance.get(`/api/leave-type?user_id=${user_id}`);
   return response.data;
-}
+};
 
 // delete :- http://192.168.11.245:4000/api/leave-type/29?user_id=3145
 export const deleteLeaveType = async (id: number) => {
   let user_id = localStorage.getItem("user_id");
-  const response = await Instance.delete(`/api/leave-type/${id}?user_id=${user_id}`);
+  const response = await Instance.delete(
+    `/api/leave-type/${id}?user_id=${user_id}`
+  );
   return response.data;
-}
+};

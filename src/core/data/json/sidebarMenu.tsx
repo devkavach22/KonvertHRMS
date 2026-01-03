@@ -116,10 +116,10 @@ export const SidebarDataTest = [
         submenuItems: [
           { label: "Leaves (Admin)", link: routes.leaveAdminKHR },
           { label: "Leaves (Employee)", link: routes.leaveEmployeeKHR },
-          // { label: "Leave Settings", link: routes.leaveSettingsKHR },
-          { label: "Leave Types", link: routes.leaveTypesKHR },
           { label: "Leave Allocation", link: routes.leaveAllocationKHR },
           { label: "Leave Request", link: routes.leaveRequestKHR },
+          // { label: "Leave Settings", link: routes.leaveSettingsKHR },
+          { label: "Leave Types", link: routes.leaveTypesKHR },
           { label: "Accural Plan", link: routes.accuralPlanKHR },
           { label: "Public Holiday", link: routes.publicHolidayKHR },
           { label: "Mendetory Days", link: routes.mendetoryDaysKHR },
@@ -135,7 +135,7 @@ export const SidebarDataTest = [
     separateRoute: false,
     submenuItems: [
       {
-        label: "payroll",
+        label: "Payroll",
         link: "index",
         submenu: true,
         showSubRoute: false,
