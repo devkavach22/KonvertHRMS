@@ -1,50 +1,49 @@
 import React, { useEffect, useState } from "react";
 import CommonHeader from "../../../CommonComponent/HeaderKHR/HeaderKHR";
-import DatatableKHR from "../../../CommonComponent/DataTableKHR/DatatableKHR";
 import AddEditEmployeeModal from "./AddEditEmployeeModal";
 import { getEmployees, deleteEmployee, Employee } from "./EmployeeServices";
 import { toast } from "react-toastify";
-import { Link } from "react-router-dom";
 import { all_routes } from "@/router/all_routes";
 import EmployeeCard from "./EmployeeCard";
 
 const EmployeeKHR = () => {
   const routes = all_routes;
-
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEmp, setSelectedEmp] = useState<Employee | null>(null);
-  const [editData, setEditData] = useState<any>(null); 
+  const [editData, setEditData] = useState<any>(null);
 
   const fetchEmployees = async () => {
     setLoading(true);
-    const data = await getEmployees();
-    setEmployees(data);
-    setLoading(false);
+    try {
+      const data = await getEmployees();
+      setEmployees(data);
+    } catch (error) {
+      console.error("Fetch Error:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
   useEffect(() => {
     fetchEmployees();
   }, []);
 
   const handleDeleteEmployee = async (id: number) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this employee?"
-    );
-    if (!confirmDelete) return;
-
+    if (!window.confirm("Are you sure you want to delete this employee?"))
+      return;
     try {
-      // API requires employee ID and user_id=219
       await deleteEmployee(id.toString());
       toast.success("Employee deleted successfully");
-      fetchEmployees(); // Refresh the grid
+      fetchEmployees();
     } catch (error) {
-      console.error("Delete Error:", error);
       toast.error("Failed to delete employee");
     }
   };
 
   const handleEditClick = (employee: any) => {
     setEditData(employee);
+    // Explicitly open modal
     const modalElement = document.getElementById("add_employee_modal");
     if (modalElement) {
       const modal = new (window as any).bootstrap.Modal(modalElement);
@@ -55,45 +54,60 @@ const EmployeeKHR = () => {
   return (
     <div className="page-wrapper">
       <div className="content">
+        {/* HEADER AREA */}
         <div onClick={() => setSelectedEmp(null)}>
           <CommonHeader
-            title="Employees"
+            title="Employee Directory"
             parentMenu="HR"
             activeMenu="Employees"
             routes={routes}
-            buttonText="Add Employee"
+            buttonText="Add New Employee"
             modalTarget="#add_employee_modal"
           />
         </div>
-        {/* <div className="card">
-          <div className="card-body">
-            {loading ? (
-              <div className="text-center p-4">Loading...</div>
-            ) : (
-              <DatatableKHR data={employees} columns={columns} />
-            )}
-          </div>
-        </div> */}
-        {/* ... Inside your EmployeeKHR.tsx ... */}
 
-        <div className="row mt-4">
+        {/* LOADING & CONTENT AREA */}
+        <div
+          className="row mt-4 position-relative"
+          style={{ minHeight: "400px" }}
+        >
           {loading ? (
-            <div className="text-center p-5">
-              <div className="spinner-border text-primary" role="status"></div>
+            // --- CENTERED SPINNER ---
+            <div className="position-absolute top-50 start-50 translate-middle text-center w-100">
+              <div
+                className="spinner-border text-primary"
+                role="status"
+                style={{ width: "2.5rem", height: "2.5rem" }}
+              >
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <p className="mt-2 text-muted fs-13">Loading data...</p>
             </div>
           ) : (
-            employees.map((emp: any) => (
-              <EmployeeCard
-                key={emp.id}
-                employee={emp}
-                onEdit={handleEditClick}
-                onDelete={handleDeleteEmployee}
-              />
-            ))
+            // --- GRID ---
+            <>
+              {employees.length > 0 ? (
+                employees.map((emp: any) => (
+                  <EmployeeCard
+                    key={emp.id}
+                    employee={emp}
+                    onEdit={handleEditClick}
+                    onDelete={handleDeleteEmployee}
+                  />
+                ))
+              ) : (
+                <div className="col-12 text-center py-5">
+                  <h5 className="text-muted">No Employees Found</h5>
+                  <p className="text-muted fs-13">
+                    Add an employee to see them here.
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
 
-        {/* Pass editData to the modal */}
+        {/* MODAL */}
         <AddEditEmployeeModal
           data={editData}
           onSuccess={() => {
@@ -102,7 +116,6 @@ const EmployeeKHR = () => {
           }}
         />
       </div>
-      <AddEditEmployeeModal onSuccess={fetchEmployees} data={selectedEmp} />
     </div>
   );
 };

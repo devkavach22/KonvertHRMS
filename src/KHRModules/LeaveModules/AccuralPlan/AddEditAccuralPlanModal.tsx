@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import {
+  AttendancePolicy,
   createAccuralPlan,
-  updateAccuralPlan
+  updateAccuralPlan,
 } from "./AccuralPlanServices";
 
 interface Props {
@@ -10,7 +11,6 @@ interface Props {
 }
 
 const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
-  
   // console.log(data)
   const initialFormState = {
     name: "",
@@ -26,15 +26,24 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
 
   useEffect(() => {
     if (data) {
-      const accruedGainTime = (data as any).accrued_gain_time === "start" ? "start_of_accrual" : "end_of_accrual";
-      const carryOverTime = (data as any).carryover_date === "year_start" ? "start_of_year" :
-                            (data as any).carryover_date === "allocation_date" ? "allocation_date" : "other";
+      const accruedGainTime =
+        (data as any).accrued_gain_time === "start"
+          ? "start_of_accrual"
+          : "end_of_accrual";
+      const carryOverTime =
+        (data as any).carryover_date === "year_start"
+          ? "start_of_year"
+          : (data as any).carryover_date === "allocation_date"
+          ? "allocation_date"
+          : "other";
       setFormData({
         name: (data as any).name ?? "",
         accrued_gain_time: accruedGainTime,
         carry_over_time: carryOverTime,
         based_on_worked_time: Boolean((data as any).is_based_on_worked_time),
-        company: Array.isArray((data as any).company_id) ? (data as any).company_id[1] ?? "" : "",
+        company: Array.isArray((data as any).company_id)
+          ? (data as any).company_id[1] ?? ""
+          : "",
       });
     } else {
       setFormData(initialFormState);

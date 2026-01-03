@@ -265,7 +265,7 @@ const EmployeeAttendanceKHR = () => {
       title: "Late Time",
       dataIndex: "LateTime",
       // sorter: (a: AttendanceAdminData, b: AttendanceAdminData) =>
-      //   a.Late Time.length - b.Late Time.length,
+      // a.Late Time.length - b.Late Time.length,
     },
     {
       title: "Overtime",
@@ -473,11 +473,11 @@ const EmployeeAttendanceKHR = () => {
             <div className="col-xl-9 col-lg-8 d-flex">
               <div className="row flex-fill">
                 {/* <SummaryCards
-                  cards={attendanceData.summaryCards.map((card: any) => ({
-                    ...card,
-                    trendType: card.trendType === "up" ? "up" : "down",
-                  }))}
-                /> */}
+cards={attendanceData.summaryCards.map((card: any) => ({
+...card,
+trendType: card.trendType === "up" ? "up" : "down",
+}))}
+/> */}
                 <SummaryCards cards={summaryCards} />
 
                 <WorkStatsWithTimeline stats={attendanceData.workStats} />
@@ -504,7 +504,7 @@ const EmployeeAttendanceKHR = () => {
         </div>
       </div>
 
-      {showQueryModal && selectedAttendancee && employeeId && (
+      {showQueryModal && selectedAttendancee && (
         <AttendanceQueryModal
           attendance={selectedAttendancee}
           employeeId={employeeId}

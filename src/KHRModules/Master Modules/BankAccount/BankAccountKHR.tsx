@@ -59,15 +59,15 @@ const BankAccountKHR = () => {
   //   };
 
   const columns = [
-    {
-      title: "Account Holder",
-      dataIndex: "acc_holder_name",
-      render: (text: string) => (
-        <span className="fw-bold text-dark">{text}</span>
-      ),
-      sorter: (a: any, b: any) =>
-        a.acc_holder_name.localeCompare(b.acc_holder_name),
-    },
+    // {
+    //   title: "Account Holder",
+    //   dataIndex: "acc_holder_name",
+    //   render: (text: string) => (
+    //     <span className="fw-bold text-dark">{text}</span>
+    //   ),
+    //   sorter: (a: any, b: any) =>
+    //     a.acc_holder_name.localeCompare(b.acc_holder_name),
+    // },
     {
       title: "Account Number",
       dataIndex: "acc_number",

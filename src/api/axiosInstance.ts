@@ -24,6 +24,7 @@ const getFreshToken = async () => {
       user_name: "dhaval",
     });
     const newToken = response.data.token;
+
     if (newToken) {
       localStorage.removeItem("authToken");
       localStorage.setItem("authToken", newToken);
