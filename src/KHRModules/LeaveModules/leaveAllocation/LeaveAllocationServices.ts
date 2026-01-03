@@ -1,4 +1,5 @@
 import Instance from "../../../api/axiosInstance";
+import { getHolidays } from "../LeaveModules/PublicHoliday/PublicHolidayServices";
 
 // 1. UI Interface
 export interface AttendancePolicy {
@@ -107,3 +108,4 @@ export const deleteLeaveAllocation = async (id: number) => {
   let user_id = localStorage.getItem("user_id");
   return await Instance.delete(`/api/leave-allocation/${id}?user_id=${user_id}`);
 }
+

@@ -12,16 +12,24 @@ interface Props {
 
 const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
   const initialFormState = {
-    name: "",
-    start_date: "",
-    end_date: "",
-    color: 2,
-    company: ""
-  };
+  name: "",
+  start_date: "",
+  end_date: "",
+  color: "",
+  company: ""
+};
 
   const [formData, setFormData] = useState<any>(initialFormState);
   const [validated, setValidated] = useState(false);
   const [companyOptions, setCompanyOptions] = useState<any[]>([]);
+
+  const COLOR_OPTIONS = [
+  { id: 1, label: "Red", hex: "#dc3545" },
+  { id: 2, label: "Blue", hex: "#0d6efd" },
+  { id: 3, label: "Green", hex: "#198754" },
+  { id: 4, label: "Yellow", hex: "#ffc107" },
+  { id: 5, label: "Purple", hex: "#6f42c1" },
+];
 
   useEffect(() => {
     const fetchBranches = async () => {
@@ -78,12 +86,12 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
     if (form.checkValidity() === false) return;
 
     const payload = {
-      name: formData.name,
-      start_date: formData.start_date,
-      end_date: formData.end_date,
-      color: 2,
-      company_id: 12
-    };
+  name: formData.name,
+  start_date: formData.start_date,
+  end_date: formData.end_date,
+  color: Number(formData.color),
+  company_id: 12,
+};
 
     try {
       if (data) {
@@ -165,6 +173,44 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
                   )}
                 </div>
 
+
+                <div className="col-md-6 mb-3">
+  <label className="form-label">Color</label>
+
+  <select
+    name="color"
+    className="form-select"
+    value={formData.color}
+    onChange={handleChange}
+    required
+  >
+    <option value="">Select Color</option>
+
+    {COLOR_OPTIONS.map((color) => (
+      <option key={color.id} value={color.id}>
+        {color.label}
+      </option>
+    ))}
+  </select>
+
+  {validated && !formData.color && (
+    <span className="text-danger small">Required</span>
+  )}
+
+  {/* Color preview */}
+  {formData.color && (
+    <div
+      className="mt-2"
+      style={{
+        width: "100%",
+        height: "30px",
+        borderRadius: "4px",
+        backgroundColor:
+          COLOR_OPTIONS.find(c => c.id === Number(formData.color))?.hex,
+      }}
+    />
+  )}
+</div>
 
 
 

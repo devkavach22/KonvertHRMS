@@ -49,6 +49,14 @@ export const addAttendancePolicy = async (data: any) => {
   return await Instance.post("/employee/create/attendance-policy", data);
 };
 
+// Get :- http://192.168.11.245:4000/api/leave-type?user_id=3145
+// Get all leave types
+export const getAllLeaveTypes = async () => {
+  let user_id = localStorage.getItem("user_id");
+  const response = await Instance.get(`/api/leave-type?user_id=${user_id}`);
+  return response.data;
+}
+
 // get :- http://192.168.11.245:4000/api/leave-request?user_id=219
 // GET: /leave-request
 export const getLeaveRequests = async () => {
@@ -83,5 +91,4 @@ export const deleteLeaveRequest = async (id: number) => {
   let user_id = localStorage.getItem("user_id");
   return await Instance.delete(`/api/leave-request/${id}?user_id=${user_id}`);
 }
-
 
