@@ -22,13 +22,20 @@ const LeaveAllocationKHR = () => {
     try {
       const response: any = await getLeaveAllocations();
 
-      // Fix: Extract array from the "data" key based on your JSON: { status: "success", data: [...] }
-      const rawArray =
-        response?.data || (Array.isArray(response) ? response : []);
+      // 1. Target the correct array inside response.data.allocations
+      const rawArray = response?.data?.allocations || [];
 
+      // 2. Map data to flatten [id, name] arrays into string properties
       const mappedData = rawArray.map((item: any) => ({
         ...item,
-        key: String(item.id), // Required for Datatable unique row
+        key: String(item.id),
+        // Extract name from [id, "Name"]
+        employee_name: Array.isArray(item.employee_id)
+          ? item.employee_id[1]
+          : "-",
+        leave_type_name: Array.isArray(item.holiday_status_id)
+          ? item.holiday_status_id[1]
+          : "-",
       }));
 
       setData(mappedData);
@@ -61,7 +68,7 @@ const LeaveAllocationKHR = () => {
   const columns = [
     {
       title: "Employee",
-      dataIndex: "employee_name", // Matches JSON
+      dataIndex: "employee_name", // Now maps to the extracted string
       sorter: (a: any, b: any) =>
         (a.employee_name || "").localeCompare(b.employee_name || ""),
       render: (text: string) => (
@@ -70,13 +77,13 @@ const LeaveAllocationKHR = () => {
     },
     {
       title: "Leave Type",
-      dataIndex: "leave_type_name", // Matches JSON
+      dataIndex: "leave_type_name", // Now maps to the extracted string
       sorter: (a: any, b: any) =>
         (a.leave_type_name || "").localeCompare(b.leave_type_name || ""),
     },
     {
       title: "Allocation Type",
-      dataIndex: "allocation_type", // Matches JSON ("accrual", "regular", etc.)
+      dataIndex: "allocation_type",
       render: (text: string) => (
         <span
           className={`badge ${
@@ -93,29 +100,54 @@ const LeaveAllocationKHR = () => {
     },
     {
       title: "From Date",
-      dataIndex: "date_from", // Matches JSON
+      dataIndex: "date_from",
+      render: (text: any) => <span>{text || "-"}</span>,
     },
     {
       title: "To Date",
-      dataIndex: "date_to", // Matches JSON
+      dataIndex: "date_to",
+      // Handle boolean false from API
+      render: (text: any) => <span>{text ? text : "No Limit"}</span>,
     },
     {
       title: "Days",
-      dataIndex: "number_of_days", // Matches JSON
+      dataIndex: "number_of_days",
       render: (text: any) => <span className="fw-bold">{text}</span>,
     },
     {
       title: "Status",
-      dataIndex: "status",
-      render: (text: string) => (
-        <span
-          className={`badge ${
-            text === "confirm" ? "bg-success" : "bg-secondary"
-          }`}
-        >
-          {text}
-        </span>
-      ),
+      dataIndex: "state", // Matches JSON field "state"
+      render: (text: string) => {
+        let label = text;
+        let badgeClass = "bg-light text-muted";
+
+        switch (text?.toLowerCase()) {
+          case "confirm":
+            label = "To Approve";
+            badgeClass = "bg-soft-warning text-warning";
+            break;
+          case "refuse":
+            label = "Refused";
+            badgeClass = "bg-soft-danger text-danger";
+            break;
+          case "validate1":
+            label = "Second Approval";
+            badgeClass = "bg-soft-info text-info";
+            break;
+          case "validate":
+            label = "Approved";
+            badgeClass = "bg-soft-success text-success";
+            break;
+          default:
+            label = text || "-";
+        }
+
+        return (
+          <span className={`badge ${badgeClass} fs-12 px-3 py-2 fw-bold`}>
+            {label}
+          </span>
+        );
+      },
     },
     {
       title: "Actions",
@@ -143,7 +175,6 @@ const LeaveAllocationKHR = () => {
     <>
       <div className="page-wrapper">
         <div className="content">
-          {/* Header wraps click to reset selected item when adding new */}
           <div onClick={() => setSelectedAllocation(null)}>
             <CommonHeader
               title="Leave Allocation"
@@ -173,10 +204,9 @@ const LeaveAllocationKHR = () => {
         </div>
       </div>
 
-      {/* Modal Component */}
       <AddEditLeaveAllocationModal
-        show={false} // This prop might be redundant if you rely on Bootstrap's data-bs-target, but kept for type safety if needed
-        onHide={() => {}} // handled by bootstrap
+        show={false}
+        onHide={() => {}}
         onSuccess={fetchData}
         data={selectedAllocation}
       />

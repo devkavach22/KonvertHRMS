@@ -309,6 +309,9 @@ import {
   GeoKHR,
   LeaveEmployeeKHR,
   BanksAccountKHR,
+  ExpenseCategoryKHR,
+  ExpenseKHR,
+  EmployeeCalendarsKHR,
   // BanksAccountKHR,
 } from "./lazyRoutes";
 
@@ -1642,6 +1645,11 @@ export const publicRoutes = [
     route: Route,
   },
   {
+    path: routes.expenseCategoryKHR,
+    element: <ExpenseCategoryKHR />,
+    route: Route,
+  },
+  {
     path: routes.hrContractTypeKHR,
     element: <HrContractTypeKHR />,
     route: Route,
@@ -1649,6 +1657,16 @@ export const publicRoutes = [
   {
     path: routes.employeeKHR,
     element: <EmployeeKHR />,
+    route: Route,
+  },
+  {
+    path: routes.expenseKHR,
+    element: <ExpenseKHR />,
+    route: Route,
+  },
+  {
+    path: routes.employeeCalenderKHR,
+    element: <EmployeeCalendarsKHR />,
     route: Route,
   },
   {
@@ -1681,7 +1699,7 @@ export const publicRoutes = [
     element: <SalaryRuleKHR />,
     route: Route,
   },
-   {
+  {
     path: routes.SalaryStructure,
     element: <SalaryStructure />,
     route: Route,

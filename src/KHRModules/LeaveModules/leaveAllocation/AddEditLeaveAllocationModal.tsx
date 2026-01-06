@@ -18,10 +18,19 @@ interface Props {
   data: any | null;
 }
 
+// 1. Initial State
+const initialFormState = {
+  employee_id: "",
+  allocation_type: "regular",
+  leave_type_id: "",
+  from_date: "",
+  to_date: "",
+  allocation_days: "", // Changed default to empty string for better input handling
+  description: "",
+};
+
 const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Validation State
   const [errors, setErrors] = useState<any>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -29,21 +38,9 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
   const [employeeOptions, setEmployeeOptions] = useState<any[]>([]);
   const [leaveTypeOptions, setLeaveTypeOptions] = useState<any[]>([]);
 
-  // Initial State - Defined outside or memoized to be stable
-  const initialFormState = {
-    employee_id: "",
-    allocation_type: "regular", // Set a valid default
-    leave_type_id: "",
-    from_date: "",
-    to_date: "",
-    allocation_days: 0,
-    description: "",
-  };
-
   const [formData, setFormData] = useState(initialFormState);
 
   // --- Reset Helper ---
-  // Memoized to be used in dependency arrays safely
   const resetForm = useCallback(() => {
     setFormData(initialFormState);
     setErrors({});
@@ -51,11 +48,10 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
     setIsSubmitting(false);
   }, []);
 
-  // --- 1. Event Listeners for Bootstrap Modal ---
+  // --- Event Listener for Modal Close ---
   useEffect(() => {
     const modalElement = document.getElementById("add_leave_allocation_modal");
 
-    // Wrapper to ensure we call the latest resetForm
     const handleModalHidden = () => {
       resetForm();
     };
@@ -69,9 +65,9 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
         modalElement.removeEventListener("hidden.bs.modal", handleModalHidden);
       }
     };
-  }, [resetForm]); // Dependency ensures listener stays fresh
+  }, [resetForm]);
 
-  // --- 2. Fetch Dropdowns ---
+  // --- Fetch Dropdowns ---
   useEffect(() => {
     const fetchDropdowns = async () => {
       try {
@@ -93,10 +89,9 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
     fetchDropdowns();
   }, []);
 
-  // --- 3. Load Edit Data OR Reset ---
+  // --- Load Data for Edit Mode ---
   useEffect(() => {
     if (data) {
-      // EDIT MODE: Populate Form
       const getId = (val: any) =>
         Array.isArray(val) ? String(val[0]) : String(val || "");
 
@@ -107,18 +102,17 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
           data.leave_type_id || data.leave_type || data.holiday_status_id
         ),
         from_date:
-          data.from_date || data.date_from
-            ? dayjs(data.from_date || data.date_from).format("YYYY-MM-DD") // Ensure format matches DatePicker expectations if string
+          data.date_from || data.from_date
+            ? dayjs(data.date_from || data.from_date).format("YYYY-MM-DD")
             : "",
         to_date:
-          data.to_date || data.date_to
-            ? dayjs(data.to_date || data.date_to).format("YYYY-MM-DD")
+          data.date_to || data.to_date
+            ? dayjs(data.date_to || data.to_date).format("YYYY-MM-DD")
             : "",
-        allocation_days: data.allocation_days || data.number_of_days || 0,
+        allocation_days: data.number_of_days || data.allocation_days || "",
         description: data.description || "",
       });
     } else {
-      // ADD MODE: Reset Form (Fixes issue when switching from Edit -> Add)
       resetForm();
     }
   }, [data, resetForm]);
@@ -145,6 +139,12 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
       isValid = false;
     }
 
+    // NEW: Validation for manual Allocation Days
+    if (!formData.allocation_days || Number(formData.allocation_days) <= 0) {
+      tempErrors.allocation_days = "Valid allocation days required";
+      isValid = false;
+    }
+
     if (
       formData.from_date &&
       formData.to_date &&
@@ -158,20 +158,7 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
     return isValid;
   };
 
-  // --- Auto-Calculate Days ---
-  useEffect(() => {
-    if (formData.from_date && formData.to_date) {
-      const start = dayjs(formData.from_date);
-      const end = dayjs(formData.to_date);
-
-      if (start.isValid() && end.isValid()) {
-        if (!end.isBefore(start)) {
-          const diff = end.diff(start, "day") + 1;
-          setFormData((prev) => ({ ...prev, allocation_days: diff }));
-        }
-      }
-    }
-  }, [formData.from_date, formData.to_date]);
+  // REMOVED: The useEffect that auto-calculated days has been removed as requested.
 
   // --- Submit Handler ---
   const handleSubmit = async (e: React.FormEvent) => {
@@ -187,34 +174,14 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
 
     try {
       const payload = {
-        employee_id:
-          formData.employee_id && !isNaN(Number(formData.employee_id))
-            ? Number(formData.employee_id)
-            : undefined,
-
-        leave_type:
-          formData.leave_type_id && !isNaN(Number(formData.leave_type_id))
-            ? Number(formData.leave_type_id)
-            : undefined,
-
-        holiday_status_id:
-          formData.leave_type_id && !isNaN(Number(formData.leave_type_id))
-            ? Number(formData.leave_type_id)
-            : undefined,
-
-        allocation_type: formData.allocation_type || undefined,
-
-        date_from: formData.from_date || undefined,
-
-        date_to: formData.to_date || undefined,
-
-        number_of_days:
-          formData.allocation_days === null ||
-          isNaN(Number(formData.allocation_days))
-            ? undefined
-            : Number(formData.allocation_days),
-
-        description: formData.description || undefined,
+        employee_id: Number(formData.employee_id),
+        leave_type: Number(formData.leave_type_id),
+        holiday_status_id: Number(formData.leave_type_id),
+        allocation_type: formData.allocation_type || "regular",
+        date_from: formData.from_date,
+        date_to: formData.to_date,
+        number_of_days: Number(formData.allocation_days),
+        description: formData.description,
       };
 
       if (data?.id) {
@@ -249,26 +216,32 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
                 id="close-leave-modal"
                 className="btn-close"
                 data-bs-dismiss="modal"
-                onClick={resetForm} // FIX: Reset state when X is clicked
+                onClick={resetForm}
               ></button>
             </div>
 
             <div className="modal-body pt-3">
-              <form onSubmit={handleSubmit}>
+              <form
+                className={`needs-validation ${
+                  isSubmitted ? "was-validated" : ""
+                }`}
+                noValidate
+                onSubmit={handleSubmit}
+              >
                 <div className="row g-3">
-                  <div className="col-md-12">
-                    <div className="form-section mb-2"></div>
-                  </div>
-
-                  {/* Employee */}
+                  {/* 1. Employee */}
                   <div className="col-md-6">
                     <label className="form-label fs-13 fw-bold text-dark">
                       Employee <span className="text-danger">*</span>
                     </label>
                     <div
                       className={
-                        isSubmitted && errors.employee_id
-                          ? "border border-danger rounded"
+                        isSubmitted
+                          ? errors.employee_id
+                            ? "border border-danger rounded shadow-sm"
+                            : formData.employee_id
+                            ? "border border-success rounded shadow-sm"
+                            : ""
                           : ""
                       }
                     >
@@ -290,44 +263,57 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
                     </div>
                     {isSubmitted && errors.employee_id && (
                       <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                        <i className="ti ti-info-circle me-1"></i>
                         {errors.employee_id}
                       </div>
                     )}
                   </div>
 
-                  {/* Allocation Type */}
+                  {/* 2. Allocation Type */}
                   <div className="col-md-6">
                     <label className="form-label fs-13 fw-bold text-dark">
                       Allocation Type
                     </label>
-                    <CommonSelect
-                      options={[
-                        { value: "regular", label: "Regular Allocation" },
-                        { value: "accural", label: "Accrual Allocation" },
-                      ]}
-                      defaultValue={
-                        formData.allocation_type === "accrual"
-                          ? { value: "accural", label: "Accrual Allocation" }
-                          : { value: "regular", label: "Regular Allocation" }
+                    <div
+                      className={
+                        isSubmitted && formData.allocation_type
+                          ? "border border-success rounded shadow-sm"
+                          : ""
                       }
-                      onChange={(opt) =>
-                        setFormData({
-                          ...formData,
-                          allocation_type: opt?.value || "regular",
-                        })
-                      }
-                    />
+                    >
+                      <CommonSelect
+                        options={[
+                          { value: "regular", label: "Regular Allocation" },
+                          { value: "accrual", label: "Accrual Allocation" },
+                        ]}
+                        defaultValue={
+                          formData.allocation_type === "accrual"
+                            ? { value: "accrual", label: "Accrual Allocation" }
+                            : { value: "regular", label: "Regular Allocation" }
+                        }
+                        onChange={(opt) =>
+                          setFormData({
+                            ...formData,
+                            allocation_type: opt?.value || "regular",
+                          })
+                        }
+                      />
+                    </div>
                   </div>
 
-                  {/* Leave Type */}
+                  {/* 3. Leave Type */}
                   <div className="col-md-6">
                     <label className="form-label fs-13 fw-bold text-dark">
                       Leave Type <span className="text-danger">*</span>
                     </label>
                     <div
                       className={
-                        isSubmitted && errors.leave_type_id
-                          ? "border border-danger rounded"
+                        isSubmitted
+                          ? errors.leave_type_id
+                            ? "border border-danger rounded shadow-sm"
+                            : formData.leave_type_id
+                            ? "border border-success rounded shadow-sm"
+                            : ""
                           : ""
                       }
                     >
@@ -349,19 +335,26 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
                     </div>
                     {isSubmitted && errors.leave_type_id && (
                       <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                        <i className="ti ti-info-circle me-1"></i>
                         {errors.leave_type_id}
                       </div>
                     )}
                   </div>
 
-                  {/* From Date */}
+                  {/* 4. From Date */}
                   <div className="col-md-6">
                     <label className="form-label fs-13 fw-bold text-dark">
                       From Date <span className="text-danger">*</span>
                     </label>
                     <DatePicker
                       className={`w-100 form-control ${
-                        isSubmitted && errors.from_date ? "border-danger" : ""
+                        isSubmitted
+                          ? errors.from_date
+                            ? "is-invalid"
+                            : formData.from_date
+                            ? "is-valid"
+                            : ""
+                          : ""
                       }`}
                       placeholder="Select Date"
                       value={
@@ -378,61 +371,93 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
                     />
                     {isSubmitted && errors.from_date && (
                       <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                        <i className="ti ti-info-circle me-1"></i>
                         {errors.from_date}
                       </div>
                     )}
                   </div>
 
-                  {/* To Date */}
+                  {/* 5. To Date */}
                   <div className="col-md-6">
                     <label className="form-label fs-13 fw-bold text-dark">
                       To Date <span className="text-danger">*</span>
                     </label>
                     <DatePicker
                       className={`w-100 form-control ${
-                        isSubmitted && errors.to_date ? "border-danger" : ""
+                        isSubmitted
+                          ? errors.to_date
+                            ? "is-invalid"
+                            : formData.to_date
+                            ? "is-valid"
+                            : ""
+                          : ""
                       }`}
                       placeholder="Select Date"
                       value={formData.to_date ? dayjs(formData.to_date) : null}
                       onChange={(_, dateStr) => {
-                        setFormData({
-                          ...formData,
-                          to_date: String(dateStr),
-                        });
+                        setFormData({ ...formData, to_date: String(dateStr) });
                         if (errors.to_date)
                           setErrors({ ...errors, to_date: "" });
                       }}
                     />
                     {isSubmitted && errors.to_date && (
                       <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                        <i className="ti ti-info-circle me-1"></i>
                         {errors.to_date}
                       </div>
                     )}
                   </div>
 
-                  {/* Allocation Days */}
+                  {/* 6. Allocation Days - NOW EDITABLE & VALIDATED */}
                   <div className="col-md-6">
                     <label className="form-label fs-13 fw-bold text-dark">
-                      Allocation Days
+                      Allocation Days <span className="text-danger">*</span>
                     </label>
                     <input
                       type="number"
-                      className="form-control bg-light"
-                      placeholder="0"
+                      className={`form-control ${
+                        isSubmitted
+                          ? errors.allocation_days
+                            ? "is-invalid"
+                            : Number(formData.allocation_days) > 0
+                            ? "is-valid"
+                            : ""
+                          : ""
+                      }`}
+                      placeholder="Enter Days"
                       value={formData.allocation_days}
-                      readOnly
+                      onChange={(e) => {
+                        setFormData({
+                          ...formData,
+                          allocation_days: e.target.value,
+                        });
+                        if (errors.allocation_days)
+                          setErrors({ ...errors, allocation_days: "" });
+                      }}
                     />
+                    {isSubmitted && errors.allocation_days && (
+                      <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                        <i className="ti ti-info-circle me-1"></i>
+                        {errors.allocation_days}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Description */}
+                  {/* 7. Description */}
                   <div className="col-12">
                     <label className="form-label fs-13 fw-bold text-dark">
                       Description
                     </label>
                     <textarea
-                      className="form-control"
+                      className={`form-control ${
+                        isSubmitted
+                          ? formData.description
+                            ? "is-valid"
+                            : ""
+                          : ""
+                      }`}
                       rows={4}
-                      placeholder="Enter remarks or details..."
+                      placeholder="Enter remarks..."
                       value={formData.description}
                       onChange={(e) =>
                         setFormData({
