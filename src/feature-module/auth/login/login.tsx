@@ -99,17 +99,17 @@ const Login = () => {
             <div className="login-background position-relative d-lg-flex align-items-center justify-content-center d-none flex-wrap vh-100">
               <div className="bg-overlay-img">
                 <ImageWithBasePath
-                  public="assets/img/bg/bg-01.png"
+                  src="assets/img/bg/bg-01.png"
                   className="bg-1"
                   alt="Background pattern 1"
                 />
                 <ImageWithBasePath
-                  public="assets/img/bg/bg-02.png"
+                  src="assets/img/bg/bg-02.png"
                   className="bg-2"
                   alt="Background pattern 2"
                 />
                 <ImageWithBasePath
-                  public="assets/img/bg/bg-03.png"
+                  src="assets/img/bg/bg-03.png"
                   className="bg-3"
                   alt="Background pattern 3"
                 />
