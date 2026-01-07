@@ -111,7 +111,7 @@ const EmployeeAttendanceKHR = () => {
           CheckinCheckout({
             Latitude: latitude,
             Longitude: longitude,
-          })
+          }) as any
         );
       },
       (error) => {
@@ -124,14 +124,16 @@ const EmployeeAttendanceKHR = () => {
 
   useEffect(() => {
     // dispatch(AdminWorkingHours());
-    dispatch(EmployeeAttendanceApi());
+    dispatch(EmployeeAttendanceApi() as any);
   }, []);
-  console.log(EmployeeAttendanceApiData,"EmployeeAttendanceApiData")
+  console.log(EmployeeAttendanceApiData, "EmployeeAttendanceApiData");
   console.log(employeeId, "employeeIdddd");
 
   useEffect(() => {
     if (isEmployeeAttendanceApi) {
-      setEmployeeId(EmployeeAttendanceApiData?.data?.employee?.employee_id || null);
+      setEmployeeId(
+        EmployeeAttendanceApiData?.data?.employee?.employee_id || null
+      );
 
       const mappedData: AttendanceAdminData[] =
         EmployeeAttendanceApiData?.data?.attendance_records?.map(
@@ -152,8 +154,7 @@ const EmployeeAttendanceKHR = () => {
                   : item.overtime_hours
                   ? String(item.overtime_hours)
                   : "0",
-            ProductionHours: formatHours(item.total_productive_hours),
-
+              ProductionHours: formatHours(item.total_productive_hours),
             };
           }
         );
@@ -210,19 +211,17 @@ const EmployeeAttendanceKHR = () => {
     setSummaryCards(cards);
   }, [isEmployeeAttendanceApi, EmployeeAttendanceApiData]);
 
-  const [workStats, setWorkStats] = useState<WorkStat[]>([]);
+  const [workStats, setWorkStats] = useState<any[]>([]);
 
   const formatHours = (hours: number) => {
-  if (!hours || hours <= 0) return "0h 0m";
+    if (!hours || hours <= 0) return "0h 0m";
 
-  const totalMinutes = Math.round(hours * 60);
-  const h = Math.floor(totalMinutes / 60);
-  const m = totalMinutes % 60;
+    const totalMinutes = Math.round(hours * 60);
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
 
-  return `${h}h ${m}m`;
-};
-
-
+    return `${h}h ${m}m`;
+  };
 
   useEffect(() => {
     if (!EmployeeAttendanceApiData?.data?.attendance_records) return;
@@ -236,8 +235,7 @@ const EmployeeAttendanceKHR = () => {
       0
     );
 
-    console.log(totalWorkingHours,"totalWorkingHours");
-    
+    console.log(totalWorkingHours, "totalWorkingHours");
 
     const productiveHours = attendance_records.reduce(
       (sum: number, r: any) => sum + Number(r.total_productive_hours || 0),
@@ -254,7 +252,7 @@ const EmployeeAttendanceKHR = () => {
       Number(working_hours_summary?.today?.total_break_hours) || 0;
 
     // 🧾 Build stats
-    const stats: WorkStat[] = [
+    const stats: any[] = [
       {
         label: "Total Working Hours",
         value: formatHours(totalWorkingHours),
@@ -365,7 +363,7 @@ const EmployeeAttendanceKHR = () => {
       sorter: (a: AttendanceAdminData, b: AttendanceAdminData) =>
         a.ProductionHours.length - b.ProductionHours.length,
     },
-  
+
     {
       title: "Action",
       dataIndex: "actions",

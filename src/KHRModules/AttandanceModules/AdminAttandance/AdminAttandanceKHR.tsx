@@ -15,6 +15,7 @@ import {
   TBSelector,
   updateState,
 } from "@/Store/Reducers/TBSlice";
+import { AppDispatch } from "@/Store";
 
 // Define a type for attendance admin data
 interface AttendanceAdminData {
@@ -54,7 +55,7 @@ const AdminAttandanceKHR = () => {
   } = useSelector(TBSelector);
   const [selectedAttendanceeEditModal, setSelectedAttendanceeEditModal] =
     useState<any>(null);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const formatTime = (dateTime: string | false) => {
     if (!dateTime) return "-";
@@ -215,7 +216,6 @@ const AdminAttandanceKHR = () => {
             // Image: item.employee?.avatar || "avatar-1.jpg",
 
             Role: item.job_name || "Employee",
-            Break: item.break_hours || "-",
 
             Status: isPresent ? "Present" : "Absent",
 
@@ -408,8 +408,6 @@ const AdminAttandanceKHR = () => {
     },
   ];
 
-
-
   return (
     <>
       {/* Page Wrapper */}
@@ -579,7 +577,7 @@ const AdminAttandanceKHR = () => {
           onClose={() => setSelectedAttendanceeEditModal(null)}
           onSuccess={() => {
             setSelectedAttendanceeEditModal(null);
-            fetchData();
+            // fetchData();
           }}
         />
       )}

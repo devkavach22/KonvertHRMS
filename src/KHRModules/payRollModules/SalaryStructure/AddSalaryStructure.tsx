@@ -5,7 +5,11 @@ import CommonSelect, { Option } from "@/core/common/commonSelect";
 import { useFormValidation } from "@/KHRModules/commanForm/FormValidation";
 import { useDispatch, useSelector } from "react-redux";
 import { getWorkingSchedules, TBSelector } from "@/Store/Reducers/TBSlice";
-import { getCountries, getRegularPayStructure,getWorkEntryType } from "@/Store/Reducers/TBSlice";
+import {
+  getCountries,
+  getRegularPayStructure,
+  getWorkEntryType,
+} from "@/Store/Reducers/TBSlice";
 
 interface Props {
   onSubmit: (data: any) => void;
@@ -26,8 +30,12 @@ const AddSalaryStructure: React.FC<Props> = ({ onSubmit }) => {
   const [regularPayStructureOptions, setRegularPayStructureOptions] = useState<
     Option[]
   >([]);
-  const { GetCountriesData, getWorkingSchedulesData,
-    getRegularPayStructureData,getWorkEntryTypeData } = useSelector(TBSelector);
+  const {
+    GetCountriesData,
+    getWorkingSchedulesData,
+    getRegularPayStructureData,
+    getWorkEntryTypeData,
+  } = useSelector(TBSelector);
   const dispatch = useDispatch();
 
   const [formData, setFormData] = useState<any>({
@@ -40,13 +48,12 @@ const AddSalaryStructure: React.FC<Props> = ({ onSubmit }) => {
     default_work_entry_type: "",
   });
 
-  useEffect(() => {
-    dispatch(getCountries());
-    dispatch(getWorkingSchedules());
-    dispatch(getRegularPayStructure());
-    dispatch(getWorkEntryType())
-  }, []);
-
+  // useEffect(() => {
+  //   dispatch(getCountries());
+  //   dispatch(getWorkingSchedules());
+  //   dispatch(getRegularPayStructure());
+  //   dispatch(getWorkEntryType())
+  // }, []);
 
   useEffect(() => {
     if (GetCountriesData?.data?.length) {
@@ -65,27 +72,30 @@ const AddSalaryStructure: React.FC<Props> = ({ onSubmit }) => {
         }))
       );
     }
-      if (getRegularPayStructureData?.data?.length) {
+    if (getRegularPayStructureData?.data?.length) {
       setRegularPayStructureOptions(
         getRegularPayStructureData.data.map((item: any) => ({
-           label: item.name,
+          label: item.name,
           value: item.id,
         }))
       );
     }
-        if (getWorkEntryTypeData?.data?.length) {
+    if (getWorkEntryTypeData?.data?.length) {
       setWorkEntryTypeOptions(
         getWorkEntryTypeData.data.map((item: any) => ({
-           label: item.name,
+          label: item.name,
           value: item.id,
         }))
       );
     }
-  }, [GetCountriesData, getWorkingSchedulesData,getRegularPayStructureData,getWorkEntryTypeData]);
-  
+  }, [
+    GetCountriesData,
+    getWorkingSchedulesData,
+    getRegularPayStructureData,
+    getWorkEntryTypeData,
+  ]);
 
-  console.log(getWorkEntryTypeData,"getWorkEntryTypeData");
-  
+  console.log(getWorkEntryTypeData, "getWorkEntryTypeData");
 
   // useEffect(() => {
   //   const fetchgetWorkEntryType = async () => {
@@ -106,7 +116,6 @@ const AddSalaryStructure: React.FC<Props> = ({ onSubmit }) => {
 
   //   fetchgetWorkEntryType();
   // }, []);
-
 
   /* ================= OPTIONS ================= */
 

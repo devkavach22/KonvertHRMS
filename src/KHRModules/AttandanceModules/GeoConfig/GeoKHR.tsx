@@ -211,7 +211,7 @@ const GeoKHR = () => {
         title="Confirm Delete"
         onSubmit={confirmDelete}
         submitText="Delete"
-        onClose={() => setDeleteGeoId(null)}
+        // onClose={() => setDeleteGeoId(null)}
       >
         <p>Are you sure you want to delete this geo configuration?</p>
       </CommonModal>

@@ -16,12 +16,11 @@ import { useDispatch, useSelector } from "react-redux";
 
 const EmployeeDashboard = () => {
   const routes = all_routes;
-    const userName = localStorage.getItem("full_name") || "John Doe";
-
+  const userName = localStorage.getItem("full_name") || "John Doe";
 
   const [date, setDate] = useState(new Date("2024"));
-  const dispatch = useDispatch()
-   const {
+  const dispatch = useDispatch();
+  const {
     // getDashboadrdCount
     isgetDashboadrdCount,
     isgetDashboadrdCountFetching,
@@ -129,11 +128,11 @@ const EmployeeDashboard = () => {
     return modalElement ? modalElement : document.body; // Fallback to document.body if modalElement is null
   };
 
-    useEffect(() => {
-      // fetchData();
-      dispatch(getDashboadrdCount());
-    }, []);
-    console.log(getDashboadrdCountData,"getDashboadrdCountData");
+  useEffect(() => {
+    // fetchData();
+    dispatch(getDashboadrdCount() as any);
+  }, [dispatch]);
+  console.log(getDashboadrdCountData, "getDashboadrdCountData");
 
   return (
     <>
@@ -204,7 +203,7 @@ const EmployeeDashboard = () => {
           </div>
           {/* /Breadcrumb */}
 
-              <div className="card border-0">
+          <div className="card border-0">
             <div className="card-body d-flex align-items-center justify-content-between flex-wrap pb-1">
               <div className="d-flex align-items-center mb-3">
                 <span className="avatar avatar-xl flex-shrink-0">
@@ -234,7 +233,6 @@ const EmployeeDashboard = () => {
                   </p>
                 </div>
               </div>
-       
             </div>
           </div>
           <div className="alert bg-secondary-transparent alert-dismissible fade show mb-4">
@@ -249,7 +247,6 @@ const EmployeeDashboard = () => {
             </button>
           </div>
 
-          
           <div className="row">
             <div className="col-xl-4 d-flex">
               <div className="card position-relative flex-fill">
