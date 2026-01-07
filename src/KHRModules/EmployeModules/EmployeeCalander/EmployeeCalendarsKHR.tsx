@@ -3,10 +3,8 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { Calendar } from "primereact/calendar";
 import { Link } from "react-router-dom";
 import { all_routes } from "../../../router/all_routes";
-import type { Nullable } from "primereact/ts-helpers";
 import Modal from "react-bootstrap/Modal";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import moment from "moment";
@@ -23,6 +21,7 @@ interface FCEvent {
   end: Date;
   className: string;
   backgroundColor: string;
+  borderColor: string;
   textColor: string;
   extendedProps: {
     location?: string;
@@ -37,7 +36,6 @@ const EmployeeCalendarsKHR = () => {
   const calendarRef = useRef<FullCalendar | null>(null);
 
   // State
-  const [date, setDate] = useState<Nullable<Date>>(null);
   const [events, setEvents] = useState<FCEvent[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
 
@@ -51,7 +49,6 @@ const EmployeeCalendarsKHR = () => {
       const response = await getCalendarEvents();
 
       // Check if data is inside response.data.data (List) or just response.data (Single Object wrapper)
-      // Adapting to your structure where data might be a list
       let rawData: CalendarEventAPI[] = [];
 
       if (response.data?.data && Array.isArray(response.data.data)) {
@@ -60,38 +57,41 @@ const EmployeeCalendarsKHR = () => {
         response.data?.data &&
         typeof response.data.data === "object"
       ) {
-        // If API returns a single object instead of array, wrap it
         rawData = [response.data.data];
       }
 
       const mappedEvents: FCEvent[] = rawData.map((item) => {
-        // Parse API Date Format: "2026-01-10 14:00:00"
         const startDate = moment(item.start, "YYYY-MM-DD HH:mm:ss").toDate();
         const endDate = moment(item.stop, "YYYY-MM-DD HH:mm:ss").toDate();
 
         // Color coding based on Privacy
-        let bgColor = "#EDF2F4"; // Default
+        let bgColor = "#EDF2F4";
         let txtColor = "#0C4B5E";
+        let brdColor = "#D1D9DD"; // Added border color variable
 
         if (item.privacy === "private") {
-          bgColor = "#FAE7E7"; // Reddish for private
-          txtColor = "#E70D0D";
+          bgColor = "#FFE0E0"; // Slightly richer background
+          txtColor = "#D32F2F"; // Darker red text
+          brdColor = "#FFCDCD"; // Border matching theme
         } else {
-          bgColor = "#E8E9EA"; // Gray for public
-          txtColor = "#212529";
+          bgColor = "#E0E4E8"; // Slightly richer gray
+          txtColor = "#1F2937"; // Dark gray text
+          brdColor = "#CED4DA"; // Border matching theme
         }
 
         return {
-          id: String(item.event_id), // Map 'event_id' -> 'id'
-          title: item.name, // Map 'name' -> 'title'
+          id: String(item.event_id),
+          title: item.name,
           start: startDate,
           end: endDate,
-          className: "badge", // Bootstrap badge class base
+          // Removed 'badge', added bold, padding, border, and shadow for visibility
+          className: "fw-bold px-2 py-1 border shadow-sm rounded text-truncate",
           backgroundColor: bgColor,
+          borderColor: brdColor,
           textColor: txtColor,
           extendedProps: {
             location: item.location,
-            description: item.description, // HTML content
+            description: item.description,
             privacy: item.privacy,
             organizer: item.user_id?.name,
           },
@@ -110,7 +110,6 @@ const EmployeeCalendarsKHR = () => {
 
   // --- Handlers ---
   const handleEventClick = (info: any) => {
-    // Extract data for the modal
     const eventObj = {
       title: info.event.title,
       start: info.event.start,
@@ -122,14 +121,6 @@ const EmployeeCalendarsKHR = () => {
     };
     setSelectedEvent(eventObj);
     setShowEventDetailsModal(true);
-  };
-
-  const handleDateSelect = (date: Date) => {
-    if (calendarRef.current) {
-      const api = calendarRef.current.getApi();
-      api.gotoDate(date);
-    }
-    setDate(date);
   };
 
   return (
@@ -167,54 +158,30 @@ const EmployeeCalendarsKHR = () => {
         </div>
 
         <div className="row">
-          {/* Small Calendar Sidebar */}
-          <div className="col-xxl-3 col-xl-4 theiaStickySidebar">
-            <div className="stickybar">
-              <div className="card">
-                <div className="card-body p-3">
-                  <div className="border-bottom pb-2 mb-4">
-                    <Calendar
-                      className="datepickers mb-4"
-                      value={date}
-                      onChange={(e) => handleDateSelect(e.value as Date)}
-                      inline={true}
-                    />
-                  </div>
-                  <div className="border-bottom pb-4 mb-4">
-                    <h5>Upcoming Events</h5>
-                    {/* You can filter 'events' state here to show a list of upcoming items if needed */}
-                    <p className="text-muted fs-12">
-                      Click dates on the calendar to navigate.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Main FullCalendar */}
-          <div className="col-xxl-9 col-xl-8 theiaStickySidebar">
-            <div className="stickybar">
-              <div className="card border-0">
-                <div className="card-body">
-                  <FullCalendar
-                    plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                    initialView="dayGridMonth"
-                    events={events}
-                    headerToolbar={{
-                      start: "today,prev,next",
-                      center: "title",
-                      end: "dayGridMonth,timeGridWeek,timeGridDay",
-                    }}
-                    eventClick={handleEventClick}
-                    ref={calendarRef}
-                    eventTimeFormat={{
-                      hour: "numeric",
-                      minute: "2-digit",
-                      meridiem: "short",
-                    }}
-                  />
-                </div>
+          <div className="col-12">
+            <div className="card border-0">
+              <div className="card-body">
+                <FullCalendar
+                  plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                  initialView="dayGridMonth"
+                  events={events}
+                  headerToolbar={{
+                    start: "today,prev,next",
+                    center: "title",
+                    end: "dayGridMonth,timeGridWeek,timeGridDay",
+                  }}
+                  eventClick={handleEventClick}
+                  ref={calendarRef}
+                  eventTimeFormat={{
+                    hour: "numeric",
+                    minute: "2-digit",
+                    meridiem: "short",
+                  }}
+                  // Increase height slightly to prevent crunching if needed
+                  height="auto"
+                  dayMaxEventRows={true} // Allow "more" link if too many events
+                />
               </div>
             </div>
           </div>
@@ -296,7 +263,7 @@ const EmployeeCalendarsKHR = () => {
 
           <hr />
 
-          {/* Description (Rendering HTML safely) */}
+          {/* Description */}
           {selectedEvent?.description && (
             <div>
               <label className="fw-bold text-muted mb-1">Description</label>
@@ -313,7 +280,7 @@ const EmployeeCalendarsKHR = () => {
       <AddEditEmployeeCalendarsKHRModal
         show={showAddModal}
         onHide={() => setShowAddModal(false)}
-        onSuccess={fetchEvents} // Refresh calendar after adding
+        onSuccess={fetchEvents}
       />
     </div>
   );

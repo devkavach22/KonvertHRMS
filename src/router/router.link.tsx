@@ -312,6 +312,7 @@ import {
   ExpenseCategoryKHR,
   ExpenseKHR,
   EmployeeCalendarsKHR,
+  AllApprovalKHR,
   // BanksAccountKHR,
 } from "./lazyRoutes";
 
@@ -1662,6 +1663,11 @@ export const publicRoutes = [
   {
     path: routes.expenseKHR,
     element: <ExpenseKHR />,
+    route: Route,
+  },
+  {
+    path: routes.approvalKHR,
+    element: <AllApprovalKHR />,
     route: Route,
   },
   {

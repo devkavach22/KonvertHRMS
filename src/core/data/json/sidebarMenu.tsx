@@ -56,7 +56,7 @@ export const SidebarDataTest = [
         dot: false,
         submenuItems: [
           { label: "Employees", link: routes.employeeKHR },
-          { label: "Employee Contract", link: routes.employeeContract },
+          // { label: "Employee Contract", link: routes.employeeContract },
           { label: "Expense", link: routes.expenseKHR },
           { label: "Employee Calander", link: routes.employeeCalenderKHR },
         ],

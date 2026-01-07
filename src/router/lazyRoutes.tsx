@@ -411,6 +411,10 @@ export const EmployeeKHR = createLazyComponent(
   () => import("../KHRModules/EmployeModules/Employee/EmployeeKHR")
 );
 
+export const AllApprovalKHR = createLazyComponent(
+  () => import("../KHRModules/ApprovalModule/AllApproval")
+);
+
 export const ExpenseKHR = createLazyComponent(
   () => import("../KHRModules/EmployeModules/Expense/ExpenseKHR")
 );

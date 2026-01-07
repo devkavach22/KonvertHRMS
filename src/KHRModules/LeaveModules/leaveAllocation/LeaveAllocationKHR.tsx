@@ -8,6 +8,7 @@ import AddEditLeaveAllocationModal from "./AddEditLeaveAllocationModal";
 import {
   getLeaveAllocations,
   deleteLeaveAllocation,
+  approveRefuseLeaveAllocation,
 } from "./LeaveAllocationServices";
 
 const LeaveAllocationKHR = () => {
@@ -16,20 +17,15 @@ const LeaveAllocationKHR = () => {
   const [loading, setLoading] = useState(true);
   const [selectedAllocation, setSelectedAllocation] = useState(null);
 
-  // --- Fetch Data ---
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response: any = await getLeaveAllocations();
+      const response = await getLeaveAllocations();
+      const rawArray = response?.allocations || [];
 
-      // 1. Target the correct array inside response.data.allocations
-      const rawArray = response?.data?.allocations || [];
-
-      // 2. Map data to flatten [id, name] arrays into string properties
       const mappedData = rawArray.map((item: any) => ({
         ...item,
         key: String(item.id),
-        // Extract name from [id, "Name"]
         employee_name: Array.isArray(item.employee_id)
           ? item.employee_id[1]
           : "-",
@@ -51,7 +47,23 @@ const LeaveAllocationKHR = () => {
     fetchData();
   }, []);
 
-  // --- Delete Handler ---
+  const handleStatusUpdate = async (
+    id: number,
+    action: "approve" | "refuse"
+  ) => {
+    try {
+      const res = await approveRefuseLeaveAllocation(id, action);
+      if (res.status === "success") {
+        toast.success(`Allocation ${action}d successfully`);
+        fetchData();
+      } else {
+        toast.error(res.message || "Failed to update status");
+      }
+    } catch (error) {
+      toast.error("An error occurred");
+    }
+  };
+
   const handleDelete = async (id: number) => {
     if (window.confirm("Are you sure you want to delete this allocation?")) {
       try {
@@ -64,11 +76,11 @@ const LeaveAllocationKHR = () => {
     }
   };
 
-  // --- Table Columns ---
   const columns = [
     {
       title: "Employee",
-      dataIndex: "employee_name", // Now maps to the extracted string
+      dataIndex: "employee_name",
+      key: "employee_name",
       sorter: (a: any, b: any) =>
         (a.employee_name || "").localeCompare(b.employee_name || ""),
       render: (text: string) => (
@@ -77,50 +89,22 @@ const LeaveAllocationKHR = () => {
     },
     {
       title: "Leave Type",
-      dataIndex: "leave_type_name", // Now maps to the extracted string
-      sorter: (a: any, b: any) =>
-        (a.leave_type_name || "").localeCompare(b.leave_type_name || ""),
-    },
-    {
-      title: "Allocation Type",
-      dataIndex: "allocation_type",
-      render: (text: string) => (
-        <span
-          className={`badge ${
-            text?.toLowerCase() === "accrual"
-              ? "bg-soft-info text-info"
-              : text?.toLowerCase() === "regular"
-              ? "bg-soft-success text-success"
-              : "bg-soft-warning text-warning"
-          }`}
-        >
-          {text ? text.charAt(0).toUpperCase() + text.slice(1) : "-"}
-        </span>
-      ),
-    },
-    {
-      title: "From Date",
-      dataIndex: "date_from",
-      render: (text: any) => <span>{text || "-"}</span>,
-    },
-    {
-      title: "To Date",
-      dataIndex: "date_to",
-      // Handle boolean false from API
-      render: (text: any) => <span>{text ? text : "No Limit"}</span>,
+      dataIndex: "leave_type_name",
+      key: "leave_type_name",
     },
     {
       title: "Days",
       dataIndex: "number_of_days",
+      key: "number_of_days",
       render: (text: any) => <span className="fw-bold">{text}</span>,
     },
     {
       title: "Status",
-      dataIndex: "state", // Matches JSON field "state"
+      dataIndex: "state",
+      key: "state",
       render: (text: string) => {
         let label = text;
         let badgeClass = "bg-light text-muted";
-
         switch (text?.toLowerCase()) {
           case "confirm":
             label = "To Approve";
@@ -130,10 +114,6 @@ const LeaveAllocationKHR = () => {
             label = "Refused";
             badgeClass = "bg-soft-danger text-danger";
             break;
-          case "validate1":
-            label = "Second Approval";
-            badgeClass = "bg-soft-info text-info";
-            break;
           case "validate":
             label = "Approved";
             badgeClass = "bg-soft-success text-success";
@@ -141,9 +121,10 @@ const LeaveAllocationKHR = () => {
           default:
             label = text || "-";
         }
-
         return (
-          <span className={`badge ${badgeClass} fs-12 px-3 py-2 fw-bold`}>
+          <span
+            className={`badge ${badgeClass} fs-12 px-3 py-2 fw-bold text-uppercase`}
+          >
             {label}
           </span>
         );
@@ -152,18 +133,44 @@ const LeaveAllocationKHR = () => {
     {
       title: "Actions",
       dataIndex: "id",
+      key: "id",
+      width: "150px", // Fixed width to prevent collapsing
       render: (_: any, record: any) => (
-        <div className="action-icon d-inline-flex">
+        <div className="action-icon d-inline-flex align-items-center flex-nowrap">
+          {record.state === "confirm" && (
+            <>
+              <Link
+                to="#"
+                className="me-2 text-success action-btn"
+                title="Approve"
+                onClick={() => handleStatusUpdate(record.id, "approve")}
+              >
+                <i className="ti ti-check fs-20" />
+              </Link>
+              <Link
+                to="#"
+                className="me-2 text-danger action-btn"
+                title="Refuse"
+                onClick={() => handleStatusUpdate(record.id, "refuse")}
+              >
+                <i className="ti ti-x fs-20" />
+              </Link>
+            </>
+          )}
           <Link
             to="#"
-            className="me-2"
+            className="me-2 action-btn"
             data-bs-toggle="modal"
             data-bs-target="#add_leave_allocation_modal"
             onClick={() => setSelectedAllocation(record)}
           >
             <i className="ti ti-edit text-blue" />
           </Link>
-          <Link to="#" onClick={() => handleDelete(record.id)}>
+          <Link
+            to="#"
+            className="action-btn"
+            onClick={() => handleDelete(record.id)}
+          >
             <i className="ti ti-trash text-danger" />
           </Link>
         </div>
@@ -172,10 +179,11 @@ const LeaveAllocationKHR = () => {
   ];
 
   return (
-    <>
-      <div className="page-wrapper">
-        <div className="content">
-          <div onClick={() => setSelectedAllocation(null)}>
+    <div className="page-wrapper">
+      <div className="content container-fluid">
+        {/* Header Section */}
+        <div className="row">
+          <div className="col-md-12">
             <CommonHeader
               title="Leave Allocation"
               parentMenu="HR"
@@ -185,20 +193,33 @@ const LeaveAllocationKHR = () => {
               modalTarget="#add_leave_allocation_modal"
             />
           </div>
+        </div>
 
-          <div className="card">
-            <div className="card-body p-0">
-              {loading ? (
-                <div className="text-center p-5">
-                  <div
-                    className="spinner-border text-primary"
-                    role="status"
-                  ></div>
-                  <div className="mt-2">Fetching Records...</div>
-                </div>
-              ) : (
-                <DatatableKHR data={data} columns={columns} selection={true} />
-              )}
+        {/* Main Table Card */}
+        <div className="row">
+          <div className="col-md-12">
+            <div className="card shadow-sm border-0">
+              <div className="card-body p-0">
+                {loading ? (
+                  <div className="text-center p-5">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <div className="mt-2 text-muted fw-semibold">
+                      Retrieving{" "}
+                      {data.length > 0 ? "Table Data" : "Allocations"}...
+                    </div>
+                  </div>
+                ) : (
+                  <div className="table-responsive">
+                    <DatatableKHR
+                      data={data}
+                      columns={columns}
+                      selection={true}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -210,7 +231,7 @@ const LeaveAllocationKHR = () => {
         onSuccess={fetchData}
         data={selectedAllocation}
       />
-    </>
+    </div>
   );
 };
 

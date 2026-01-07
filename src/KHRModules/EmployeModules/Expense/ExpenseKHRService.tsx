@@ -41,6 +41,30 @@ export const getExpenses = async () => {
   return await Instance.get(`/employee/expense?user_id=${user_id}`);
 };
 
+// Add this to ExpenseKHRService.tsx
+
+export const getExpenseAccounts = async () => {
+  try {
+    const token = localStorage.getItem("authToken");
+    const user_id =
+      localStorage.getItem("user_id") ||
+      localStorage.getItem("userId") ||
+      localStorage.getItem("id");
+    const response = await Instance.get(
+      `employee/expense-account?user_id=${user_id}`,
+      {
+        headers: { Authorization: token },
+      }
+    );
+
+    // Most Odoo-based APIs return an array of [id, "name"] or a data object
+    return response.data?.data || response.data || [];
+  } catch (error) {
+    console.error("Error fetching expense accounts:", error);
+    return [];
+  }
+};
+
 // 2. CREATE Expense
 // URL: /employee/create/expense?user_id=3145
 export const createExpense = async (data: any) => {
