@@ -62,8 +62,11 @@ const Login = () => {
         localStorage.setItem("user_id", response.data.user_id.toString());
         localStorage.setItem("user_email", response.data.email);
         localStorage.setItem("full_name", response.data.full_name);
-           localStorage.setItem("user_name", response.data.name);
-           localStorage.setItem("is_client_employee_admin",response.data.is_client_employee_admin)
+        localStorage.setItem("user_name", response.data.name);
+        localStorage.setItem(
+          "is_client_employee_admin",
+          response.data.is_client_employee_admin
+        );
         localStorage.setItem("user_name", response.data.name);
         localStorage.setItem("user_fullname", response.data.full_name);
 
@@ -96,17 +99,17 @@ const Login = () => {
             <div className="login-background position-relative d-lg-flex align-items-center justify-content-center d-none flex-wrap vh-100">
               <div className="bg-overlay-img">
                 <ImageWithBasePath
-                  src="assets/img/bg/bg-01.png"
+                  public="assets/img/bg/bg-01.png"
                   className="bg-1"
                   alt="Background pattern 1"
                 />
                 <ImageWithBasePath
-                  src="assets/img/bg/bg-02.png"
+                  public="assets/img/bg/bg-02.png"
                   className="bg-2"
                   alt="Background pattern 2"
                 />
                 <ImageWithBasePath
-                  src="assets/img/bg/bg-03.png"
+                  public="assets/img/bg/bg-03.png"
                   className="bg-3"
                   alt="Background pattern 3"
                 />
@@ -245,7 +248,7 @@ const Login = () => {
 
                       <div className="mt-5 pb-4 text-center">
                         <p className="mb-0 text-gray-9">
-                          Copyright © 2025 - Kavach 
+                          Copyright © 2025 - Kavach
                         </p>
                       </div>
                     </div>
