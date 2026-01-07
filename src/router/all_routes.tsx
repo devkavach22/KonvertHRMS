@@ -19,10 +19,13 @@ export const all_routes = {
   geoConfigKHR: "/KHR-geo-configurations",
   geoKHR: "/KHR-geo-configurations",
   SalaryRuleKHR: "/KHR-salary-rules",
-  SalaryStructure:"/KHR-salary-structure",
+  SalaryStructure: "/KHR-salary-structure",
+  expenseCategoryKHR: "KHR-expense-category",
 
   //Employee Modules
   employeeKHR: "/KHR-employees",
+  expenseKHR: "/KHR-expense",
+  employeeCalenderKHR: "/KHR-employee-Calender",
 
   // Leave Modules
   leaveAdminKHR: "/KHR-leave-admin",
@@ -36,6 +39,9 @@ export const all_routes = {
   mendetoryDaysKHR: "/KHR-mendetory-days",
 
   employeeSalaryKHR: "/KHR-employee-salary",
+
+  // Approvals
+  approvalKHR: "KHR-approval",
 
   //Attendance Modules
   attendanceAdminKHR: "/KHR-attendance-admin",

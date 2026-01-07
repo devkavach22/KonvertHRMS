@@ -411,11 +411,27 @@ export const EmployeeKHR = createLazyComponent(
   () => import("../KHRModules/EmployeModules/Employee/EmployeeKHR")
 );
 
+export const AllApprovalKHR = createLazyComponent(
+  () => import("../KHRModules/ApprovalModule/AllApproval")
+);
+
+export const ExpenseKHR = createLazyComponent(
+  () => import("../KHRModules/EmployeModules/Expense/ExpenseKHR")
+);
+
+export const EmployeeCalendarsKHR = createLazyComponent(
+  () =>
+    import("../KHRModules/EmployeModules/EmployeeCalander/EmployeeCalendarsKHR")
+);
 export const AdminAttandanceKHR = createLazyComponent(
   () =>
     import("../KHRModules/AttandanceModules/AdminAttandance/AdminAttandanceKHR")
 );
 
+export const ExpenseCategoryKHR = createLazyComponent(
+  () =>
+    import("../KHRModules/Master Modules/ExpenseCategory/ExpenseCategoryKHR")
+);
 export const EmployeeAttandanceKHR = createLazyComponent(
   () =>
     import(
@@ -424,10 +440,7 @@ export const EmployeeAttandanceKHR = createLazyComponent(
 );
 
 export const SalaryStructure = createLazyComponent(
-  () =>
-    import(
-      "../KHRModules/payRollModules/SalaryStructure/SalaryStructure"
-    )
+  () => import("../KHRModules/payRollModules/SalaryStructure/SalaryStructure")
 );
 export const BanksKHR = createLazyComponent(
   () => import("../KHRModules/Master Modules/BanksKHR/BanksKHR")

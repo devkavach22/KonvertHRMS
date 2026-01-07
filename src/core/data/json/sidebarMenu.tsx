@@ -1,49 +1,44 @@
 import { all_routes } from "../../../router/all_routes";
 const routes = all_routes;
 
-// ✅ ONE PLACE CONTROL
-const isAdmin = localStorage.getItem("is_client_employee_admin") === "true";
-
 export const SidebarDataTest = [
-  // ================= ADMIN ONLY =================
-  ...(isAdmin
-    ? [
-        {
-          tittle: "Administrative",
-          icon: "airplay",
-          showAsTab: true,
-          separateRoute: false,
-          submenuItems: [
-            {
-              label: "Settings",
-              link: "index",
-              submenu: true,
-              showSubRoute: false,
-              icon: "smart-home",
-              base: "dashboard",
-              materialicons: "start",
-              dot: false,
-              submenuItems: [
-                { label: "Attendence Policy", link: routes.AttendancePolicyKHR },
-                { label: "Department", link: routes.departmentsKHR },
-                { label: "Job Postions", link: routes.jobPositionsKHR },
-                { label: "Work Location", link: routes.workLocationKHR },
-                { label: "Working Schedule", link: routes.workingScheduleKHR },
-                { label: "Work Entry Type", link: routes.workEntryTypeKHR },
-                { label: "Skills", link: routes.skillsKHR },
-                { label: "Industries", link: routes.industriesKHR },
-                { label: "Bank", link: routes.banksKHR },
-                { label: "Bank Account", link: routes.banksAccountKHR },
-                { label: "HR Contract Type", link: routes.hrContractTypeKHR },
-                { label: "Geo Configurations", link: routes.geoKHR },
-              ],
-            },
-          ],
-        },
-      ]
-    : []),
-
-  // ================= COMMON =================
+  {
+    tittle: "Administrative",
+    icon: "airplay",
+    showAsTab: true,
+    separateRoute: false,
+    submenuItems: [
+      {
+        label: "Settings",
+        link: "index",
+        submenu: true,
+        showSubRoute: false,
+        icon: "smart-home",
+        base: "dashboard",
+        materialicons: "start",
+        dot: false,
+        submenuItems: [
+          { label: "Attendence Policy", link: routes.AttendancePolicyKHR },
+          // { label: "Buisness Location", link: routes.buisnessLocationKHR },
+          // { label: "Buisness Type", link: routes.buisnessTypeKHR },
+          { label: "Department", link: routes.departmentsKHR },
+          { label: "Job Postions", link: routes.jobPositionsKHR },
+          { label: "Work Location", link: routes.workLocationKHR },
+          { label: "Working Schedule", link: routes.workingScheduleKHR },
+          { label: "Work Entry Type", link: routes.workEntryTypeKHR },
+          { label: "Skills", link: routes.skillsKHR },
+          { label: "Industries", link: routes.industriesKHR },
+          { label: "Bank", link: routes.banksKHR },
+          { label: "Bank Account", link: routes.banksAccountKHR },
+          { label: "HR Contract Type ", link: routes.hrContractTypeKHR },
+          { label: "Geo Configurations", link: routes.geoKHR },
+          { label: "Expense Category", link: routes.expenseCategoryKHR },
+          // { label: "Country", link: routes.dealsDashboard },
+          // { label: "State", link: routes.leadsDashboard },
+        ],
+      },
+    ],
+  },
   {
     tittle: "HRMS",
     icon: "airplay",
@@ -61,47 +56,38 @@ export const SidebarDataTest = [
         dot: false,
         submenuItems: [
           { label: "Employees", link: routes.employeeKHR },
-          { label: "Employee Contract", link: routes.employeeContract },
+          // { label: "Employee Contract", link: routes.employeeContract },
+          { label: "Expense", link: routes.expenseKHR },
+          { label: "Employee Calander", link: routes.employeeCalenderKHR },
         ],
       },
     ],
   },
 
-  // ================= ADMIN ONLY =================
- {
-  tittle: "HRMS",
-  icon: "airplay",
-  showAsTab: true,
-  separateRoute: false,
-  submenuItems: [
-    {
-      label: "Attandance Management",
-      link: "index",
-      submenu: true,
-      showSubRoute: false,
-      icon: "settings-2",
-      base: "dashboard",
-      materialicons: "start",
-      dot: false,
-      submenuItems: [
-        // ✅ ADMIN ONLY
-        ...(isAdmin
-          ? [{ label: "Admin Attendance", link: routes.attendanceAdminKHR }]
-          : []),
+  {
+    tittle: "HRMS",
+    icon: "airplay",
+    showAsTab: true,
+    separateRoute: false,
+    submenuItems: [
+      {
+        label: "Attandance Management",
+        link: "index",
+        submenu: true,
+        showSubRoute: false,
+        icon: "settings-2",
+        base: "dashboard",
+        materialicons: "start",
+        dot: false,
+        submenuItems: [
+          { label: "Admin Attendance", link: routes.attendanceAdminKHR },
+          { label: "Employees Attendance", link: routes.attendaceEmployeeKHR },
+          { label: "Shift Modules", link: routes.shiftModulesKHR },
+        ],
+      },
+    ],
+  },
 
-        // ✅ BOTH ADMIN & EMPLOYEE
-        { label: "Employees Attendance", link: routes.attendaceEmployeeKHR },
-
-        // ✅ ADMIN ONLY
-        ...(isAdmin
-          ? [{ label: "Shift Modules", link: routes.shiftModulesKHR }]
-          : []),
-      ],
-    },
-  ],
-},
-
-  // ================= LEAVE =================
   {
     tittle: "Leave Management",
     icon: "airplay",
@@ -118,50 +104,59 @@ export const SidebarDataTest = [
         materialicons: "start",
         dot: false,
         submenuItems: [
-          ...(isAdmin ? [{ label: "Leaves (Admin)", link: routes.leaveAdminKHR }] : []),
+          { label: "Leaves (Admin)", link: routes.leaveAdminKHR },
           { label: "Leaves (Employee)", link: routes.leaveEmployeeKHR },
-          ...(isAdmin
-            ? [
-                { label: "Leave Types", link: routes.leaveTypesKHR },
-                { label: "Leave Allocation", link: routes.leaveAllocationKHR },
-              ]
-            : []),
+          { label: "Leave Allocation", link: routes.leaveAllocationKHR },
           { label: "Leave Request", link: routes.leaveRequestKHR },
+          // { label: "Leave Settings", link: routes.leaveSettingsKHR },
+          { label: "Leave Types", link: routes.leaveTypesKHR },
+          { label: "Accural Plan", link: routes.accuralPlanKHR },
           { label: "Public Holiday", link: routes.publicHolidayKHR },
+          { label: "Mendetory Days", link: routes.mendetoryDaysKHR },
         ],
       },
     ],
   },
 
-  // ================= FINANCE (ADMIN ONLY) =================
-  ...(isAdmin
-    ? [
-        {
-          tittle: "Finance & Accounts",
-          icon: "payroll",
-          showAsTab: true,
-          separateRoute: false,
-          submenuItems: [
-            {
-              label: "Payroll",
-              link: "index",
-              submenu: true,
-              showSubRoute: false,
-              icon: "users",
-              base: "dashboard",
-              materialicons: "start",
-              dot: false,
-              submenuItems: [
-                { label: "Structure Types", link: routes.employeeSalaryKHR },
-                { label: "Salary Rules", link: routes.SalaryRuleKHR },
-                { label: "Salary Structure", link: routes.SalaryStructure },
-              ],
-            },
-          ],
-        },
-      ]
-    : []),
-];
+  {
+    tittle: "Finance & Accounts",
+    icon: "payroll",
+    showAsTab: true,
+    separateRoute: false,
+    submenuItems: [
+      {
+        label: "Payroll",
+        link: "index",
+        submenu: true,
+        showSubRoute: false,
+        icon: "users",
+        base: "dashboard",
+        materialicons: "start",
+        dot: false,
+        submenuItems: [
+          { label: "Structure Types", link: routes.employeeSalaryKHR },
+          { label: "Salary Rules", link: routes.SalaryRuleKHR },
+        ],
+      },
+    ],
+  },
+  {
+    label: "Approval",
+    customSubmenuTwo: true,
+    base: "Approval",
+    icon: "Approval",
+    submenu: true,
+    showSubRoute: false,
+    submenuItems: [
+      {
+        label: "Approval",
+        link: routes.approvalKHR,
+        submenu: false,
+        showSubRoute: false,
+        base: "form-horizontal",
+      },
+    ],
+  },
 
   // {
   //   tittle: "Main Menu",
@@ -2160,4 +2155,4 @@ export const SidebarDataTest = [
   //     },
   //   ],
   // },
-
+];

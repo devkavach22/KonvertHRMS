@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import {
   addWorkingSchedule,
   updateWorkingSchedule,
-  getTimezones, // API to fetch timezones
+  getTimezones,
   WorkingSchedule,
 } from "./WorkingSchedulesServices";
+import { getWorkEntryTypes } from "../WorkEntryType/WorkEntryTypeServices";
 
 interface Props {
   onSuccess: () => void;
@@ -20,17 +21,21 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
   const [timezone, setTimezone] = useState("");
 
   // "Bottom" Fields (Conditional)
-  const [lineName, setLineName] = useState(""); // Second 'name' field from prompt
-  const [dayOfWeek, setDayOfWeek] = useState("0"); // Monday default
+  const [lineName, setLineName] = useState("");
+  const [dayOfWeek, setDayOfWeek] = useState("0");
   const [dayPeriod, setDayPeriod] = useState("morning");
   const [hourFrom, setHourFrom] = useState(8.0);
   const [hourTo, setHourTo] = useState(12.0);
   const [durationDays, setDurationDays] = useState(1.0);
-  const [workEntryTypeId, setWorkEntryTypeId] = useState(0);
+  const [workEntryTypeId, setWorkEntryTypeId] = useState<number | string>("");
 
   // Aux State
   const [validated, setValidated] = useState(false);
-  const [timezoneList, setTimezoneList] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // FIX: Use any[] to handle mixed types (objects or strings) safely
+  const [timezoneList, setTimezoneList] = useState<any[]>([]);
+  const [workEntryTypes, setWorkEntryTypes] = useState<any[]>([]);
 
   // Static Dropdown Options
   const daysOfWeek = [
@@ -49,14 +54,33 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
     { value: "afternoon", label: "Afternoon" },
   ];
 
-  // 1. Fetch Timezones on Mount
+  // 1. Fetch Dropdowns (Timezones & Work Entry Types)
   useEffect(() => {
-    const fetchTz = async () => {
-      const tzs = await getTimezones();
-      setTimezoneList(tzs);
-      if (tzs.length > 0 && !timezone) setTimezone(tzs[0]);
+    const fetchDropdowns = async () => {
+      try {
+        // Fetch Timezones
+        const tzs = await getTimezones();
+        setTimezoneList(tzs);
+
+        // Auto-select first timezone if none selected
+        if (tzs.length > 0 && !timezone) {
+          // FIX: Cast to 'any' to avoid "Property value does not exist on type never"
+          const firstItem = tzs[0] as any;
+          const firstVal =
+            typeof firstItem === "object" && firstItem !== null
+              ? firstItem.value
+              : firstItem;
+          setTimezone(firstVal);
+        }
+
+        // Fetch Work Entry Types
+        const types = await getWorkEntryTypes();
+        setWorkEntryTypes(types);
+      } catch (error) {
+        console.error("Error loading dropdowns", error);
+      }
     };
-    fetchTz();
+    fetchDropdowns();
   }, []);
 
   // 2. DATA SYNC: Populate form
@@ -68,16 +92,14 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
       setFullTimeHours(data.full_time_required_hours || 40);
       setTimezone(data.tz || "");
 
-      // If data has bottom fields, populate them too
       if (data.flexible_hours) {
-        // Assuming 'name' field repetition logic or separate field
-        setLineName("");
+        setLineName(""); // Map specific name if available
         setDayOfWeek(data.dayofweek || "0");
         setDayPeriod(data.day_period || "morning");
         setHourFrom(data.hour_from || 8.0);
         setHourTo(data.hour_to || 12.0);
         setDurationDays(data.duration_days || 1.0);
-        setWorkEntryTypeId(data.work_entry_type_id || 0);
+        setWorkEntryTypeId(data.work_entry_type_id || "");
       }
     } else {
       resetForm();
@@ -89,23 +111,23 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
     setFlexibleHours(false);
     setIsNightShift(false);
     setFullTimeHours(40);
-    // Keep timezone if already fetched
+    // Note: We do NOT reset timezoneList/workEntryTypes as those are global
 
-    // Reset Bottom fields
     setLineName("");
     setDayOfWeek("0");
     setDayPeriod("morning");
     setHourFrom(8.0);
     setHourTo(17.0);
     setDurationDays(1.0);
-    setWorkEntryTypeId(0);
+    setWorkEntryTypeId("");
+    setValidated(false);
+    setIsSubmitting(false);
   };
 
-  // 3. RESET LOGIC: Listen for hidden.bs.modal
+  // 3. RESET LOGIC
   useEffect(() => {
     const modalElement = document.getElementById("add_working_schedule");
     const handleModalClose = () => {
-      setValidated(false);
       resetForm();
     };
     if (modalElement) {
@@ -129,7 +151,8 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
       return;
     }
 
-    // Prepare Payload
+    setIsSubmitting(true);
+
     let apiPayload: any = {
       name: name,
       flexible_hours: flexibleHours,
@@ -138,13 +161,9 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
       tz: timezone,
     };
 
-    // CONDITION: Add bottom fields ONLY if flexible_hours is true
     if (flexibleHours) {
       apiPayload = {
         ...apiPayload,
-        // The prompt mentions a 'name' field in bottom section too.
-        // If it's distinct from main name, send it. If it's same, reuse 'name'.
-        // Assuming it's the schedule detail name based on structure.
         line_name: lineName,
         dayofweek: dayOfWeek,
         day_period: dayPeriod,
@@ -163,11 +182,14 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
       }
 
       const closeBtn = document.getElementById("close-btn-ws");
-      closeBtn?.click();
+      if (closeBtn) closeBtn.click();
+
       onSuccess();
     } catch (error) {
       console.error("Failed to save schedule", error);
       alert("Error saving data.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -238,11 +260,24 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
                     onChange={(e) => setTimezone(e.target.value)}
                   >
                     <option value="">Select Timezone</option>
-                    {timezoneList.map((tz) => (
-                      <option key={tz} value={tz}>
-                        {tz}
-                      </option>
-                    ))}
+                    {timezoneList.map((tz, index) => {
+                      // Safe extraction for both Object and String types
+                      const item = tz as any;
+                      const val =
+                        typeof item === "object" && item !== null
+                          ? item.value
+                          : item;
+                      const lbl =
+                        typeof item === "object" && item !== null
+                          ? item.label
+                          : item;
+
+                      return (
+                        <option key={`${val}-${index}`} value={val}>
+                          {lbl}
+                        </option>
+                      );
+                    })}
                   </select>
                   <div className="invalid-feedback">Required</div>
                 </div>
@@ -371,16 +406,25 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
                     </div>
 
                     <div className="col-md-6 mb-3">
-                      <label className="form-label">Work Entry Type ID</label>
-                      <input
-                        type="number"
-                        className="form-control"
+                      <label className="form-label">Work Entry Type</label>
+                      <select
+                        className="form-select"
                         required
                         value={workEntryTypeId}
                         onChange={(e) =>
                           setWorkEntryTypeId(Number(e.target.value))
                         }
-                      />
+                      >
+                        <option value="">Select Work Entry Type</option>
+                        {workEntryTypes.map((type, idx) => (
+                          <option key={type.id || idx} value={type.id}>
+                            {type.name ||
+                              type.code ||
+                              type.id ||
+                              `Type ${type.id}`}
+                          </option>
+                        ))}
+                      </select>
                       <div className="invalid-feedback">Required</div>
                     </div>
                   </div>
@@ -395,8 +439,16 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary">
-                  {data ? "Update Changes" : "Save Schedule"}
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting
+                    ? "Saving..."
+                    : data
+                    ? "Update Changes"
+                    : "Save Schedule"}
                 </button>
               </div>
             </form>
