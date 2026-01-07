@@ -2,7 +2,7 @@ import { all_routes } from "../../../router/all_routes";
 const routes = all_routes;
 
 // ✅ ONE PLACE CONTROL
-const isAdmin = localStorage.getItem("is_client_employee_admin") === "true";
+const isAdmin = localStorage.getItem("is_client_employee_admin") === "false";
 
 export const SidebarDataTest = [
   // ================= ADMIN ONLY =================
