@@ -245,9 +245,7 @@ export const Employeeregularization = createAsyncThunk(
       if (result.data) {
         return result.data;
       } else {
-        console.log('====================================');
-        console.log(result,"uiui");
-        console.log('====================================');
+        console.log(result,"uiui")
         return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
       }
     } catch (error: any) {
