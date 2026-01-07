@@ -122,11 +122,7 @@ const StructureTypeKHR = () => {
                   <div className="mt-2">Loading Structure Types...</div>
                 </div>
               ) : (
-                <DatatableKHR
-                  data={data}
-                  columns={columns}
-                  selection={true}
-                />
+                <DatatableKHR data={data} columns={columns} selection={true} />
               )}
             </div>
           </div>
@@ -139,7 +135,7 @@ const StructureTypeKHR = () => {
           setSelectedStructureType(null);
           fetchData();
         }}
-        data={selectedStructureType}
+        // data={selectedStructureType}
       />
     </>
   );

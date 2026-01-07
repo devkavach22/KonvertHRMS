@@ -95,7 +95,7 @@ const EditAttendanceModal: React.FC<Props> = ({
       UpdateAdminAttendanceApi({
         payload: payload,
         attendanceId: attendance.id,
-      })
+      }) as any
     );
     // try {
     //   await updateAdminAttendance(attendance.id, payload);

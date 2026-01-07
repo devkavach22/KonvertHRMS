@@ -311,10 +311,9 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     // fetchData();
-    dispatch(getDashboadrdCount());
-  }, []);
-  console.log(getDashboadrdCountData,"getDashboadrdCountData");
-  
+    dispatch(getDashboadrdCount() as any);
+  }, [dispatch]);
+  console.log(getDashboadrdCountData, "getDashboadrdCountData");
 
   return (
     <>

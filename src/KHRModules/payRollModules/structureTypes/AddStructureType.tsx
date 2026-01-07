@@ -48,12 +48,12 @@ const AddStructureTypeModal: React.FC<Props> = ({ onSubmit }) => {
     default_work_entry_type: "",
   });
 
-  useEffect(() => {
-    dispatch(getCountries());
-    dispatch(getWorkingSchedules());
-    dispatch(getRegularPayStructure());
-    dispatch(getWorkEntryType());
-  }, []);
+  // useEffect(() => {
+  //   dispatch(getCountries());
+  //   dispatch(getWorkingSchedules());
+  //   dispatch(getRegularPayStructure());
+  //   dispatch(getWorkEntryType());
+  // }, []);
 
   useEffect(() => {
     if (GetCountriesData?.data?.length) {

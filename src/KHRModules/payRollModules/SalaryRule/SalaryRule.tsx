@@ -140,7 +140,6 @@ const SalaryRuleKHR = () => {
           </div>
         </div>
       </div>
-
       {/* Pass a function to refresh data on success */}
       <AddSalaryRuleModal onSuccess={() => dispatch(getSalaryRules())} />
     </>

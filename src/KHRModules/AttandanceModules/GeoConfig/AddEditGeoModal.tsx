@@ -5,6 +5,7 @@ import MultiSelect from "@/KHRModules/commanForm/inputComman/MultiSelect";
 import React, { useEffect, useState } from "react";
 import { addGeoConfig, updateGeoConfig } from "./GeoServices";
 import { getEmployees } from "@/KHRModules/EmployeModules/Employee/EmployeeServices";
+import { Modal } from "react-bootstrap";
 
 const employeesList = [
   { id: 16674, name: "John Doe", role: "Developer" },
@@ -73,6 +74,50 @@ const AddEditGeoModal: React.FC<Props> = ({ data, onSuccess, onClose }) => {
     }
   }, [data]);
 
+  // const handleSubmit = async () => {
+  //   setIsSubmitted(true);
+  //   console.log("handle SUbnmit Called ");
+
+  //   const validationErrors = validateAttendancePolicy(formData);
+  //   if (Object.keys(validationErrors).length) {
+  //     setErrors(validationErrors);
+  //     console.log("handle SUbnmit Validate", validationErrors);
+  //     return;
+  //   }
+
+  //   // Payload
+  //   const payload: any = {
+  //     name: formData.name,
+  //     latitude: Number(formData.latitude),
+  //     longitude: Number(formData.longitude),
+  //     radius_km: Number(formData.radius_km),
+  //     hr_employee_ids: formData.employees_selection.map((e: any) => e.id),
+  //   };
+  //   console.log("Payload", payload);
+
+  //   try {
+  //     if (data && data.id) {
+  //       await updateGeoConfig(data.id, payload);
+  //       console.log("UpdateGEO CONFIGUR", payload);
+  //     } else {
+  //       await addGeoConfig(payload);
+  //       console.log("add GEO COnfigur", payload);
+  //     }
+  //     const modalElement = document.getElementById("add_geo_config");
+  //     if (modalElement) {
+  //       const modalInstance = bootstrap.Modal.getInstance(modalElement);
+  //       if (modalInstance) {
+  //         modalInstance.hide();
+  //       }
+  //     }
+
+  //     onSuccess();
+  //     handleClose();
+  //   } catch (error) {
+  //     console.error("Error saving geo config:", error);
+  //   }
+  // };
+
   const handleSubmit = async () => {
     setIsSubmitted(true);
     console.log("handle SUbnmit Called ");
@@ -102,13 +147,21 @@ const AddEditGeoModal: React.FC<Props> = ({ data, onSuccess, onClose }) => {
         await addGeoConfig(payload);
         console.log("add GEO COnfigur", payload);
       }
+
+      // --- FIX START: Use the 'Click' Trick ---
       const modalElement = document.getElementById("add_geo_config");
-      if (modalElement) {
-        const modalInstance = bootstrap.Modal.getInstance(modalElement);
-        if (modalInstance) {
-          modalInstance.hide();
-        }
+
+      // Find the "close" button (the 'x' or 'Cancel' button) inside the modal
+      // These buttons usually have the attribute data-bs-dismiss="modal"
+      const closeBtn = modalElement?.querySelector(
+        '[data-bs-dismiss="modal"]'
+      ) as HTMLElement;
+
+      if (closeBtn) {
+        // Clicking this button triggers Bootstrap's native close & cleanup
+        closeBtn.click();
       }
+      // --- FIX END ---
 
       onSuccess();
       handleClose();
@@ -135,7 +188,7 @@ const AddEditGeoModal: React.FC<Props> = ({ data, onSuccess, onClose }) => {
       id="add_geo_config"
       title={data ? "Edit Geo Configuration" : "Add Geo Configuration"}
       onSubmit={handleSubmit}
-      onClose={handleClose}
+      // onClose={handleClose}
     >
       <FormInput
         label="Name"

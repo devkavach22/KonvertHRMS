@@ -1,4 +1,5 @@
 import CONFIG from "@/Config";
+import { RegularizationPayload } from "@/KHRModules/AttandanceModules/EmployeeAttandance/AttendanceQueryModal";
 import Service from "@/Service";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
@@ -230,7 +231,7 @@ export const EmployeeAttendanceApi = createAsyncThunk(
 
 export const Employeeregularization = createAsyncThunk(
   "Employeeregularization",
-  async (userdata, thunkAPI) => {
+  async (userdata: RegularizationPayload, thunkAPI) => {
     console.log(userdata, "userdata");
     try {
       let result = await axios({

@@ -91,9 +91,9 @@ const StructureTypeKHR = () => {
   //   }
   // };
 
-  useEffect(() => {
-    dispatch(GetStructureTypes());
-  }, []);
+  // useEffect(() => {
+  //   dispatch(GetStructureTypes());
+  // }, []);
 
   useEffect(() => {
     if (isGetStructureTypes) {
@@ -226,12 +226,12 @@ const StructureTypeKHR = () => {
       </div>
 
       {/* ================= MODAL ================= */}
-      <AddStructureTypeModal
+      {/* <AddStructureTypeModal
         onSubmit={() => {
           fetchData();
           setSelectedStructure(null);
         }}
-      />
+      /> */}
     </>
   );
 };
