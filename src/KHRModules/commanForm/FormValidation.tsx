@@ -114,27 +114,23 @@ export const useFormValidation = () => {
     return errors;
   };
 
-  const EmpAttendancevalidateForm = (data: any) => {
-    let temp: any = {};
-    let valid = true;
+const EmpAttendancevalidateForm = (data: any) => {
+  let errors: any = {};
 
-    if (!data.from_date) {
-      temp.from_date = "Date is required";
-      valid = false;
-    }
+  if (!data.from_date) {
+    errors.from_date = "Date is required";
+  }
 
-    if (!data.reg_category) {
-      temp.reg_category = "Category is required";
-      valid = false;
-    }
+  if (!data.reg_category) {
+    errors.reg_category = "Category is required";
+  }
 
-    if (!data.reg_reason || data.reg_reason.length < 5) {
-      temp.reg_reason = "Reason must be at least 5 characters";
-      valid = false;
-    }
+  if (!data.reg_reason || data.reg_reason.length < 5) {
+    errors.reg_reason = "Reason must be at least 5 characters";
+  }
 
-    return valid;
-  };
+  return errors; // ✅ return object
+};
 
   const validateStructureType = (data: any) => {
     const errors: any = {};
