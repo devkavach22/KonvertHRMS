@@ -104,7 +104,10 @@ export const AttendancesGetApi = createAsyncThunk(
 //UpdateAdminAttendanceApi
 export const UpdateAdminAttendanceApi = createAsyncThunk(
   "UpdateAdminAttendanceApi",
-  async (userdata, thunkAPI) => {
+  async (
+    userdata: { attendanceId: string | number; payload: any },
+    thunkAPI
+  ) => {
     console.log(userdata);
     try {
       let result = await axios({
@@ -245,13 +248,13 @@ export const Employeeregularization = createAsyncThunk(
       if (result.data) {
         return result.data;
       } else {
-        console.log(result,"uiui")
+        console.log(result, "uiui");
         return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
       }
     } catch (error: any) {
-      console.log('====================================');
-      console.log(error,"uiui");
-      console.log('====================================');
+      console.log("====================================");
+      console.log(error, "uiui");
+      console.log("====================================");
       console.error(
         "try catch [ AdminWorkingHours ] error.message >>",
         error?.message
@@ -518,7 +521,6 @@ export const getSalaryStructure = createAsyncThunk(
   }
 );
 
-
 export const getDashboadrdCount = createAsyncThunk(
   "getDashboadrdCount",
   async (userdata, thunkAPI) => {
@@ -573,10 +575,9 @@ export const TBSlice = createSlice({
     AdminWorkingHoursData: [],
 
     // getDashboadrdCount
-     isgetDashboadrdCount: false,
+    isgetDashboadrdCount: false,
     isgetDashboadrdCountFetching: false,
     getDashboadrdCountData: [],
-
 
     // getSalaryStructure
     isgetSalaryStructure: false,
@@ -729,14 +730,12 @@ export const TBSlice = createSlice({
           ? payload.isUpdateAdminAttendanceApi
           : state.isUpdateAdminAttendanceApi;
 
-              // getDashboadrdCount
-    
+      // getDashboadrdCount
 
-          state.isgetDashboadrdCount =
+      state.isgetDashboadrdCount =
         payload.isgetDashboadrdCount !== undefined
           ? payload.isgetDashboadrdCount
           : state.isgetDashboadrdCount;
-
 
       state.isgetSalaryRules =
         payload.isgetSalaryRules !== undefined
@@ -1038,7 +1037,6 @@ export const TBSlice = createSlice({
     builder.addCase(
       EmployeeRegcategories.rejected,
       (state, { payload }: { payload: any }) => {
-        
         try {
           state.isEmployeeRegcategories = false;
           state.isEmployeeRegcategoriesFetching = false;
@@ -1080,9 +1078,9 @@ export const TBSlice = createSlice({
     builder.addCase(
       Employeeregularization.rejected,
       (state, { payload }: { payload: any }) => {
-        console.log('====================================');
-        console.log(payload,"kpkpkp");
-        console.log('====================================');
+        console.log("====================================");
+        console.log(payload, "kpkpkp");
+        console.log("====================================");
         try {
           state.isEmployeeregularization = false;
           state.isEmployeeregularizationFetching = false;
@@ -1391,9 +1389,7 @@ export const TBSlice = createSlice({
       state.isgetSalaryRulesFetching = true;
     });
 
-    
-
-       builder.addCase(getSalaryStructure.fulfilled, (state, { payload }) => {
+    builder.addCase(getSalaryStructure.fulfilled, (state, { payload }) => {
       try {
         state.getSalaryStructureData = payload;
         state.isgetSalaryStructure = true;
@@ -1434,9 +1430,7 @@ export const TBSlice = createSlice({
       state.isgetSalaryStructureFetching = true;
     });
 
-  
-
-        builder.addCase(getDashboadrdCount.fulfilled, (state, { payload }) => {
+    builder.addCase(getDashboadrdCount.fulfilled, (state, { payload }) => {
       try {
         state.getDashboadrdCountData = payload;
         state.isgetDashboadrdCount = true;

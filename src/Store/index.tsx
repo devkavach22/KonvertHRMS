@@ -1,6 +1,6 @@
-import { combineReducers } from 'redux';
-import { configureStore } from '@reduxjs/toolkit';
-import { TBSlice } from './Reducers/TBSlice';
+import { combineReducers } from "redux";
+import { configureStore } from "@reduxjs/toolkit";
+import { TBSlice } from "./Reducers/TBSlice";
 
 // Root reducer
 const main = combineReducers({
