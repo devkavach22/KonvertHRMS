@@ -40,6 +40,17 @@ export const getEmployees = async () => {
   }
 };
 
+export const getEmployeesBasicInfo = async () => {
+  try {
+    const response = await Instance.get("/employee/employees-basic-info", {
+      params: { user_id: getUserId() },
+    });
+    return response.data.data || response.data || [];
+  } catch (error) {
+    return [];
+  }
+};
+
 // ... existing imports and code
 
 // --- NEW ADDITIONS FOR APPROVAL TAB ---
@@ -108,7 +119,7 @@ export const getWorkLocations = async () => {
 };
 
 export const getReportingManagers = async () => {
-  const response = await Instance.get("/employee/employees", {
+  const response = await Instance.get("/employee/employees-basic-info", {
     params: { user_id: getUserId() },
   });
   return response.data.data || [];

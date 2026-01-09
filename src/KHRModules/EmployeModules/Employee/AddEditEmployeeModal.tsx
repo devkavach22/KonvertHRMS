@@ -151,7 +151,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
     hold_remarks: "",
     reporting_manager_id: "",
     head_of_department_id: "",
-    attendance_capture_mode: "MobileAPP",
+    attendance_capture_mode: "",
 
     // 7. Banking Information
     bank_account_id: "",
@@ -619,7 +619,10 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
         "Please provide a reason for placing the employee on hold.";
       isValid = false;
     }
-
+    if (!formData.employee_password?.trim()) {
+      tempErrors.employee_password = "Login Password is required.";
+      isValid = false;
+    }
     setErrors((prev: any) => ({ ...prev, ...tempErrors }));
     return isValid;
   };
@@ -1618,35 +1621,22 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
   return (
     <>
       <div className="modal fade" id="add_employee_modal" role="dialog">
-        {showErrorAlert && (
-          <div className="mb-4">
-            <CommonAlertCard
-              alertType="danger"
-              iconClass="ti ti-alert-triangle fs-30"
-              title="Mandatory Fields Missing"
-              message="Please fill in all required fields marked with * in the Header, Legal, Personal, Address, Emergency, and Banking tabs."
-              buttons={[
-                {
-                  label: "Review Form",
-                  className: "btn-danger",
-                  onClick: () => setShowErrorAlert(false),
-                },
-              ]}
-            />
-          </div>
-        )}
         <div className="modal-dialog modal-dialog-centered modal-xl">
-          <div className="modal-content bg-white border-0">
-            <div className="modal-header border-0 bg-white pb-0">
-              <h4 className="modal-title fw-bold">Employee Master Entry</h4>
+          <div className="modal-content bg-white border-0 shadow-lg">
+            {/* UPDATED MODAL HEADER */}
+            <div className="modal-header border-bottom bg-light py-2">
+              <h5 className="modal-title fw-bold fs-15">
+                <i className="ti ti-user-plus me-2 text-primary"></i>
+                {data ? "Edit Employee" : "Add Employee"}
+              </h5>
               <button
                 type="button"
                 id="close-emp-modal"
                 className="btn-close"
                 data-bs-dismiss="modal"
+                onClick={resetForm}
               ></button>
             </div>
-
             <div className="modal-body">
               <form
                 className={`needs-validation ${
@@ -2407,7 +2397,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                             )}
                           </div>
 
-                          {/* Marital Status - NOW OPTIONAL */}
+                          {/* Marital Status */}
                           <div className="col-md-4">
                             <label className="form-label fs-13">
                               Marital Status
@@ -2435,7 +2425,6 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                   setFormData({
                                     ...formData,
                                     marital: opt?.value || "",
-                                    // Clear spouse details if status changes from married
                                     spouse_name:
                                       opt?.value !== "married"
                                         ? ""
@@ -2450,7 +2439,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                             </div>
                           </div>
 
-                          {/* Conditional Spouse Fields (Only if Married is selected) */}
+                          {/* Conditional Spouse Fields */}
                           {formData.marital === "married" && (
                             <>
                               <div className="col-md-4 animate__animated animate__fadeInDown">
@@ -2471,12 +2460,14 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                   }`}
                                   placeholder="Enter Spouse Name"
                                   value={formData.spouse_name}
-                                  onChange={(e) =>
+                                  onChange={(e) => {
                                     setFormData({
                                       ...formData,
                                       spouse_name: e.target.value,
-                                    })
-                                  }
+                                    });
+                                    if (errors.spouse_name)
+                                      setErrors({ ...errors, spouse_name: "" });
+                                  }}
                                 />
                                 {isSubmitted && errors.spouse_name && (
                                   <div className="invalid-feedback">
@@ -2504,12 +2495,17 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                       ? dayjs(formData.date_of_marriage)
                                       : null
                                   }
-                                  onChange={(_, dateStr) =>
+                                  onChange={(_, dateStr) => {
                                     setFormData({
                                       ...formData,
                                       date_of_marriage: dateStr,
-                                    })
-                                  }
+                                    });
+                                    if (errors.date_of_marriage)
+                                      setErrors({
+                                        ...errors,
+                                        date_of_marriage: "",
+                                      });
+                                  }}
                                 />
                                 {isSubmitted && errors.date_of_marriage && (
                                   <div className="text-danger fs-11 mt-1">
@@ -2678,7 +2674,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                           Contact Details
                         </h6>
                         <div className="row g-3">
-                          {/* Mobile - MANDATORY */}
+                          {/* Mobile - MANDATORY - FIX: Added error clearing */}
                           <div className="col-md-4">
                             <label className="form-label fs-13">
                               Primary Mobile{" "}
@@ -2701,15 +2697,19 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                 }`}
                                 maxLength={10}
                                 value={formData.work_phone}
-                                onChange={(e) =>
+                                onChange={(e) => {
                                   setFormData({
                                     ...formData,
                                     work_phone: e.target.value.replace(
                                       /\D/g,
                                       ""
                                     ),
-                                  })
-                                }
+                                  });
+                                  // Clear error immediately on type
+                                  if (errors.work_phone) {
+                                    setErrors({ ...errors, work_phone: "" });
+                                  }
+                                }}
                               />
                             </div>
                             {isSubmitted && errors.work_phone && (
@@ -2719,7 +2719,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                             )}
                           </div>
 
-                          {/* Email - MANDATORY */}
+                          {/* Email - MANDATORY - FIX: Added error clearing */}
                           <div className="col-md-4">
                             <label className="form-label fs-13">
                               Personal Email{" "}
@@ -2738,12 +2738,16 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                               }`}
                               placeholder="example@gmail.com"
                               value={formData.private_email}
-                              onChange={(e) =>
+                              onChange={(e) => {
                                 setFormData({
                                   ...formData,
                                   private_email: e.target.value,
-                                })
-                              }
+                                });
+                                // Clear error immediately on type
+                                if (errors.private_email) {
+                                  setErrors({ ...errors, private_email: "" });
+                                }
+                              }}
                             />
                             {isSubmitted && errors.private_email && (
                               <div className="text-danger fs-11 mt-1">
@@ -2788,24 +2792,6 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                             />
                           </div>
 
-                          {/* <div className="col-md-4">
-                            <label className="form-label fs-13">
-                              Upload Passbook
-                            </label>
-                            <div className="upload-box border rounded p-1 bg-white">
-                              <input
-                                type="file"
-                                className="form-control border-0 shadow-none"
-                                onChange={(e) =>
-                                  setFormData({
-                                    ...formData,
-                                    upload_passbook:
-                                      e.target.files?.[0] || null,
-                                  })
-                                }
-                              />
-                            </div>
-                          </div> */}
                           <div className="col-md-4">
                             <label className="form-label fs-13">
                               Upload Passbook
@@ -2824,7 +2810,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                               />
                             </div>
 
-                            {/* NEW: Show Existing File Indicator */}
+                            {/* Show Existing File Indicator */}
                             {typeof formData.upload_passbook === "string" &&
                               formData.upload_passbook.length > 0 && (
                                 <div className="mt-2 p-2 bg-soft-success text-success rounded fs-12 d-flex align-items-center">
@@ -3355,13 +3341,23 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                           </div>
 
                           {/* Employee Password - OPTIONAL */}
+                          {/* Employee Password - MANDATORY */}
                           <div className="col-md-3">
                             <label className="form-label fs-13">
-                              Login Password
+                              Login Password{" "}
+                              <span className="text-danger">*</span>
                             </label>
                             <input
                               type="password"
-                              className="form-control"
+                              className={`form-control ${
+                                isSubmitted
+                                  ? errors.employee_password
+                                    ? "is-invalid"
+                                    : formData.employee_password
+                                    ? "is-valid"
+                                    : ""
+                                  : ""
+                              }`}
                               placeholder="System Access Password"
                               value={formData.employee_password}
                               onChange={(e) => {
@@ -3369,8 +3365,20 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                   ...formData,
                                   employee_password: e.target.value,
                                 });
+                                // Clear error immediately when user types
+                                if (errors.employee_password) {
+                                  setErrors({
+                                    ...errors,
+                                    employee_password: "",
+                                  });
+                                }
                               }}
                             />
+                            {isSubmitted && errors.employee_password && (
+                              <div className="text-danger fs-11 mt-1">
+                                {errors.employee_password}
+                              </div>
+                            )}
                           </div>
 
                           <div className="col-md-2">
@@ -3635,12 +3643,19 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                     opt.value ===
                                     String(formData.bank_account_id)
                                 )}
-                                onChange={(option) =>
+                                onChange={(option) => {
                                   setFormData({
                                     ...formData,
                                     bank_account_id: option?.value || "",
-                                  })
-                                }
+                                  });
+                                  // FIX: Clear error immediately on selection
+                                  if (errors.bank_account_id) {
+                                    setErrors({
+                                      ...errors,
+                                      bank_account_id: "",
+                                    });
+                                  }
+                                }}
                               />
                             </div>
 

@@ -75,7 +75,11 @@ export const getCategoriesDropdown = async () => {
 // 2. Expense Accounts
 export const getAccountsDropdown = async () => {
   try {
-    const response = await Instance.get("/employee/expense-account");
+    const user_id = localStorage.getItem("user_id");
+
+    const response = await Instance.get(
+      `/employee/expense-account?user_id=${user_id}`
+    );
     return Array.isArray(response.data) ? response.data : response.data.data;
   } catch (error) {
     console.error("Error fetching expense accounts:", error);

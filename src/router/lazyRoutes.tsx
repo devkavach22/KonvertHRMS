@@ -387,6 +387,10 @@ export const WorkEntryTypeKHR = createLazyComponent(
   () => import("../KHRModules/Master Modules/WorkEntryType/WorkEntryType")
 );
 
+export const AccruralPlanKHR = createLazyComponent(
+  () => import("../KHRModules/Master Modules/AccruralPlan/AccruralPlanKHR")
+);
+
 export const JobPositionKHR = createLazyComponent(
   () => import("../KHRModules/Master Modules/JobPosition/JobPosition")
 );
@@ -475,10 +479,6 @@ export const LeaveAllocationKHR = createLazyComponent(
 
 export const LeaveRequestKHR = createLazyComponent(
   () => import("../KHRModules/LeaveModules/leaveRequest/LeaveRequestKHR")
-);
-
-export const AccuralPlanKHR = createLazyComponent(
-  () => import("../KHRModules/LeaveModules/AccuralPlan/AccuralPlanKHR")
 );
 
 export const PublicHolidayKHR = createLazyComponent(

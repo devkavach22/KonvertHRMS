@@ -137,10 +137,10 @@ const ExpenseKHR = () => {
     },
     {
       title: "Total",
-      dataIndex: "total_amount_currency",
+      dataIndex: "total_amount",
       render: (val: any) => <span className="fw-bold">₹ {val}</span>,
       sorter: (a: any, b: any) =>
-        Number(a.total_amount_currency) - Number(b.total_amount_currency),
+        Number(a.total_amount) - Number(b.total_amount),
     },
     {
       title: "Status",

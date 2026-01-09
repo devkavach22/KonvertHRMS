@@ -21,6 +21,7 @@ export const all_routes = {
   SalaryRuleKHR: "/KHR-salary-rules",
   SalaryStructure: "/KHR-salary-structure",
   expenseCategoryKHR: "KHR-expense-category",
+  accruralPlanKHR: "/KHR-accrural-plan",
 
   //Employee Modules
   employeeKHR: "/KHR-employees",

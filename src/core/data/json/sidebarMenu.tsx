@@ -33,6 +33,8 @@ export const SidebarDataTest = [
           { label: "HR Contract Type ", link: routes.hrContractTypeKHR },
           { label: "Geo Configurations", link: routes.geoKHR },
           { label: "Expense Category", link: routes.expenseCategoryKHR },
+          { label: "Accrural Plan", link: routes.accruralPlanKHR },
+
           // { label: "Country", link: routes.dealsDashboard },
           // { label: "State", link: routes.leadsDashboard },
         ],
@@ -110,7 +112,7 @@ export const SidebarDataTest = [
           { label: "Leave Request", link: routes.leaveRequestKHR },
           // { label: "Leave Settings", link: routes.leaveSettingsKHR },
           { label: "Leave Types", link: routes.leaveTypesKHR },
-          { label: "Accural Plan", link: routes.accuralPlanKHR },
+          // { label: "Accural Plan", link: routes.accuralPlanKHR },
           { label: "Public Holiday", link: routes.publicHolidayKHR },
           { label: "Mendetory Days", link: routes.mendetoryDaysKHR },
         ],
