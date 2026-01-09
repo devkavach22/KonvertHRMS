@@ -23,12 +23,41 @@ export const Usersignin = createAsyncThunk(
     try {
       let result = await axios({
         method: "POST",
-        baseURL: "CONFIG.BASE_URL_LOGIN",
+        baseURL: CONFIG.BASE_URL_LOGIN,
         // headers: authheader,
         url: `api/login`,
         data: userdata,
       });
       if (result.data) {
+        return result.data;
+      } else {
+        return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
+      }
+    } catch (error: any) {
+      console.error(
+        "try catch [ Usersignin ] error.message >>",
+        error?.message
+      );
+      return thunkAPI.rejectWithValue({ error: error?.message });
+    }
+  }
+);
+//
+// https://konverthrnode.onrender.com/api/auth
+export const ApiAuth = createAsyncThunk(
+  "ApiAuth",
+  async (_, thunkAPI) => {
+    try {
+      let result = await axios({
+        method: "POST",
+        baseURL: CONFIG.BASE_URL_LOGIN,
+        // headers: authheader,
+        url: `api/auth`,
+        data: { user_name: "dhaval" },
+      });
+      if (result.data) {
+
+        localStorage.setItem("authToken", result?.data?.token);
         return result.data;
       } else {
         return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
@@ -50,7 +79,7 @@ export const AttendancesApi = createAsyncThunk(
     try {
       let result = await axios({
         method: "GET",
-        baseURL: CONFIG.BASE_URL_ALL,
+        baseURL: CONFIG.BASE_URL_LOGIN,
         headers: {
           "Content-Type": "application/json",
         },
@@ -80,7 +109,7 @@ export const AttendancesGetApi = createAsyncThunk(
     try {
       let result = await axios({
         method: "GET",
-        baseURL: CONFIG.BASE_URL_ALL,
+        baseURL: CONFIG.BASE_URL_LOGIN,
         headers: {
           "Content-Type": "application/json",
           authorization: `${localStorage.getItem("authToken")}`,
@@ -205,7 +234,7 @@ export const EmployeeAttendanceApi = createAsyncThunk(
     try {
       let result = await axios({
         method: "GET",
-        baseURL: CONFIG.BASE_URL_ALL,
+        baseURL: CONFIG.BASE_URL_LOGIN,
         headers: {
           "Content-Type": "application/json",
           authorization: `${localStorage.getItem("authToken")}`,
@@ -560,6 +589,11 @@ export const TBSlice = createSlice({
     isUsersigninFetching: false,
     UsersigninData: {},
 
+    //ApiAuth
+    isApiAuth: false,
+    isApiAuthFetching: false,
+    ApiAuthData: {},
+
     //AttendancesApi
     isAttendancesApi: false,
     isAttendancesApiFetching: false,
@@ -661,6 +695,12 @@ export const TBSlice = createSlice({
         payload.isAttendancesApi !== undefined
           ? payload.isAttendancesApi
           : state.isAttendancesApi;
+
+      //isApiAuth
+      state.isApiAuth =
+        payload.isApiAuth !== undefined
+          ? payload.isApiAuth
+          : state.isApiAuth;
 
       //AttendancesGetApi
       state.isAttendancesGetApi =
@@ -786,8 +826,8 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-                ? "Please try again (There was some network issue)."
-                : "Please try again (There was some network issue).")
+              ? "Please try again (There was some network issue)."
+              : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
@@ -799,6 +839,45 @@ export const TBSlice = createSlice({
     );
     builder.addCase(Usersignin.pending, (state) => {
       state.isUsersigninFetching = true;
+    });
+    ///ApiAuth
+    builder.addCase(ApiAuth.fulfilled, (state, { payload }) => {
+      try {
+        state.ApiAuthData = payload;
+        state.isApiAuth = true;
+        state.isApiAuthFetching = false;
+        state.isSuccess = false;
+        state.successMessage = "";
+        state.isError = false;
+        state.errorMessage = "";
+        return state;
+      } catch (error) {
+        console.error("Error: ApiAuth.fulfilled try catch error >>", error);
+      }
+    });
+    builder.addCase(
+      ApiAuth.rejected,
+      (state, { payload }: { payload: any }) => {
+        try {
+          state.ApiAuthData = {};
+          state.isApiAuth = false;
+          state.isApiAuthFetching = false;
+          state.isError = false;
+          payload
+            ? (state.errorMessage = payload?.error?.message
+              ? "Please try again (There was some network issue)."
+              : "Please try again (There was some network issue).")
+            : (state.errorMessage = "API Response Invalid. Please Check API");
+        } catch (error) {
+          console.error(
+            "Error: [Usersignin.rejected] try catch error >>",
+            error
+          );
+        }
+      }
+    );
+    builder.addCase(ApiAuth.pending, (state) => {
+      state.isApiAuthFetching = true;
     });
 
     //AttendancesApi
@@ -829,8 +908,8 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-                ? "Please try again (There was some network issue)."
-                : "Please try again (There was some network issue).")
+              ? "Please try again (There was some network issue)."
+              : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
@@ -871,8 +950,8 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-                ? "Please try again (There was some network issue)."
-                : "Please try again (There was some network issue).")
+              ? "Please try again (There was some network issue)."
+              : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
@@ -916,8 +995,8 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-                ? "Please try again (There was some network issue)."
-                : "Please try again (There was some network issue).")
+              ? "Please try again (There was some network issue)."
+              : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
@@ -960,8 +1039,8 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-                ? "Please try again (There was some network issue)."
-                : "Please try again (There was some network issue).")
+              ? "Please try again (There was some network issue)."
+              : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
@@ -1003,8 +1082,8 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-                ? "Please try again (There was some network issue)."
-                : "Please try again (There was some network issue).")
+              ? "Please try again (There was some network issue)."
+              : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
@@ -1044,8 +1123,8 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-                ? "Please try again (There was some network issue)."
-                : "Please try again (There was some network issue).")
+              ? "Please try again (There was some network issue)."
+              : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
@@ -1088,8 +1167,8 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error
-                ? payload?.error
-                : "Please try again (There was some network issue).")
+              ? payload?.error
+              : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
@@ -1129,8 +1208,8 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-                ? "Please try again (There was some network issue)."
-                : "Please try again (There was some network issue).")
+              ? "Please try again (There was some network issue)."
+              : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
@@ -1170,8 +1249,8 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-                ? "Please try again (There was some network issue)."
-                : "Please try again (There was some network issue).")
+              ? "Please try again (There was some network issue)."
+              : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
@@ -1211,8 +1290,8 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-                ? "Please try again (There was some network issue)."
-                : "Please try again (There was some network issue).")
+              ? "Please try again (There was some network issue)."
+              : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
@@ -1252,8 +1331,8 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-                ? "Please try again (There was some network issue)."
-                : "Please try again (There was some network issue).")
+              ? "Please try again (There was some network issue)."
+              : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
@@ -1293,8 +1372,8 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-                ? "Please try again (There was some network issue)."
-                : "Please try again (There was some network issue).")
+              ? "Please try again (There was some network issue)."
+              : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
@@ -1334,8 +1413,8 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-                ? "Please try again (There was some network issue)."
-                : "Please try again (There was some network issue).")
+              ? "Please try again (There was some network issue)."
+              : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
@@ -1375,8 +1454,8 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-                ? "Please try again (There was some network issue)."
-                : "Please try again (There was some network issue).")
+              ? "Please try again (There was some network issue)."
+              : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
@@ -1416,8 +1495,8 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-                ? "Please try again (There was some network issue)."
-                : "Please try again (There was some network issue).")
+              ? "Please try again (There was some network issue)."
+              : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
@@ -1457,8 +1536,8 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-                ? "Please try again (There was some network issue)."
-                : "Please try again (There was some network issue).")
+              ? "Please try again (There was some network issue)."
+              : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(

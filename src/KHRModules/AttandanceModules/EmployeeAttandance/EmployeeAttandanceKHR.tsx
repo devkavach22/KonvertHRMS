@@ -10,6 +10,7 @@ import WorkStatsWithTimeline from "./WorksWithTimeline";
 import AttendanceQueryModal from "./AttendanceQueryModal";
 import {
   AdminWorkingHours,
+  ApiAuth,
   CheckinCheckout,
   EmployeeAttendanceApi,
   TBSelector,
@@ -60,6 +61,7 @@ const EmployeeAttendanceKHR = () => {
     EmployeeAttendanceApiData,
     AdminWorkingHoursData,
     isAdminWorkingHours,
+    isApiAuth
   } = useSelector(TBSelector);
 
   const [selectedAttendancee, setSelectedAttendancee] = useState<any>(null);
@@ -92,10 +94,10 @@ const EmployeeAttendanceKHR = () => {
   const formatDate = (dateStr: string) =>
     dateStr
       ? new Date(dateStr).toLocaleDateString([], {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        })
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
       : "";
 
   const handleAction = () => {
@@ -123,8 +125,17 @@ const EmployeeAttendanceKHR = () => {
   };
 
   useEffect(() => {
+    // fetchData();
+    if (isApiAuth) {
+      dispatch(EmployeeAttendanceApi() as any);
+      dispatch(updateState({ isApiAuth: false }))
+    }
+  }, [dispatch, isApiAuth]);
+  useEffect(() => {
+    dispatch(ApiAuth() as any);
+  }, []);
+  useEffect(() => {
     // dispatch(AdminWorkingHours());
-    dispatch(EmployeeAttendanceApi() as any);
   }, []);
   console.log(EmployeeAttendanceApiData, "EmployeeAttendanceApiData");
   console.log(employeeId, "employeeIdddd");
@@ -152,8 +163,8 @@ const EmployeeAttendanceKHR = () => {
                 typeof item.overtime_hours === "number"
                   ? item.overtime_hours.toFixed(2)
                   : item.overtime_hours
-                  ? String(item.overtime_hours)
-                  : "0",
+                    ? String(item.overtime_hours)
+                    : "0",
               ProductionHours: formatHours(item.total_productive_hours),
             };
           }
@@ -305,11 +316,10 @@ const EmployeeAttendanceKHR = () => {
       dataIndex: "Status",
       render: (text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge ${
-            text === "Present"
-              ? "badge-success-transparent"
-              : "badge-danger-transparent"
-          } d-inline-flex align-items-center`}
+          className={`badge ${text === "Present"
+            ? "badge-success-transparent"
+            : "badge-danger-transparent"
+            } d-inline-flex align-items-center`}
         >
           <i className="ti ti-point-filled me-1" />
           {record.Status}
@@ -347,14 +357,13 @@ const EmployeeAttendanceKHR = () => {
       dataIndex: "ProductionHours",
       render: (_text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge d-inline-flex align-items-center badge-sm ${
-            parseFloat(record.ProductionHours) < 8
-              ? "badge-danger"
-              : parseFloat(record.ProductionHours) >= 8 &&
-                parseFloat(record.ProductionHours) <= 9
+          className={`badge d-inline-flex align-items-center badge-sm ${parseFloat(record.ProductionHours) < 8
+            ? "badge-danger"
+            : parseFloat(record.ProductionHours) >= 8 &&
+              parseFloat(record.ProductionHours) <= 9
               ? "badge-success"
               : "badge-info"
-          }`}
+            }`}
         >
           <i className="ti ti-clock-hour-11 me-1"></i>
           {record.ProductionHours}
@@ -500,14 +509,13 @@ const EmployeeAttendanceKHR = () => {
                       {datass?.check_out_time
                         ? `Checked Out at ${formatTime(datass.check_out_time)}`
                         : datass?.check_in_time
-                        ? `Punch In at ${formatTime(datass.check_in_time)}`
-                        : "Not Checked In Yet"}
+                          ? `Punch In at ${formatTime(datass.check_in_time)}`
+                          : "Not Checked In Yet"}
                     </h6>
 
                     <button
-                      className={`btn w-100 ${
-                        isCheckedIn ? "btn-warning" : "btn-success"
-                      }`}
+                      className={`btn w-100 ${isCheckedIn ? "btn-warning" : "btn-success"
+                        }`}
                       onClick={handleAction}
                       disabled={isCheckinCheckoutFetching}
                     >
@@ -516,8 +524,8 @@ const EmployeeAttendanceKHR = () => {
                           ? "Checking Out..."
                           : "Checking In..."
                         : isCheckedIn
-                        ? "Punch Out ↪"
-                        : "Punch In"}
+                          ? "Punch Out ↪"
+                          : "Punch In"}
                     </button>
                   </div>
                 </div>
