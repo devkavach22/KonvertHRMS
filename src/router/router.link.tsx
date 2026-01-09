@@ -302,7 +302,6 @@ import {
   LeaveTypesKHR,
   LeaveAllocationKHR,
   LeaveRequestKHR,
-  AccuralPlanKHR,
   PublicHolidayKHR,
   MendetoryDaysKHR,
   BanksKHR,
@@ -313,6 +312,7 @@ import {
   ExpenseKHR,
   EmployeeCalendarsKHR,
   AllApprovalKHR,
+  AccruralPlanKHR,
   // BanksAccountKHR,
 } from "./lazyRoutes";
 
@@ -1651,6 +1651,11 @@ export const publicRoutes = [
     route: Route,
   },
   {
+    path: routes.accruralPlanKHR,
+    element: <AccruralPlanKHR />,
+    route: Route,
+  },
+  {
     path: routes.hrContractTypeKHR,
     element: <HrContractTypeKHR />,
     route: Route,
@@ -1733,11 +1738,6 @@ export const publicRoutes = [
   {
     path: routes.leaveRequestKHR,
     element: <LeaveRequestKHR />,
-    route: Route,
-  },
-  {
-    path: routes.accuralPlanKHR,
-    element: <AccuralPlanKHR />,
     route: Route,
   },
   {

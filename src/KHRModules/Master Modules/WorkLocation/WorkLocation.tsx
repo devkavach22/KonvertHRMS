@@ -74,16 +74,16 @@ const WorkLocation = () => {
       sorter: (a: WorkLocationType, b: WorkLocationType) =>
         a.location_type.localeCompare(b.location_type),
     },
-    {
-      title: "Created Date",
-      dataIndex: "created_date",
-      render: (date: string) => {
-        if (!date || date === "-") return <span>-</span>;
-        return <span>{moment(date).format("DD MMM YYYY")}</span>;
-      },
-      sorter: (a: WorkLocationType, b: WorkLocationType) =>
-        new Date(a.created_date).getTime() - new Date(b.created_date).getTime(),
-    },
+    // {
+    //   title: "Created Date",
+    //   dataIndex: "created_date",
+    //   render: (date: string) => {
+    //     if (!date || date === "-") return <span>-</span>;
+    //     return <span>{moment(date).format("DD MMM YYYY")}</span>;
+    //   },
+    //   sorter: (a: WorkLocationType, b: WorkLocationType) =>
+    //     new Date(a.created_date).getTime() - new Date(b.created_date).getTime(),
+    // },
     {
       title: "Actions",
       dataIndex: "id",

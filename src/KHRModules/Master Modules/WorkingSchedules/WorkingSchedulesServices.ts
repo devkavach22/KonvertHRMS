@@ -79,10 +79,17 @@ export const getTimezones = async (): Promise<string[]> => {
   }
 };
 
-// POST Create
 export const addWorkingSchedule = async (data: any) => {
-  return await Instance.post("/employee/create/working-schedule", data);
+  const payload = {
+    ...data,
+    user_id: getUserId(),
+  };
+  return await Instance.post("/api/create/WorkingSchedules", payload);
 };
+// POST Create
+// export const addWorkingSchedule = async (data: any) => {
+//   return await Instance.post("/api/create/WorkingSchedules", data);
+// };
 
 // PUT Update
 export const updateWorkingSchedule = async (id: string, data: any) => {

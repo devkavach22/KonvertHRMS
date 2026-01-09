@@ -2,9 +2,7 @@ import { useState } from "react";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 import { Link, useNavigate } from "react-router-dom";
 import { all_routes } from "../../../router/all_routes";
-// Import the shared axios instance
 import Instance from "../../../api/axiosInstance";
-// Import Toast for notifications
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 

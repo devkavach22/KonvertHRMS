@@ -12,68 +12,76 @@ interface Props {
 }
 
 const AddEditWorkLocationModal: React.FC<Props> = ({ onSuccess, data }) => {
-  const [name, setName] = useState("");
-  const [locationType, setLocationType] = useState<"home" | "office" | "other">(
-    "office"
-  );
-  const [validated, setValidated] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errors, setErrors] = useState<any>({});
 
-  // Helper function to reset form to default state
-  const resetForm = () => {
-    setName("");
-    setLocationType("office");
-    setValidated(false);
+  const initialFormState = {
+    name: "",
+    location_type: "office",
   };
 
-  // 1. DATA SYNC: Populate form when 'data' changes (Edit vs Add)
+  const [formData, setFormData] = useState<any>(initialFormState);
+
+  // --- 1. BOOTSTRAP EVENT LISTENER (Force clear on close) ---
+  useEffect(() => {
+    const modalElement = document.getElementById("add_work_location");
+    const handleHidden = () => resetForm();
+    modalElement?.addEventListener("hidden.bs.modal", handleHidden);
+    return () =>
+      modalElement?.removeEventListener("hidden.bs.modal", handleHidden);
+  }, []);
+
+  // --- 2. DATA POPULATION ---
   useEffect(() => {
     if (data) {
-      setName(data.name || "");
-      setLocationType(data.location_type || "office");
+      setFormData({
+        name: data.name || "",
+        location_type: data.location_type || "office",
+      });
     } else {
       resetForm();
     }
   }, [data]);
 
-  // 2. BOOTSTRAP EVENT LISTENER: Force clear when modal is closed
-  useEffect(() => {
-    const modalElement = document.getElementById("add_work_location");
+  const resetForm = () => {
+    setFormData(initialFormState);
+    setErrors({});
+    setIsSubmitted(false);
+    setIsSubmitting(false);
+  };
 
-    const handleModalHidden = () => {
-      resetForm();
-    };
-
-    if (modalElement) {
-      modalElement.addEventListener("hidden.bs.modal", handleModalHidden);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: "" });
     }
+  };
 
-    return () => {
-      if (modalElement) {
-        modalElement.removeEventListener("hidden.bs.modal", handleModalHidden);
-      }
-    };
-  }, []);
+  const validate = () => {
+    let tempErrors: any = {};
+    if (!formData.name?.trim()) {
+      tempErrors.name = "Work Location Name is required";
+    }
+    setErrors(tempErrors);
+    return Object.keys(tempErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    e.stopPropagation();
+    setIsSubmitted(true);
 
-    const form = e.currentTarget;
-    setValidated(true);
-
-    if (form.checkValidity() === false) {
-      return;
-    }
+    if (!validate()) return;
 
     setIsSubmitting(true);
 
-    const apiPayload = {
-      name: name.trim(),
-      location_type: locationType,
-    };
-
     try {
+      const apiPayload = {
+        name: formData.name.trim(),
+        location_type: formData.location_type,
+      };
+
       if (data && data.id) {
         await updateWorkLocation(data.id, apiPayload);
         toast.success("Location updated successfully!");
@@ -82,11 +90,8 @@ const AddEditWorkLocationModal: React.FC<Props> = ({ onSuccess, data }) => {
         toast.success("Location created successfully!");
       }
 
-      // Close modal
-      const closeBtn = document.getElementById("close-btn-work-loc");
-      closeBtn?.click();
-
       onSuccess();
+      document.getElementById("close-btn-work-loc")?.click();
     } catch (error: any) {
       console.error("Failed to save work location", error);
       toast.error(error.response?.data?.message || "Error saving data.");
@@ -96,51 +101,56 @@ const AddEditWorkLocationModal: React.FC<Props> = ({ onSuccess, data }) => {
   };
 
   return (
-    <div
-      className="modal custom-modal fade"
-      id="add_work_location"
-      role="dialog"
-    >
+    <div className="modal fade" id="add_work_location" role="dialog">
       <div className="modal-dialog modal-dialog-centered">
-        <div className="modal-content">
-          <div className="modal-header border-0">
-            <h5 className="modal-title">
-              {data ? "Edit Work Location" : "Add Work Location"}
+        <div className="modal-content border-0 shadow-lg">
+          {/* Header */}
+          <div className="modal-header border-bottom bg-light py-2">
+            <h5 className="modal-title fw-bold text-dark fs-16">
+              <i className="ti ti-map-pin me-2 text-primary"></i>
+              {data ? "Edit Work Location" : "Create Work Location"}
             </h5>
             <button
               type="button"
               className="btn-close"
               data-bs-dismiss="modal"
               id="close-btn-work-loc"
-              aria-label="Close"
+              onClick={resetForm}
             ></button>
           </div>
-          <div className="modal-body">
-            <form
-              className={`needs-validation ${validated ? "was-validated" : ""}`}
-              noValidate
-              onSubmit={handleSubmit}
-            >
-              <div className="mb-3">
-                <label className="form-label">
+
+          <div className="modal-body p-4">
+            <form noValidate onSubmit={handleSubmit}>
+              {/* Name Field */}
+              <div className="mb-4">
+                <label className="form-label fs-13 fw-bold">
                   Work Location Name <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
-                  className="form-control"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Main Office"
+                  name="name"
+                  className={`form-control ${
+                    isSubmitted ? (errors.name ? "is-invalid" : "is-valid") : ""
+                  }`}
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="e.g. Head Office, Remote Hub"
                 />
+                {isSubmitted && errors.name && (
+                  <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                    <i className="ti ti-info-circle me-1"></i>
+                    {errors.name}
+                  </div>
+                )}
               </div>
 
+              {/* Location Type Radio Buttons */}
               <div className="mb-3">
-                <label className="form-label d-block">
-                  Location Type <span className="text-danger">*</span>
+                <label className="form-label fs-13 fw-bold mb-2">
+                  Location Type
                 </label>
-                <div className="d-flex gap-3 mt-2">
-                  {["home", "office", "other"].map((type) => (
+                <div className="d-flex gap-4 p-2 border rounded bg-light">
+                  {["office", "home", "other"].map((type) => (
                     <div className="form-check" key={type}>
                       <input
                         className="form-check-input"
@@ -148,12 +158,11 @@ const AddEditWorkLocationModal: React.FC<Props> = ({ onSuccess, data }) => {
                         name="location_type"
                         id={`type_${type}`}
                         value={type}
-                        checked={locationType === type}
-                        onChange={() => setLocationType(type as any)}
-                        required
+                        checked={formData.location_type === type}
+                        onChange={handleInputChange}
                       />
                       <label
-                        className="form-check-label text-capitalize"
+                        className="form-check-label text-capitalize fs-13"
                         htmlFor={`type_${type}`}
                       >
                         {type}
@@ -163,20 +172,35 @@ const AddEditWorkLocationModal: React.FC<Props> = ({ onSuccess, data }) => {
                 </div>
               </div>
 
-              <div className="modal-footer border-0">
+              {/* Footer Buttons */}
+              <div className="modal-footer border-0 px-0 mt-4 pb-0">
                 <button
                   type="button"
-                  className="btn btn-light"
+                  className="btn btn-outline-secondary px-4 me-2"
                   data-bs-dismiss="modal"
+                  onClick={resetForm}
                 >
-                  Cancel
+                  Discard
                 </button>
                 <button
                   type="submit"
-                  className="btn btn-primary"
+                  className="btn btn-primary px-5 shadow-sm"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Saving..." : "Save Location"}
+                  {isSubmitting ? (
+                    <>
+                      <span
+                        className="spinner-border spinner-border-sm me-2"
+                        role="status"
+                        aria-hidden="true"
+                      ></span>
+                      Saving...
+                    </>
+                  ) : data ? (
+                    "Update Changes"
+                  ) : (
+                    "Save Location"
+                  )}
                 </button>
               </div>
             </form>

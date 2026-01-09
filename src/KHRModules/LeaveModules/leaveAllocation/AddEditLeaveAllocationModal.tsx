@@ -8,8 +8,9 @@ import {
   createLeaveAllocation,
   updateLeaveAllocation,
 } from "./LeaveAllocationServices";
-import { getReportingManagers } from "@/KHRModules/EmployeModules/Employee/EmployeeServices";
+import { getEmployeesBasicInfo } from "@/KHRModules/EmployeModules/Employee/EmployeeServices";
 import { getLeaveTypesCode } from "../leaveTypes/LeavetypesServices";
+import { getAccruralPlans } from "@/KHRModules/Master Modules/AccruralPlan/AccruralPlanServices";
 
 interface Props {
   show: boolean;
@@ -18,18 +19,22 @@ interface Props {
   data: any | null;
 }
 
-// 1. Initial State
 const initialFormState = {
   employee_id: "",
   allocation_type: "regular",
   leave_type_id: "",
+  accrual_plan_id: "",
   from_date: "",
   to_date: "",
-  allocation_days: "", // Changed default to empty string for better input handling
+  allocation_days: "",
   description: "",
 };
 
-const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
+const AddEditLeaveAllocationModal: React.FC<Props> = ({
+  onSuccess,
+  data,
+  onHide,
+}) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<any>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -37,6 +42,7 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
   // Dropdowns
   const [employeeOptions, setEmployeeOptions] = useState<any[]>([]);
   const [leaveTypeOptions, setLeaveTypeOptions] = useState<any[]>([]);
+  const [accruralPlanOptions, setAccruralPlanOptions] = useState<any[]>([]);
 
   const [formData, setFormData] = useState(initialFormState);
 
@@ -46,24 +52,19 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
     setErrors({});
     setIsSubmitted(false);
     setIsSubmitting(false);
-  }, []);
+    if (onHide) onHide(); // Notify parent to clear selection
+  }, [onHide]);
 
   // --- Event Listener for Modal Close ---
   useEffect(() => {
     const modalElement = document.getElementById("add_leave_allocation_modal");
-
     const handleModalHidden = () => {
       resetForm();
     };
 
-    if (modalElement) {
-      modalElement.addEventListener("hidden.bs.modal", handleModalHidden);
-    }
-
+    modalElement?.addEventListener("hidden.bs.modal", handleModalHidden);
     return () => {
-      if (modalElement) {
-        modalElement.removeEventListener("hidden.bs.modal", handleModalHidden);
-      }
+      modalElement?.removeEventListener("hidden.bs.modal", handleModalHidden);
     };
   }, [resetForm]);
 
@@ -71,9 +72,10 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
   useEffect(() => {
     const fetchDropdowns = async () => {
       try {
-        const [emps, lTypes] = await Promise.all([
-          getReportingManagers(),
+        const [emps, lTypes, plans] = await Promise.all([
+          getEmployeesBasicInfo(),
           getLeaveTypesCode(),
+          getAccruralPlans(),
         ]);
 
         setEmployeeOptions(
@@ -81,6 +83,9 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
         );
         setLeaveTypeOptions(
           lTypes.map((l: any) => ({ value: String(l.id), label: l.name }))
+        );
+        setAccruralPlanOptions(
+          plans.map((p: any) => ({ value: String(p.id), label: p.name }))
         );
       } catch (err) {
         console.error("Dropdown load error", err);
@@ -92,30 +97,34 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
   // --- Load Data for Edit Mode ---
   useEffect(() => {
     if (data) {
-      const getId = (val: any) =>
-        Array.isArray(val) ? String(val[0]) : String(val || "");
+      // Robust ID Extractor: Handles Array [1, "Name"], Object {id: 1}, or primitive "1"
+      const getId = (val: any) => {
+        if (!val) return "";
+        if (Array.isArray(val)) return String(val[0]);
+        if (typeof val === "object" && val.id) return String(val.id);
+        return String(val);
+      };
 
       setFormData({
         employee_id: getId(data.employee_id),
         allocation_type: data.allocation_type || "regular",
-        leave_type_id: getId(
-          data.leave_type_id || data.leave_type || data.holiday_status_id
-        ),
-        from_date:
-          data.date_from || data.from_date
-            ? dayjs(data.date_from || data.from_date).format("YYYY-MM-DD")
-            : "",
-        to_date:
-          data.date_to || data.to_date
-            ? dayjs(data.date_to || data.to_date).format("YYYY-MM-DD")
-            : "",
+        leave_type_id: getId(data.leave_type_id),
+        accrual_plan_id: getId(data.accrual_plan_id),
+
+        // Dates (Handling the flat fields we mapped in parent)
+        from_date: data.from_date
+          ? dayjs(data.from_date).format("YYYY-MM-DD")
+          : "",
+        to_date: data.to_date ? dayjs(data.to_date).format("YYYY-MM-DD") : "",
+
         allocation_days: data.number_of_days || data.allocation_days || "",
         description: data.description || "",
       });
     } else {
-      resetForm();
+      // Ensure form is clean if data prop becomes null
+      setFormData(initialFormState);
     }
-  }, [data, resetForm]);
+  }, [data]);
 
   // --- Validation Logic ---
   const validateForm = () => {
@@ -130,6 +139,12 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
       tempErrors.leave_type_id = "Leave Type is required";
       isValid = false;
     }
+
+    if (formData.allocation_type === "accrual" && !formData.accrual_plan_id) {
+      tempErrors.accrual_plan_id = "Accrual Plan is required";
+      isValid = false;
+    }
+
     if (!formData.from_date) {
       tempErrors.from_date = "From Date is required";
       isValid = false;
@@ -139,8 +154,7 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
       isValid = false;
     }
 
-    // NEW: Validation for manual Allocation Days
-    if (!formData.allocation_days || Number(formData.allocation_days) <= 0) {
+    if (!formData.allocation_days || Number(formData.allocation_days) < 0) {
       tempErrors.allocation_days = "Valid allocation days required";
       isValid = false;
     }
@@ -158,9 +172,6 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
     return isValid;
   };
 
-  // REMOVED: The useEffect that auto-calculated days has been removed as requested.
-
-  // --- Submit Handler ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitted(true);
@@ -173,7 +184,7 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
     setIsSubmitting(true);
 
     try {
-      const payload = {
+      const payload: any = {
         employee_id: Number(formData.employee_id),
         leave_type: Number(formData.leave_type_id),
         holiday_status_id: Number(formData.leave_type_id),
@@ -183,6 +194,10 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
         number_of_days: Number(formData.allocation_days),
         description: formData.description,
       };
+
+      if (formData.allocation_type === "accrual") {
+        payload.accrual_plan_id = Number(formData.accrual_plan_id);
+      }
 
       if (data?.id) {
         await updateLeaveAllocation(data.id, payload);
@@ -203,300 +218,285 @@ const AddEditLeaveAllocationModal: React.FC<Props> = ({ onSuccess, data }) => {
   };
 
   return (
-    <>
-      <div className="modal fade" id="add_leave_allocation_modal" role="dialog">
-        <div className="modal-dialog modal-dialog-centered modal-lg">
-          <div className="modal-content bg-white border-0">
-            <div className="modal-header border-0 bg-white pb-0">
-              <h4 className="modal-title fw-bold">
-                {data?.id ? "Edit Leave Allocation" : "Add Leave Allocation"}
-              </h4>
-              <button
-                type="button"
-                id="close-leave-modal"
-                className="btn-close"
-                data-bs-dismiss="modal"
-                onClick={resetForm}
-              ></button>
-            </div>
+    <div className="modal fade" id="add_leave_allocation_modal" role="dialog">
+      <div className="modal-dialog modal-dialog-centered modal-lg">
+        <div className="modal-content border-0 shadow-lg">
+          <div className="modal-header border-bottom bg-light py-2">
+            <h5 className="modal-title fw-bold text-dark fs-16">
+              <i className="ti ti-calendar-plus me-2 text-primary"></i>
+              {data?.id ? "Edit Leave Allocation" : "Create Leave Allocation"}
+            </h5>
+            <button
+              type="button"
+              id="close-leave-modal"
+              className="btn-close"
+              data-bs-dismiss="modal"
+              onClick={resetForm}
+            ></button>
+          </div>
 
-            <div className="modal-body pt-3">
-              <form
-                className={`needs-validation ${
-                  isSubmitted ? "was-validated" : ""
-                }`}
-                noValidate
-                onSubmit={handleSubmit}
-              >
-                <div className="row g-3">
-                  {/* 1. Employee */}
-                  <div className="col-md-6">
-                    <label className="form-label fs-13 fw-bold text-dark">
-                      Employee <span className="text-danger">*</span>
-                    </label>
-                    <div
-                      className={
-                        isSubmitted
-                          ? errors.employee_id
-                            ? "border border-danger rounded shadow-sm"
-                            : formData.employee_id
-                            ? "border border-success rounded shadow-sm"
-                            : ""
-                          : ""
-                      }
-                    >
-                      <CommonSelect
-                        options={employeeOptions}
-                        placeholder="Select employee"
-                        defaultValue={employeeOptions.find(
-                          (o) => o.value === formData.employee_id
-                        )}
-                        onChange={(opt) => {
-                          setFormData({
-                            ...formData,
-                            employee_id: opt?.value || "",
-                          });
-                          if (errors.employee_id)
-                            setErrors({ ...errors, employee_id: "" });
-                        }}
-                      />
-                    </div>
-                    {isSubmitted && errors.employee_id && (
-                      <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
-                        <i className="ti ti-info-circle me-1"></i>
-                        {errors.employee_id}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 2. Allocation Type */}
-                  <div className="col-md-6">
-                    <label className="form-label fs-13 fw-bold text-dark">
-                      Allocation Type
-                    </label>
-                    <div
-                      className={
-                        isSubmitted && formData.allocation_type
-                          ? "border border-success rounded shadow-sm"
-                          : ""
-                      }
-                    >
-                      <CommonSelect
-                        options={[
-                          { value: "regular", label: "Regular Allocation" },
-                          { value: "accrual", label: "Accrual Allocation" },
-                        ]}
-                        defaultValue={
-                          formData.allocation_type === "accrual"
-                            ? { value: "accrual", label: "Accrual Allocation" }
-                            : { value: "regular", label: "Regular Allocation" }
-                        }
-                        onChange={(opt) =>
-                          setFormData({
-                            ...formData,
-                            allocation_type: opt?.value || "regular",
-                          })
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  {/* 3. Leave Type */}
-                  <div className="col-md-6">
-                    <label className="form-label fs-13 fw-bold text-dark">
-                      Leave Type <span className="text-danger">*</span>
-                    </label>
-                    <div
-                      className={
-                        isSubmitted
-                          ? errors.leave_type_id
-                            ? "border border-danger rounded shadow-sm"
-                            : formData.leave_type_id
-                            ? "border border-success rounded shadow-sm"
-                            : ""
-                          : ""
-                      }
-                    >
-                      <CommonSelect
-                        options={leaveTypeOptions}
-                        placeholder="Select type"
-                        defaultValue={leaveTypeOptions.find(
-                          (o) => o.value === formData.leave_type_id
-                        )}
-                        onChange={(opt) => {
-                          setFormData({
-                            ...formData,
-                            leave_type_id: opt?.value || "",
-                          });
-                          if (errors.leave_type_id)
-                            setErrors({ ...errors, leave_type_id: "" });
-                        }}
-                      />
-                    </div>
-                    {isSubmitted && errors.leave_type_id && (
-                      <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
-                        <i className="ti ti-info-circle me-1"></i>
-                        {errors.leave_type_id}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 4. From Date */}
-                  <div className="col-md-6">
-                    <label className="form-label fs-13 fw-bold text-dark">
-                      From Date <span className="text-danger">*</span>
-                    </label>
-                    <DatePicker
-                      className={`w-100 form-control ${
-                        isSubmitted
-                          ? errors.from_date
-                            ? "is-invalid"
-                            : formData.from_date
-                            ? "is-valid"
-                            : ""
-                          : ""
-                      }`}
-                      placeholder="Select Date"
-                      value={
-                        formData.from_date ? dayjs(formData.from_date) : null
-                      }
-                      onChange={(_, dateStr) => {
+          <div className="modal-body p-4">
+            <form
+              className={`needs-validation ${
+                isSubmitted ? "was-validated" : ""
+              }`}
+              noValidate
+              onSubmit={handleSubmit}
+            >
+              <div className="row g-3">
+                {/* 1. Employee */}
+                <div className="col-md-6">
+                  <label className="form-label fs-13 fw-bold">
+                    Employee <span className="text-danger">*</span>
+                  </label>
+                  <div
+                    className={
+                      isSubmitted && errors.employee_id
+                        ? "border border-danger rounded shadow-sm"
+                        : ""
+                    }
+                  >
+                    <CommonSelect
+                      options={employeeOptions}
+                      placeholder="Select employee"
+                      defaultValue={employeeOptions.find(
+                        (o) => o.value === formData.employee_id
+                      )}
+                      onChange={(opt) => {
                         setFormData({
                           ...formData,
-                          from_date: String(dateStr),
+                          employee_id: opt?.value || "",
                         });
-                        if (errors.from_date)
-                          setErrors({ ...errors, from_date: "" });
+                        if (errors.employee_id)
+                          setErrors({ ...errors, employee_id: "" });
                       }}
                     />
-                    {isSubmitted && errors.from_date && (
-                      <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
-                        <i className="ti ti-info-circle me-1"></i>
-                        {errors.from_date}
-                      </div>
-                    )}
                   </div>
+                  {isSubmitted && errors.employee_id && (
+                    <div className="text-danger fs-11 mt-1">
+                      {errors.employee_id}
+                    </div>
+                  )}
+                </div>
 
-                  {/* 5. To Date */}
-                  <div className="col-md-6">
-                    <label className="form-label fs-13 fw-bold text-dark">
-                      To Date <span className="text-danger">*</span>
-                    </label>
-                    <DatePicker
-                      className={`w-100 form-control ${
-                        isSubmitted
-                          ? errors.to_date
-                            ? "is-invalid"
-                            : formData.to_date
-                            ? "is-valid"
-                            : ""
-                          : ""
-                      }`}
-                      placeholder="Select Date"
-                      value={formData.to_date ? dayjs(formData.to_date) : null}
-                      onChange={(_, dateStr) => {
-                        setFormData({ ...formData, to_date: String(dateStr) });
-                        if (errors.to_date)
-                          setErrors({ ...errors, to_date: "" });
-                      }}
-                    />
-                    {isSubmitted && errors.to_date && (
-                      <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
-                        <i className="ti ti-info-circle me-1"></i>
-                        {errors.to_date}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 6. Allocation Days - NOW EDITABLE & VALIDATED */}
-                  <div className="col-md-6">
-                    <label className="form-label fs-13 fw-bold text-dark">
-                      Allocation Days <span className="text-danger">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      className={`form-control ${
-                        isSubmitted
-                          ? errors.allocation_days
-                            ? "is-invalid"
-                            : Number(formData.allocation_days) > 0
-                            ? "is-valid"
-                            : ""
-                          : ""
-                      }`}
-                      placeholder="Enter Days"
-                      value={formData.allocation_days}
-                      onChange={(e) => {
+                {/* 2. Allocation Type */}
+                <div className="col-md-6">
+                  <label className="form-label fs-13 fw-bold">
+                    Allocation Type
+                  </label>
+                  <div>
+                    <CommonSelect
+                      options={[
+                        { value: "regular", label: "Regular Allocation" },
+                        { value: "accrual", label: "Accrual Allocation" },
+                      ]}
+                      defaultValue={
+                        formData.allocation_type === "accrual"
+                          ? { value: "accrual", label: "Accrual Allocation" }
+                          : { value: "regular", label: "Regular Allocation" }
+                      }
+                      onChange={(opt) =>
                         setFormData({
                           ...formData,
-                          allocation_days: e.target.value,
-                        });
-                        if (errors.allocation_days)
-                          setErrors({ ...errors, allocation_days: "" });
-                      }}
-                    />
-                    {isSubmitted && errors.allocation_days && (
-                      <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
-                        <i className="ti ti-info-circle me-1"></i>
-                        {errors.allocation_days}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 7. Description */}
-                  <div className="col-12">
-                    <label className="form-label fs-13 fw-bold text-dark">
-                      Description
-                    </label>
-                    <textarea
-                      className={`form-control ${
-                        isSubmitted
-                          ? formData.description
-                            ? "is-valid"
-                            : ""
-                          : ""
-                      }`}
-                      rows={4}
-                      placeholder="Enter remarks..."
-                      value={formData.description}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          description: e.target.value,
+                          allocation_type: opt?.value || "regular",
                         })
                       }
-                    ></textarea>
+                    />
                   </div>
                 </div>
 
-                {/* Footer Buttons */}
-                <div className="modal-footer border-0 bg-white px-0 mt-4">
-                  <button
-                    type="button"
-                    className="btn btn-light"
-                    data-bs-dismiss="modal"
-                    onClick={resetForm}
+                {/* 3. Leave Type */}
+                <div className="col-md-6">
+                  <label className="form-label fs-13 fw-bold">
+                    Leave Type <span className="text-danger">*</span>
+                  </label>
+                  <div
+                    className={
+                      isSubmitted && errors.leave_type_id
+                        ? "border border-danger rounded shadow-sm"
+                        : ""
+                    }
                   >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn btn-primary px-5"
-                    disabled={isSubmitting}
-                    style={{
-                      backgroundColor: "#e65a2d",
-                      borderColor: "#e65a2d",
-                    }}
-                  >
-                    {isSubmitting ? "Saving..." : "Save Leave Allocation"}
-                  </button>
+                    <CommonSelect
+                      options={leaveTypeOptions}
+                      placeholder="Select type"
+                      defaultValue={leaveTypeOptions.find(
+                        (o) => o.value === formData.leave_type_id
+                      )}
+                      onChange={(opt) => {
+                        setFormData({
+                          ...formData,
+                          leave_type_id: opt?.value || "",
+                        });
+                        if (errors.leave_type_id)
+                          setErrors({ ...errors, leave_type_id: "" });
+                      }}
+                    />
+                  </div>
+                  {isSubmitted && errors.leave_type_id && (
+                    <div className="text-danger fs-11 mt-1">
+                      {errors.leave_type_id}
+                    </div>
+                  )}
                 </div>
-              </form>
-            </div>
+
+                {/* 4. Accrual Plan (Conditional) */}
+                {formData.allocation_type === "accrual" && (
+                  <div className="col-md-6 animate__animated animate__fadeIn">
+                    <label className="form-label fs-13 fw-bold">
+                      Accrual Plan <span className="text-danger">*</span>
+                    </label>
+                    <div
+                      className={
+                        isSubmitted && errors.accrual_plan_id
+                          ? "border border-danger rounded shadow-sm"
+                          : ""
+                      }
+                    >
+                      <CommonSelect
+                        options={accruralPlanOptions}
+                        placeholder="Select Accrual Plan"
+                        defaultValue={accruralPlanOptions.find(
+                          (o) => o.value === formData.accrual_plan_id
+                        )}
+                        onChange={(opt) => {
+                          setFormData({
+                            ...formData,
+                            accrual_plan_id: opt?.value || "",
+                          });
+                          if (errors.accrual_plan_id)
+                            setErrors({ ...errors, accrual_plan_id: "" });
+                        }}
+                      />
+                    </div>
+                    {isSubmitted && errors.accrual_plan_id && (
+                      <div className="text-danger fs-11 mt-1">
+                        {errors.accrual_plan_id}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 5. From Date */}
+                <div className="col-md-6">
+                  <label className="form-label fs-13 fw-bold">
+                    From Date <span className="text-danger">*</span>
+                  </label>
+                  <DatePicker
+                    className={`w-100 form-control ${
+                      isSubmitted && errors.from_date ? "is-invalid" : ""
+                    }`}
+                    placeholder="Select Date"
+                    value={
+                      formData.from_date ? dayjs(formData.from_date) : null
+                    }
+                    onChange={(_, dateStr) => {
+                      setFormData({ ...formData, from_date: String(dateStr) });
+                      if (errors.from_date)
+                        setErrors({ ...errors, from_date: "" });
+                    }}
+                  />
+                  {isSubmitted && errors.from_date && (
+                    <div className="text-danger fs-11 mt-1">
+                      {errors.from_date}
+                    </div>
+                  )}
+                </div>
+
+                {/* 6. To Date */}
+                <div className="col-md-6">
+                  <label className="form-label fs-13 fw-bold">
+                    To Date <span className="text-danger">*</span>
+                  </label>
+                  <DatePicker
+                    className={`w-100 form-control ${
+                      isSubmitted && errors.to_date ? "is-invalid" : ""
+                    }`}
+                    placeholder="Select Date"
+                    value={formData.to_date ? dayjs(formData.to_date) : null}
+                    onChange={(_, dateStr) => {
+                      setFormData({ ...formData, to_date: String(dateStr) });
+                      if (errors.to_date) setErrors({ ...errors, to_date: "" });
+                    }}
+                  />
+                  {isSubmitted && errors.to_date && (
+                    <div className="text-danger fs-11 mt-1">
+                      {errors.to_date}
+                    </div>
+                  )}
+                </div>
+
+                {/* 7. Allocation Days */}
+                <div className="col-md-6">
+                  <label className="form-label fs-13 fw-bold">
+                    Allocation Days <span className="text-danger">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    className={`form-control ${
+                      isSubmitted && errors.allocation_days ? "is-invalid" : ""
+                    }`}
+                    placeholder="Enter Days"
+                    value={formData.allocation_days}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        allocation_days: e.target.value,
+                      });
+                      if (errors.allocation_days)
+                        setErrors({ ...errors, allocation_days: "" });
+                    }}
+                  />
+                  {isSubmitted && errors.allocation_days && (
+                    <div className="text-danger fs-11 mt-1">
+                      {errors.allocation_days}
+                    </div>
+                  )}
+                </div>
+
+                {/* 8. Description */}
+                <div className="col-12">
+                  <label className="form-label fs-13 fw-bold">
+                    Description
+                  </label>
+                  <textarea
+                    className="form-control"
+                    rows={3}
+                    placeholder="Enter remarks..."
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                  ></textarea>
+                </div>
+              </div>
+
+              <div className="modal-footer border-0 px-0 mt-4 pb-0">
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary px-4 me-2"
+                  data-bs-dismiss="modal"
+                  onClick={resetForm}
+                >
+                  Discard
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary px-5 shadow-sm"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting
+                    ? "Saving..."
+                    : data?.id
+                    ? "Update Allocation"
+                    : "Save Allocation"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

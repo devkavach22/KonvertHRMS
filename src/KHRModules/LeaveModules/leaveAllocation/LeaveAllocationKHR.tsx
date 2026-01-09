@@ -13,25 +13,59 @@ import {
 
 const LeaveAllocationKHR = () => {
   const routes = all_routes;
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedAllocation, setSelectedAllocation] = useState(null);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await getLeaveAllocations();
-      const rawArray = response?.allocations || [];
+      const response: any = await getLeaveAllocations();
+
+      let rawArray: any[] = [];
+      if (Array.isArray(response)) rawArray = response;
+      else if (response?.data && Array.isArray(response.data))
+        rawArray = response.data;
+      else if (response?.data?.data && Array.isArray(response.data.data))
+        rawArray = response.data.data;
+      else if (response?.allocations) rawArray = response.allocations;
 
       const mappedData = rawArray.map((item: any) => ({
         ...item,
         key: String(item.id),
-        employee_name: Array.isArray(item.employee_id)
-          ? item.employee_id[1]
-          : "-",
-        leave_type_name: Array.isArray(item.holiday_status_id)
-          ? item.holiday_status_id[1]
-          : "-",
+
+        // --- 1. FLATTEN NAMES FOR TABLE DISPLAY ---
+        employee_name:
+          item.employee?.name ||
+          (Array.isArray(item.employee_id) ? item.employee_id[1] : "-"),
+        leave_type_name:
+          item.leave_type?.name ||
+          (Array.isArray(item.holiday_status_id)
+            ? item.holiday_status_id[1]
+            : "-"),
+        accrual_plan_name: item.accrual_plan?.name || "-",
+
+        // --- 2. FLATTEN DATA FOR EDIT MODAL ---
+        // Extract IDs securely from Objects or Arrays
+        employee_id:
+          item.employee?.id ||
+          (Array.isArray(item.employee_id)
+            ? item.employee_id[0]
+            : item.employee_id),
+        leave_type_id:
+          item.leave_type?.id ||
+          (Array.isArray(item.holiday_status_id)
+            ? item.holiday_status_id[0]
+            : item.leave_type_id),
+        accrual_plan_id: item.accrual_plan?.id || item.accrual_plan_id,
+
+        // Extract Dates from 'validity' object if present
+        from_date: item.validity?.start || item.date_from || item.from_date,
+        to_date: item.validity?.end || item.date_to || item.to_date,
+
+        // Map days
+        number_of_days: item.days_allocated ?? item.number_of_days,
+        state: item.status || item.state,
       }));
 
       setData(mappedData);
@@ -53,11 +87,11 @@ const LeaveAllocationKHR = () => {
   ) => {
     try {
       const res = await approveRefuseLeaveAllocation(id, action);
-      if (res.status === "success") {
+      if (res?.status === "success" || res?.result === true) {
         toast.success(`Allocation ${action}d successfully`);
         fetchData();
       } else {
-        toast.error(res.message || "Failed to update status");
+        toast.error(res?.message || "Failed to update status");
       }
     } catch (error) {
       toast.error("An error occurred");
@@ -80,41 +114,54 @@ const LeaveAllocationKHR = () => {
     {
       title: "Employee",
       dataIndex: "employee_name",
-      key: "employee_name",
-      sorter: (a: any, b: any) =>
-        (a.employee_name || "").localeCompare(b.employee_name || ""),
       render: (text: string) => (
         <span className="fw-medium text-dark">{text || "-"}</span>
       ),
+      sorter: (a: any, b: any) =>
+        (a.employee_name || "").localeCompare(b.employee_name || ""),
     },
     {
       title: "Leave Type",
       dataIndex: "leave_type_name",
-      key: "leave_type_name",
+    },
+    {
+      title: "Allocation Type",
+      dataIndex: "allocation_type",
+      render: (text: string, record: any) => (
+        <div>
+          <span className="text-capitalize">{text}</span>
+          {text === "accrual" && (
+            <div className="fs-11 text-muted">
+              Plan: {record.accrual_plan_name}
+            </div>
+          )}
+        </div>
+      ),
     },
     {
       title: "Days",
       dataIndex: "number_of_days",
-      key: "number_of_days",
       render: (text: any) => <span className="fw-bold">{text}</span>,
     },
     {
       title: "Status",
       dataIndex: "state",
-      key: "state",
       render: (text: string) => {
         let label = text;
         let badgeClass = "bg-light text-muted";
         switch (text?.toLowerCase()) {
           case "confirm":
+          case "to_approve":
             label = "To Approve";
             badgeClass = "bg-soft-warning text-warning";
             break;
           case "refuse":
+          case "refused":
             label = "Refused";
             badgeClass = "bg-soft-danger text-danger";
             break;
           case "validate":
+          case "approved":
             label = "Approved";
             badgeClass = "bg-soft-success text-success";
             break;
@@ -133,8 +180,7 @@ const LeaveAllocationKHR = () => {
     {
       title: "Actions",
       dataIndex: "id",
-      key: "id",
-      width: "150px", // Fixed width to prevent collapsing
+      width: "150px",
       render: (_: any, record: any) => (
         <div className="action-icon d-inline-flex align-items-center flex-nowrap">
           {record.state === "confirm" && (
@@ -142,7 +188,6 @@ const LeaveAllocationKHR = () => {
               <Link
                 to="#"
                 className="me-2 text-success action-btn"
-                title="Approve"
                 onClick={() => handleStatusUpdate(record.id, "approve")}
               >
                 <i className="ti ti-check fs-20" />
@@ -150,7 +195,6 @@ const LeaveAllocationKHR = () => {
               <Link
                 to="#"
                 className="me-2 text-danger action-btn"
-                title="Refuse"
                 onClick={() => handleStatusUpdate(record.id, "refuse")}
               >
                 <i className="ti ti-x fs-20" />
@@ -181,34 +225,31 @@ const LeaveAllocationKHR = () => {
   return (
     <div className="page-wrapper">
       <div className="content container-fluid">
-        {/* Header Section */}
         <div className="row">
           <div className="col-md-12">
-            <CommonHeader
-              title="Leave Allocation"
-              parentMenu="HR"
-              activeMenu="Allocations"
-              routes={routes}
-              buttonText="Add Allocation"
-              modalTarget="#add_leave_allocation_modal"
-            />
+            <div onClick={() => setSelectedAllocation(null)}>
+              <CommonHeader
+                title="Leave Allocation"
+                parentMenu="HR"
+                activeMenu="Allocations"
+                routes={routes}
+                buttonText="Add Allocation"
+                modalTarget="#add_leave_allocation_modal"
+              />
+            </div>
           </div>
         </div>
 
-        {/* Main Table Card */}
         <div className="row">
           <div className="col-md-12">
             <div className="card shadow-sm border-0">
               <div className="card-body p-0">
                 {loading ? (
                   <div className="text-center p-5">
-                    <div className="spinner-border text-primary" role="status">
-                      <span className="visually-hidden">Loading...</span>
-                    </div>
-                    <div className="mt-2 text-muted fw-semibold">
-                      Retrieving{" "}
-                      {data.length > 0 ? "Table Data" : "Allocations"}...
-                    </div>
+                    <div
+                      className="spinner-border text-primary"
+                      role="status"
+                    ></div>
                   </div>
                 ) : (
                   <div className="table-responsive">
@@ -227,7 +268,7 @@ const LeaveAllocationKHR = () => {
 
       <AddEditLeaveAllocationModal
         show={false}
-        onHide={() => {}}
+        onHide={() => setSelectedAllocation(null)}
         onSuccess={fetchData}
         data={selectedAllocation}
       />
