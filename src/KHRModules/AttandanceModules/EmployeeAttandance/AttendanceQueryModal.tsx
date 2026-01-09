@@ -11,7 +11,7 @@ import {
   updateState,
 } from "@/Store/Reducers/TBSlice";
 import { useDispatch, useSelector } from "react-redux";
-
+// import AddRegCategoryModal from "./AddRegCategoryModal";
 interface Props {
   attendance: any;
   employeeId: number;
@@ -52,6 +52,7 @@ const AttendanceQueryModal: React.FC<Props> = ({
   const [categories, setCategories] = useState<Option[]>([]);
   const [errors, setErrors] = useState<any>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
 
   /* ========================= INIT FORM DATA FROM ATTENDANCE ========================= */
   useEffect(() => {
@@ -264,9 +265,19 @@ const handleSubmit = async () => {
 
               {/* Category */}
               <div className="col-md-12 mb-3">
-                <label className="fw-bold">
-                  Category <span className="text-danger">*</span>
-                </label>
+                <div className="d-flex justify-content-between align-items-center mb-1">
+                  <label className="fw-bold mb-0">
+                    Category <span className="text-danger">*</span>
+                  </label>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-primary"
+                    onClick={() => setShowAddCategoryModal(true)}
+                  >
+                    <i className="ti ti-plus me-1" />
+                    Add Category
+                  </button>
+                </div>
                 <CommonSelect
                   options={categories}
                   placeholder="Select Category"
@@ -321,6 +332,9 @@ const handleSubmit = async () => {
           </div>
         </div>
       </div>
+
+      {/* Add Category Modal */}
+    
     </div>
 
   );

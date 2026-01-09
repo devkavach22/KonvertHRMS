@@ -26,6 +26,7 @@ export const SidebarDataTest = [
               submenuItems: [
                 { label: "Attendence Policy", link: routes.AttendancePolicyKHR },
                 { label: "Department", link: routes.departmentsKHR },
+                { label: "Regularization Category", link: routes.regCategoryKHR },
                 { label: "Job Postions", link: routes.jobPositionsKHR },
                 { label: "Work Location", link: routes.workLocationKHR },
                 { label: "Working Schedule", link: routes.workingScheduleKHR },

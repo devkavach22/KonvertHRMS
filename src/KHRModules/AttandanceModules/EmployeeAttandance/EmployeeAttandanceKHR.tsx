@@ -7,16 +7,20 @@ import DatatableKHR from "@/CommonComponent/DataTableKHR/DatatableKHR";
 import CommonHeader from "@/CommonComponent/HeaderKHR/HeaderKHR";
 import SummaryCards from "@/CommonComponent/CommonAttendanceStatus/SummaryCards";
 import WorkStatsWithTimeline from "./WorksWithTimeline";
+import type { WorkStat } from "./WorksWithTimeline";
 import AttendanceQueryModal from "./AttendanceQueryModal";
 import {
   AdminWorkingHours,
   CheckinCheckout,
   EmployeeAttendanceApi,
+  EmployeeAttendanceExportExcel,
+  EmployeeAttendanceExportPdf,
   TBSelector,
   updateState,
 } from "@/Store/Reducers/TBSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
+// import { toast } from "react-toastify";
+import type { AppDispatch } from "@/Store";
 
 interface AttendanceAdminData {
   EndDate: any;
@@ -51,7 +55,7 @@ const EmployeeAttendanceKHR = () => {
   const [data, setData] = useState<AttendanceAdminData[]>([]);
   const [showQueryModal, setShowQueryModal] = useState(false);
   const [employeeId, setEmployeeId] = useState<string | null>(null);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const [summaryCards, setSummaryCards] = useState<any[]>([]);
 
   const {
@@ -60,6 +64,8 @@ const EmployeeAttendanceKHR = () => {
     EmployeeAttendanceApiData,
     AdminWorkingHoursData,
     isAdminWorkingHours,
+    isEmployeeAttendanceExportExcelFetching,
+    isEmployeeAttendanceExportPdfFetching,
   } = useSelector(TBSelector);
 
   const [selectedAttendancee, setSelectedAttendancee] = useState<any>(null);
@@ -69,6 +75,26 @@ const EmployeeAttendanceKHR = () => {
 
   const { CheckinCheckoutData, isCheckinCheckoutFetching } =
     useSelector(TBSelector);
+
+  // Export handlers
+  const handleExportExcel = () => {
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const dateFrom = firstDayOfMonth.toISOString().split("T")[0];
+    const dateTo = today.toISOString().split("T")[0];
+    
+    dispatch(EmployeeAttendanceExportExcel({ date_from: dateFrom, date_to: dateTo }))
+    
+  };
+
+  const handleExportPdf = () => {
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const dateFrom = firstDayOfMonth.toISOString().split("T")[0];
+    const dateTo = today.toISOString().split("T")[0];
+    
+    dispatch(EmployeeAttendanceExportPdf({ date_from: dateFrom, date_to: dateTo }))
+  };
 
   if (!CheckinCheckoutData) return null;
 
@@ -100,7 +126,9 @@ const EmployeeAttendanceKHR = () => {
 
   const handleAction = () => {
     if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported by your browser");
+      console.log("Geolocation is not supported by your browser");
+      
+      // toast.error("Geolocation is not supported by your browser");
       return;
     }
 
@@ -116,7 +144,7 @@ const EmployeeAttendanceKHR = () => {
       },
       (error) => {
         console.error(error);
-        toast.error("Unable to get your location");
+        // toast.error("Unable to get your location");
       },
       { enableHighAccuracy: true }
     );
@@ -181,7 +209,7 @@ const EmployeeAttendanceKHR = () => {
       {
         icon: "ti ti-clock-up",
         bg: "dark",
-        title: "Total Hours This Week",
+        title: "Total Hours Week",
         value: week.worked_hours.toFixed(2),
         total: week.allowed_hours.toString(),
         trend: `${week.percentage}% This Week`,
@@ -190,7 +218,7 @@ const EmployeeAttendanceKHR = () => {
       {
         icon: "ti ti-calendar-up",
         bg: "info",
-        title: "Total Hours This Month",
+        title: "Total Hours Month",
         value: month.worked_hours.toFixed(2),
         total: month.allowed_hours.toString(),
         trend: `${month.percentage}% This Month`,
@@ -422,13 +450,23 @@ const EmployeeAttendanceKHR = () => {
                     </button>
                     <ul className="dropdown-menu dropdown-menu-end p-3">
                       <li>
-                        <button className="dropdown-item">
-                          <i className="ti ti-file-type-pdf me-1" /> PDF
+                        <button 
+                          className="dropdown-item"
+                          onClick={handleExportPdf}
+                          disabled={isEmployeeAttendanceExportPdfFetching}
+                        >
+                          <i className="ti ti-file-type-pdf me-1" /> 
+                          {isEmployeeAttendanceExportPdfFetching ? "Exporting..." : "PDF"}
                         </button>
                       </li>
                       <li>
-                        <button className="dropdown-item">
-                          <i className="ti ti-file-type-xls me-1" /> Excel
+                        <button 
+                          className="dropdown-item"
+                          onClick={handleExportExcel}
+                          disabled={isEmployeeAttendanceExportExcelFetching}
+                        >
+                          <i className="ti ti-file-type-xls me-1" /> 
+                          {isEmployeeAttendanceExportExcelFetching ? "Exporting..." : "Excel"}
                         </button>
                       </li>
                     </ul>

@@ -11,15 +11,16 @@ import ProjectModals from "../../../core/modals/projectModal";
 import RequestModals from "../../../core/modals/requestModal";
 import TodoModal from "../../../core/modals/todoModal";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { getDashboadrdCount, TBSelector } from "@/Store/Reducers/TBSlice";
+import { useAppDispatch } from "@/core/data/redux/store";
 
 const AdminDashboard = () => {
   const routes = all_routes;
 
   const [isTodo, setIsTodo] = useState([false, false, false]);
   const userName = localStorage.getItem("full_name") || "John Doe";
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const {
     // getDashboadrdCount
     isgetDashboadrdCount,
@@ -407,11 +408,11 @@ const AdminDashboard = () => {
                   <p>
                     You have{" "}
                     <span className="text-primary text-decoration-underline">
-                      21
+                      {getDashboadrdCountData?.data?.pending_approvals ?? 0}
                     </span>{" "}
                     Pending Approvals &amp;{" "}
                     <span className="text-primary text-decoration-underline">
-                      14
+                      {getDashboadrdCountData?.data?.leave_requests ?? 0}
                     </span>{" "}
                     Leave Requests
                   </p>
