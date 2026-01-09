@@ -3,9 +3,9 @@ import axios from "axios";
 const Instance = axios.create({
   // baseURL: "http://192.168.11.150:4000/",
   // baseURL: "http://192.168.11.245:4000/",
-  // baseURL: "https://konverthrnode.onrender.com",
+  baseURL: "https://konverthrnode.onrender.com",
 
-  baseURL: "http://178.236.185.232/",
+  // baseURL: "http://178.236.185.232/",
 
   headers: {
     "Content-Type": "application/json",
@@ -21,15 +21,15 @@ const getFreshToken = async () => {
     // const response = await axios.post("http://192.168.11.245:4000/api/auth", {
     //   user_name: "dhaval",
     // });
-    const response = await axios.post("http://178.236.185.232/api/auth", {
-      user_name: "dhaval",
-    });
-    // const response = await axios.post(
-    //   "https://konverthrnode.onrender.com/api/auth",
-    //   {
-    //     user_name: "dhaval",
-    //   }
-    // );
+    // const response = await axios.post("http://178.236.185.232/api/auth", {
+    //   user_name: "dhaval",
+    // });
+    const response = await axios.post(
+      "https://konverthrnode.onrender.com/api/auth",
+      {
+        user_name: "dhaval",
+      }
+    );
     // console.log(response, "werrw");
 
     const newToken = response.data.token;
