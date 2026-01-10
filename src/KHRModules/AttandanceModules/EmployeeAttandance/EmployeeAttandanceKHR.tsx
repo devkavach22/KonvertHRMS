@@ -11,12 +11,14 @@ import type { WorkStat } from "./WorksWithTimeline";
 import AttendanceQueryModal from "./AttendanceQueryModal";
 import {
   AdminWorkingHours,
+  ApiAuth,
   CheckinCheckout,
   EmployeeAttendanceApi,
   EmployeeAttendanceExportExcel,
   EmployeeAttendanceExportPdf,
   TBSelector,
   updateState,
+  
 } from "@/Store/Reducers/TBSlice";
 import { useDispatch, useSelector } from "react-redux";
 // import { toast } from "react-toastify";
@@ -63,9 +65,10 @@ const EmployeeAttendanceKHR = () => {
     isEmployeeAttendanceApiFetching,
     EmployeeAttendanceApiData,
     AdminWorkingHoursData,
-    isAdminWorkingHours,
     isEmployeeAttendanceExportExcelFetching,
     isEmployeeAttendanceExportPdfFetching,
+    isAdminWorkingHours,
+    isApiAuth
   } = useSelector(TBSelector);
 
   const [selectedAttendancee, setSelectedAttendancee] = useState<any>(null);
@@ -118,10 +121,10 @@ const EmployeeAttendanceKHR = () => {
   const formatDate = (dateStr: string) =>
     dateStr
       ? new Date(dateStr).toLocaleDateString([], {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        })
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
       : "";
 
   const handleAction = () => {
@@ -139,7 +142,7 @@ const EmployeeAttendanceKHR = () => {
           CheckinCheckout({
             Latitude: latitude,
             Longitude: longitude,
-          })
+          }) as any
         );
       },
       (error) => {
@@ -151,15 +154,26 @@ const EmployeeAttendanceKHR = () => {
   };
 
   useEffect(() => {
-    // dispatch(AdminWorkingHours());
-    dispatch(EmployeeAttendanceApi());
+    // fetchData();
+    if (isApiAuth) {
+      dispatch(EmployeeAttendanceApi() as any);
+      dispatch(updateState({ isApiAuth: false }))
+    }
+  }, [dispatch, isApiAuth]);
+  useEffect(() => {
+    dispatch(ApiAuth() as any);
   }, []);
-  console.log(EmployeeAttendanceApiData,"EmployeeAttendanceApiData")
+  useEffect(() => {
+    // dispatch(AdminWorkingHours());
+  }, []);
+  console.log(EmployeeAttendanceApiData, "EmployeeAttendanceApiData");
   console.log(employeeId, "employeeIdddd");
 
   useEffect(() => {
     if (isEmployeeAttendanceApi) {
-      setEmployeeId(EmployeeAttendanceApiData?.data?.employee?.employee_id || null);
+      setEmployeeId(
+        EmployeeAttendanceApiData?.data?.employee?.employee_id || null
+      );
 
       const mappedData: AttendanceAdminData[] =
         EmployeeAttendanceApiData?.data?.attendance_records?.map(
@@ -178,10 +192,9 @@ const EmployeeAttendanceKHR = () => {
                 typeof item.overtime_hours === "number"
                   ? item.overtime_hours.toFixed(2)
                   : item.overtime_hours
-                  ? String(item.overtime_hours)
-                  : "0",
-            ProductionHours: formatHours(item.total_productive_hours),
-
+                    ? String(item.overtime_hours)
+                    : "0",
+              ProductionHours: formatHours(item.total_productive_hours),
             };
           }
         );
@@ -238,19 +251,17 @@ const EmployeeAttendanceKHR = () => {
     setSummaryCards(cards);
   }, [isEmployeeAttendanceApi, EmployeeAttendanceApiData]);
 
-  const [workStats, setWorkStats] = useState<WorkStat[]>([]);
+  const [workStats, setWorkStats] = useState<any[]>([]);
 
   const formatHours = (hours: number) => {
-  if (!hours || hours <= 0) return "0h 0m";
+    if (!hours || hours <= 0) return "0h 0m";
 
-  const totalMinutes = Math.round(hours * 60);
-  const h = Math.floor(totalMinutes / 60);
-  const m = totalMinutes % 60;
+    const totalMinutes = Math.round(hours * 60);
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
 
-  return `${h}h ${m}m`;
-};
-
-
+    return `${h}h ${m}m`;
+  };
 
   useEffect(() => {
     if (!EmployeeAttendanceApiData?.data?.attendance_records) return;
@@ -264,8 +275,7 @@ const EmployeeAttendanceKHR = () => {
       0
     );
 
-    console.log(totalWorkingHours,"totalWorkingHours");
-    
+    console.log(totalWorkingHours, "totalWorkingHours");
 
     const productiveHours = attendance_records.reduce(
       (sum: number, r: any) => sum + Number(r.total_productive_hours || 0),
@@ -282,7 +292,7 @@ const EmployeeAttendanceKHR = () => {
       Number(working_hours_summary?.today?.total_break_hours) || 0;
 
     // 🧾 Build stats
-    const stats: WorkStat[] = [
+    const stats: any[] = [
       {
         label: "Total Working Hours",
         value: formatHours(totalWorkingHours),
@@ -335,11 +345,10 @@ const EmployeeAttendanceKHR = () => {
       dataIndex: "Status",
       render: (text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge ${
-            text === "Present"
-              ? "badge-success-transparent"
-              : "badge-danger-transparent"
-          } d-inline-flex align-items-center`}
+          className={`badge ${text === "Present"
+            ? "badge-success-transparent"
+            : "badge-danger-transparent"
+            } d-inline-flex align-items-center`}
         >
           <i className="ti ti-point-filled me-1" />
           {record.Status}
@@ -377,14 +386,13 @@ const EmployeeAttendanceKHR = () => {
       dataIndex: "ProductionHours",
       render: (_text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge d-inline-flex align-items-center badge-sm ${
-            parseFloat(record.ProductionHours) < 8
-              ? "badge-danger"
-              : parseFloat(record.ProductionHours) >= 8 &&
-                parseFloat(record.ProductionHours) <= 9
+          className={`badge d-inline-flex align-items-center badge-sm ${parseFloat(record.ProductionHours) < 8
+            ? "badge-danger"
+            : parseFloat(record.ProductionHours) >= 8 &&
+              parseFloat(record.ProductionHours) <= 9
               ? "badge-success"
               : "badge-info"
-          }`}
+            }`}
         >
           <i className="ti ti-clock-hour-11 me-1"></i>
           {record.ProductionHours}
@@ -393,7 +401,7 @@ const EmployeeAttendanceKHR = () => {
       sorter: (a: AttendanceAdminData, b: AttendanceAdminData) =>
         a.ProductionHours.length - b.ProductionHours.length,
     },
-  
+
     {
       title: "Action",
       dataIndex: "actions",
@@ -540,14 +548,13 @@ const EmployeeAttendanceKHR = () => {
                       {datass?.check_out_time
                         ? `Checked Out at ${formatTime(datass.check_out_time)}`
                         : datass?.check_in_time
-                        ? `Punch In at ${formatTime(datass.check_in_time)}`
-                        : "Not Checked In Yet"}
+                          ? `Punch In at ${formatTime(datass.check_in_time)}`
+                          : "Not Checked In Yet"}
                     </h6>
 
                     <button
-                      className={`btn w-100 ${
-                        isCheckedIn ? "btn-warning" : "btn-success"
-                      }`}
+                      className={`btn w-100 ${isCheckedIn ? "btn-warning" : "btn-success"
+                        }`}
                       onClick={handleAction}
                       disabled={isCheckinCheckoutFetching}
                     >
@@ -556,8 +563,8 @@ const EmployeeAttendanceKHR = () => {
                           ? "Checking Out..."
                           : "Checking In..."
                         : isCheckedIn
-                        ? "Punch Out ↪"
-                        : "Punch In"}
+                          ? "Punch Out ↪"
+                          : "Punch In"}
                     </button>
                   </div>
                 </div>

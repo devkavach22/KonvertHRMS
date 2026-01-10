@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import moment from "moment";
 import DatatableKHR from "../../../CommonComponent/DataTableKHR/DatatableKHR";
 import CommonHeader from "../../../CommonComponent/HeaderKHR/HeaderKHR";
-import { getLeaveDashboard, DashboardCards } from "./LeaveAdminServices";
+import { getLeaveDashboard } from "./LeaveAdminServices"; // Ensure this service returns the response as is
 import { all_routes } from "@/router/all_routes";
 
 type TabType =
@@ -11,9 +11,43 @@ type TabType =
   | "unplanned_leaves"
   | "pending_requests";
 
+// --- Types based on your REAL API response ---
+interface DashboardCounts {
+  present_today: number;
+  planned_leaves: number;
+  absent_unplanned: number;
+  pending_approvals: number;
+}
+
+interface TableRow {
+  employee_id: number | null;
+  employee_name: string | null;
+  leave_type?: string;
+  from?: string;
+  to?: string;
+  number_of_days?: number;
+  status?: string;
+  check_in?: string;
+  check_out?: string;
+  designation?: string;
+}
+
+interface TableData {
+  present_today?: TableRow[]; // Optional as it was missing in your snippet, but likely exists
+  planned_leaves: TableRow[];
+  absent_unplanned: TableRow[];
+  pending_approvals: TableRow[];
+}
+
+interface DashboardResponse {
+  success: boolean;
+  dashboard: DashboardCounts;
+  tables: TableData;
+}
+
 const LeaveAdminKHR = () => {
   const routes = all_routes;
-  const [dashboardData, setDashboardData] = useState<DashboardCards | null>(
+  const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(
     null
   );
   const [loading, setLoading] = useState<boolean>(true);
@@ -21,18 +55,23 @@ const LeaveAdminKHR = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const response = await getLeaveDashboard();
-    if (response && response.success) {
-      setDashboardData(response.cards);
+    try {
+      const response: any = await getLeaveDashboard();
+      if (response && response.success) {
+        setDashboardData(response);
+      }
+    } catch (error) {
+      console.error("Failed to fetch dashboard data", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  // --- Dynamic Columns (Same logic as before) ---
+  // --- Dynamic Columns ---
   const getColumns = () => {
     if (activeTab === "total_present_employee") {
       return [
@@ -40,7 +79,7 @@ const LeaveAdminKHR = () => {
           title: "Employee",
           dataIndex: "employee_name",
           render: (text: string) => (
-            <span className="fw-bold text-dark">{text}</span>
+            <span className="fw-bold text-dark">{text || "Unknown"}</span>
           ),
         },
         {
@@ -71,7 +110,9 @@ const LeaveAdminKHR = () => {
           title: "Status",
           dataIndex: "status",
           render: (text: string) => (
-            <span className="badge badge-soft-success">{text}</span>
+            <span className="badge badge-soft-success">
+              {text || "Present"}
+            </span>
           ),
         },
       ];
@@ -81,21 +122,23 @@ const LeaveAdminKHR = () => {
         {
           title: "Employee",
           dataIndex: "employee_name",
-          render: (t: string) => <span className="fw-bold">{t}</span>,
+          render: (t: string) => (
+            <span className="fw-bold">{t || "Unknown"}</span>
+          ),
         },
         { title: "Leave Type", dataIndex: "leave_type" },
         {
           title: "Dates",
-          render: (_: any, r: any) => (
+          render: (_: any, r: TableRow) => (
             <span className="fs-13">
-              {moment(r.from).format("DD MMM")} -{" "}
-              {moment(r.to).format("DD MMM")}
+              {r.from ? moment(r.from).format("DD MMM") : "-"} -{" "}
+              {r.to ? moment(r.to).format("DD MMM") : "-"}
             </span>
           ),
         },
         {
           title: "Days",
-          dataIndex: "no_of_days",
+          dataIndex: "number_of_days", // Updated key
           render: (d: any) => (
             <span className="badge bg-light text-dark border">{d} Days</span>
           ),
@@ -114,16 +157,21 @@ const LeaveAdminKHR = () => {
         {
           title: "Employee",
           dataIndex: "employee_name",
-          render: (t: string) => (
-            <span className="fw-bold text-danger">{t}</span>
+          render: (t: string | null) => (
+            <span
+              className={`fw-bold ${
+                !t ? "text-muted fst-italic" : "text-danger"
+              }`}
+            >
+              {t || "Unknown Employee"}
+            </span>
           ),
         },
-        { title: "Department", dataIndex: "department" },
+        { title: "Type", dataIndex: "leave_type" },
         {
-          title: "Last Seen",
-          dataIndex: "last_attendance",
-          render: (t: string) =>
-            t ? moment(t).format("DD MMM YYYY") : "Never",
+          title: "Date",
+          dataIndex: "from",
+          render: (t: string) => (t ? moment(t).format("DD MMM YYYY") : "-"),
         },
         {
           title: "Status",
@@ -139,50 +187,70 @@ const LeaveAdminKHR = () => {
         {
           title: "Employee",
           dataIndex: "employee_name",
-          render: (t: string) => <span className="fw-bold">{t}</span>,
+          render: (t: string) => (
+            <span className="fw-bold">{t || "Unknown"}</span>
+          ),
         },
         { title: "Type", dataIndex: "leave_type" },
         {
           title: "Dates",
-          render: (_: any, r: any) => (
+          render: (_: any, r: TableRow) => (
             <span className="fs-12">
-              {moment(r.from).format("DD MMM")} -{" "}
-              {moment(r.to).format("DD MMM")}
+              {r.from ? moment(r.from).format("DD MMM") : "-"} -{" "}
+              {r.to ? moment(r.to).format("DD MMM") : "-"}
             </span>
           ),
         },
-        { title: "Days", dataIndex: "no_of_days" },
+        { title: "Days", dataIndex: "number_of_days" }, // Updated key
         {
-          title: "Action",
-          dataIndex: "leave_id",
-          render: () => (
-            <div className="d-flex gap-2">
-              <button className="btn btn-sm btn-success btn-icon rounded-circle">
-                <i className="ti ti-check"></i>
-              </button>
-              <button className="btn btn-sm btn-danger btn-icon rounded-circle">
-                <i className="ti ti-x"></i>
-              </button>
-            </div>
-          ),
+          title: "Status",
+          dataIndex: "status",
+          render: (t: string) => {
+            // Map 'confirm' to 'Pending' visually if needed
+            const display = t === "confirm" ? "Pending Approval" : t;
+            return (
+              <span className="badge bg-light-warning text-warning border">
+                {display}
+              </span>
+            );
+          },
         },
+        // Note: Action buttons removed temporarily as 'leave_id' is missing in your API response.
+        // If you have an ID to approve/reject, add the column back here.
       ];
     }
     return [];
   };
 
   const getCurrentTableData = () => {
-    if (!dashboardData) return [];
-    return (
-      dashboardData[activeTab]?.table?.map((item: any, idx: number) => ({
-        ...item,
-        key: item.leave_id || item.employee_id || idx,
-      })) || []
-    );
+    if (!dashboardData || !dashboardData.tables) return [];
+
+    let rawData: TableRow[] = [];
+
+    switch (activeTab) {
+      case "total_present_employee":
+        // Fallback to empty array if present_today is missing in API tables
+        rawData = dashboardData.tables.present_today || [];
+        break;
+      case "planned_leaves":
+        rawData = dashboardData.tables.planned_leaves || [];
+        break;
+      case "unplanned_leaves":
+        rawData = dashboardData.tables.absent_unplanned || [];
+        break;
+      case "pending_requests":
+        rawData = dashboardData.tables.pending_approvals || [];
+        break;
+    }
+
+    return rawData.map((item, idx) => ({
+      ...item,
+      // Create a unique key using employee_id + index since some IDs might be null or duplicate
+      key: `${item.employee_id || "unknown"}_${idx}`,
+    }));
   };
 
   // --- STYLES FOR CARDS ---
-  // We use inline styles here for the gradients and hover effects
   const getCardStyle = (
     tab: TabType,
     gradient: string,
@@ -205,7 +273,6 @@ const LeaveAdminKHR = () => {
     };
   };
 
-  // Large background icon style
   const bgIconStyle = {
     position: "absolute" as "absolute",
     right: "-15px",
@@ -224,8 +291,6 @@ const LeaveAdminKHR = () => {
           parentMenu="HR"
           activeMenu="Leaves"
           routes={routes}
-          buttonText="Add Leave Request"
-          modalTarget="#add_leave_modal"
         />
 
         {/* --- CREATIVE CARDS ROW --- */}
@@ -237,7 +302,7 @@ const LeaveAdminKHR = () => {
               onClick={() => setActiveTab("total_present_employee")}
               style={getCardStyle(
                 "total_present_employee",
-                "linear-gradient(135deg, #23bdb8 0%, #43e794 100%)", // Teal to Green
+                "linear-gradient(135deg, #23bdb8 0%, #43e794 100%)",
                 "#168b87"
               )}
             >
@@ -251,10 +316,10 @@ const LeaveAdminKHR = () => {
                   </h6>
                 </div>
                 <h2 className="mb-1 fw-bold text-white">
-                  {dashboardData?.total_present_employee.count || "0"}
+                  {dashboardData?.dashboard.present_today || 0}
                 </h2>
                 <p className="fs-12 mb-0 text-white text-opacity-75">
-                  {dashboardData?.total_present_employee.description}
+                  Employees active now
                 </p>
               </div>
               <i className="ti ti-user-check" style={bgIconStyle}></i>
@@ -268,7 +333,7 @@ const LeaveAdminKHR = () => {
               onClick={() => setActiveTab("planned_leaves")}
               style={getCardStyle(
                 "planned_leaves",
-                "linear-gradient(135deg, #2196F3 0%, #00BCD4 100%)", // Blue to Cyan
+                "linear-gradient(135deg, #2196F3 0%, #00BCD4 100%)",
                 "#0d47a1"
               )}
             >
@@ -282,10 +347,10 @@ const LeaveAdminKHR = () => {
                   </h6>
                 </div>
                 <h2 className="mb-1 fw-bold text-white">
-                  {dashboardData?.planned_leaves.count || 0}
+                  {dashboardData?.dashboard.planned_leaves || 0}
                 </h2>
                 <p className="fs-12 mb-0 text-white text-opacity-75">
-                  {dashboardData?.planned_leaves.description}
+                  Approved upcoming
                 </p>
               </div>
               <i className="ti ti-calendar-time" style={bgIconStyle}></i>
@@ -299,7 +364,7 @@ const LeaveAdminKHR = () => {
               onClick={() => setActiveTab("unplanned_leaves")}
               style={getCardStyle(
                 "unplanned_leaves",
-                "linear-gradient(135deg, #FF5252 0%, #FF1744 100%)", // Red Gradient
+                "linear-gradient(135deg, #FF5252 0%, #FF1744 100%)",
                 "#b71c1c"
               )}
             >
@@ -313,7 +378,7 @@ const LeaveAdminKHR = () => {
                   </h6>
                 </div>
                 <h2 className="mb-1 fw-bold text-white">
-                  {dashboardData?.unplanned_leaves.count || 0}
+                  {dashboardData?.dashboard.absent_unplanned || 0}
                 </h2>
                 <p className="fs-12 mb-0 text-white text-opacity-75">
                   Needs attention
@@ -330,7 +395,7 @@ const LeaveAdminKHR = () => {
               onClick={() => setActiveTab("pending_requests")}
               style={getCardStyle(
                 "pending_requests",
-                "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", // Purple Gradient
+                "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                 "#4527a0"
               )}
             >
@@ -344,7 +409,7 @@ const LeaveAdminKHR = () => {
                   </h6>
                 </div>
                 <h2 className="mb-1 fw-bold text-white">
-                  {dashboardData?.pending_requests.count || 0}
+                  {dashboardData?.dashboard.pending_approvals || 0}
                 </h2>
                 <p className="fs-12 mb-0 text-white text-opacity-75">
                   Requests awaiting action
@@ -390,8 +455,8 @@ const LeaveAdminKHR = () => {
                   )}
                 </h5>
                 <p className="text-muted fs-12 mb-0">
-                  Viewing details for{" "}
-                  <strong>{dashboardData?.[activeTab]?.description}</strong>
+                  Details for{" "}
+                  <strong>{activeTab.replace(/_/g, " ").toUpperCase()}</strong>
                 </p>
               </div>
               <span className="badge bg-light text-dark border px-3 py-2 rounded-pill">

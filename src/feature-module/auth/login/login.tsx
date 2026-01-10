@@ -2,9 +2,7 @@ import { useState } from "react";
 import ImageWithBasePath from "../../../core/common/imageWithBasePath";
 import { Link, useNavigate } from "react-router-dom";
 import { all_routes } from "../../../router/all_routes";
-// Import the shared axios instance
 import Instance from "../../../api/axiosInstance";
-// Import Toast for notifications
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -62,8 +60,11 @@ const Login = () => {
         localStorage.setItem("user_id", response.data.user_id.toString());
         localStorage.setItem("user_email", response.data.email);
         localStorage.setItem("full_name", response.data.full_name);
-           localStorage.setItem("user_name", response.data.name);
-           localStorage.setItem("is_client_employee_admin",response.data.is_client_employee_admin)
+        localStorage.setItem("user_name", response.data.name);
+        localStorage.setItem(
+          "is_client_employee_admin",
+          response.data.is_client_employee_admin
+        );
         localStorage.setItem("user_name", response.data.name);
         localStorage.setItem("user_fullname", response.data.full_name);
 
@@ -245,7 +246,7 @@ const Login = () => {
 
                       <div className="mt-5 pb-4 text-center">
                         <p className="mb-0 text-gray-9">
-                          Copyright © 2025 - Kavach 
+                          Copyright © 2025 - Kavach
                         </p>
                       </div>
                     </div>

@@ -17,10 +17,9 @@ const StatusCheckInPopup: React.FC = () => {
   /* =====================
      DERIVED STATE
   ===================== */
-  const isCheckedIn =
-    CheckinCheckoutData?.status === "CheckedIn";
-  console.log(CheckinCheckoutData,"lplp");
-  
+  const isCheckedIn = CheckinCheckoutData?.status === "CheckedIn";
+  console.log(CheckinCheckoutData, "lplp");
+
   /* =====================
      CLOSE ON OUTSIDE CLICK
   ===================== */
@@ -41,8 +40,8 @@ const StatusCheckInPopup: React.FC = () => {
     if (!CheckinCheckoutData) return;
 
     const { status, data } = CheckinCheckoutData;
-  console.log(data,"..44");
-  
+    console.log(data, "..44");
+
     if (status === "CheckedIn") {
       setCheckInTime(new Date(data?.check_in_time));
       setOpen(true);
@@ -65,9 +64,7 @@ const StatusCheckInPopup: React.FC = () => {
 
     const interval = setInterval(() => {
       const now = new Date();
-      const diff = Math.floor(
-        (now.getTime() - checkInTime.getTime()) / 60000
-      );
+      const diff = Math.floor((now.getTime() - checkInTime.getTime()) / 60000);
       setTotalMinutes(diff);
     }, 60000);
 
@@ -79,28 +76,28 @@ const StatusCheckInPopup: React.FC = () => {
   ===================== */
 
   const handleAction = () => {
-  if (!navigator.geolocation) {
-    toast.error("Geolocation is not supported by your browser");
-    return;
-  }
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      return;
+    }
 
-  navigator.geolocation.getCurrentPosition(
-    (position) => {
-      const { latitude, longitude } = position.coords;
-      dispatch(
-        CheckinCheckout({
-          Latitude: latitude,
-          Longitude: longitude,
-        })
-      );
-    },
-    (error) => {
-      console.error(error);
-      toast.error("Unable to get your location");
-    },
-    { enableHighAccuracy: true }
-  );
-};
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        dispatch(
+          CheckinCheckout({
+            Latitude: latitude,
+            Longitude: longitude,
+          }) as any
+        );
+      },
+      (error) => {
+        console.error(error);
+        toast.error("Unable to get your location");
+      },
+      { enableHighAccuracy: true }
+    );
+  };
 
   // const handleAction = () => {
   //   dispatch(
@@ -123,9 +120,7 @@ const StatusCheckInPopup: React.FC = () => {
       : "--:--";
 
   const formatTotal = (min: number) =>
-    `${Math.floor(min / 60)}:${(min % 60)
-      .toString()
-      .padStart(2, "0")}`;
+    `${Math.floor(min / 60)}:${(min % 60).toString().padStart(2, "0")}`;
 
   /* =====================
      UI
@@ -176,15 +171,11 @@ const StatusCheckInPopup: React.FC = () => {
               <div className="d-flex justify-content-between mb-2">
                 <div>
                   <small className="text-muted">Check-in</small>
-                  <div className="fw-bold">
-                    {formatTime(checkInTime)}
-                  </div>
+                  <div className="fw-bold">{formatTime(checkInTime)}</div>
                 </div>
                 <div>
                   <small className="text-muted">Since</small>
-                  <div className="fw-bold">
-                    {formatTotal(totalMinutes)}
-                  </div>
+                  <div className="fw-bold">{formatTotal(totalMinutes)}</div>
                 </div>
               </div>
 
@@ -193,9 +184,7 @@ const StatusCheckInPopup: React.FC = () => {
                 onClick={handleAction}
                 disabled={isCheckinCheckoutFetching}
               >
-                {isCheckinCheckoutFetching
-                  ? "Checking Out..."
-                  : "Check Out ↪"}
+                {isCheckinCheckoutFetching ? "Checking Out..." : "Check Out ↪"}
               </button>
             </>
           )}

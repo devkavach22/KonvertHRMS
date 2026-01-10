@@ -1,4 +1,5 @@
 import CONFIG from "@/Config";
+import { RegularizationPayload } from "@/KHRModules/AttandanceModules/EmployeeAttandance/AttendanceQueryModal";
 import Service from "@/Service";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
@@ -22,12 +23,41 @@ export const Usersignin = createAsyncThunk(
     try {
       let result = await axios({
         method: "POST",
-        baseURL: "CONFIG.BASE_URL_LOGIN",
+        baseURL: CONFIG.BASE_URL_LOGIN,
         // headers: authheader,
         url: `api/login`,
         data: userdata,
       });
       if (result.data) {
+        return result.data;
+      } else {
+        return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
+      }
+    } catch (error: any) {
+      console.error(
+        "try catch [ Usersignin ] error.message >>",
+        error?.message
+      );
+      return thunkAPI.rejectWithValue({ error: error?.message });
+    }
+  }
+);
+//
+// https://konverthrnode.onrender.com/api/auth
+export const ApiAuth = createAsyncThunk(
+  "ApiAuth",
+  async (_, thunkAPI) => {
+    try {
+      let result = await axios({
+        method: "POST",
+        baseURL: CONFIG.BASE_URL_LOGIN,
+        // headers: authheader,
+        url: `api/auth`,
+        data: { user_name: "dhaval" },
+      });
+      if (result.data) {
+
+        localStorage.setItem("authToken", result?.data?.token);
         return result.data;
       } else {
         return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
@@ -49,7 +79,7 @@ export const AttendancesApi = createAsyncThunk(
     try {
       let result = await axios({
         method: "GET",
-        baseURL: CONFIG.BASE_URL_ALL,
+        baseURL: CONFIG.BASE_URL_LOGIN,
         headers: {
           "Content-Type": "application/json",
         },
@@ -79,7 +109,7 @@ export const AttendancesGetApi = createAsyncThunk(
     try {
       let result = await axios({
         method: "GET",
-        baseURL: CONFIG.BASE_URL_ALL,
+        baseURL: CONFIG.BASE_URL_LOGIN,
         headers: {
           "Content-Type": "application/json",
           authorization: `${localStorage.getItem("authToken")}`,
@@ -104,12 +134,15 @@ export const AttendancesGetApi = createAsyncThunk(
 //UpdateAdminAttendanceApi
 export const UpdateAdminAttendanceApi = createAsyncThunk(
   "UpdateAdminAttendanceApi",
-  async (userdata, thunkAPI) => {
+  async (
+    userdata: { attendanceId: string | number; payload: any },
+    thunkAPI
+  ) => {
     console.log(userdata);
     try {
       let result = await axios({
         method: "PUT",
-        baseURL: CONFIG.BASE_URL_ALL,
+        baseURL: CONFIG.BASE_URL_LOGIN,
         headers: {
           "Content-Type": "application/json",
           authorization: `${localStorage.getItem("authToken")}`,
@@ -170,7 +203,7 @@ export const EmployeeRegcategories = createAsyncThunk(
     try {
       let result = await axios({
         method: "GET",
-        baseURL: CONFIG.BASE_URL_ALL,
+        baseURL: CONFIG.BASE_URL_LOGIN,
         headers: {
           "Content-Type": "application/json",
           authorization: `${localStorage.getItem("authToken")}`,
@@ -232,7 +265,7 @@ export const EmployeeAttendanceApi = createAsyncThunk(
     try {
       let result = await axios({
         method: "GET",
-        baseURL: CONFIG.BASE_URL_ALL,
+        baseURL: CONFIG.BASE_URL_LOGIN,
         headers: {
           "Content-Type": "application/json",
           authorization: `${localStorage.getItem("authToken")}`,
@@ -258,12 +291,12 @@ export const EmployeeAttendanceApi = createAsyncThunk(
 
 export const Employeeregularization = createAsyncThunk(
   "Employeeregularization",
-  async (userdata, thunkAPI) => {
+  async (userdata: RegularizationPayload, thunkAPI) => {
     console.log(userdata, "userdata");
     try {
       let result = await axios({
         method: "POST",
-        baseURL: CONFIG.BASE_URL_ALL,
+        baseURL: CONFIG.BASE_URL_LOGIN,
         headers: {
           "Content-Type": "application/json",
           authorization: `${localStorage.getItem("authToken")}`,
@@ -276,13 +309,13 @@ export const Employeeregularization = createAsyncThunk(
       if (result.data) {
         return result.data;
       } else {
-        console.log(result, "uiui")
+        console.log(result, "uiui");
         return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
       }
     } catch (error: any) {
-      console.log('====================================');
+      console.log("====================================");
       console.log(error, "uiui");
-      console.log('====================================');
+      console.log("====================================");
       console.error(
         "try catch [ AdminWorkingHours ] error.message >>",
         error?.message
@@ -549,7 +582,6 @@ export const getSalaryStructure = createAsyncThunk(
   }
 );
 
-
 export const getDashboadrdCount = createAsyncThunk(
   "getDashboadrdCount",
   async (userdata, thunkAPI) => {
@@ -746,6 +778,11 @@ export const TBSlice = createSlice({
     isUsersigninFetching: false,
     UsersigninData: {},
 
+    //ApiAuth
+    isApiAuth: false,
+    isApiAuthFetching: false,
+    ApiAuthData: {},
+
     //AttendancesApi
     isAttendancesApi: false,
     isAttendancesApiFetching: false,
@@ -866,6 +903,12 @@ export const TBSlice = createSlice({
           ? payload.isAttendancesApi
           : state.isAttendancesApi;
 
+      //isApiAuth
+      state.isApiAuth =
+        payload.isApiAuth !== undefined
+          ? payload.isApiAuth
+          : state.isApiAuth;
+
       //AttendancesGetApi
       state.isAttendancesGetApi =
         payload.isAttendancesGetApi !== undefined
@@ -943,7 +986,6 @@ export const TBSlice = createSlice({
           : state.isUpdateAdminAttendanceApi;
 
       // getDashboadrdCount
-
 
       state.isgetDashboadrdCount =
         payload.isgetDashboadrdCount !== undefined
@@ -1032,6 +1074,45 @@ export const TBSlice = createSlice({
     );
     builder.addCase(Usersignin.pending, (state) => {
       state.isUsersigninFetching = true;
+    });
+    ///ApiAuth
+    builder.addCase(ApiAuth.fulfilled, (state, { payload }) => {
+      try {
+        state.ApiAuthData = payload;
+        state.isApiAuth = true;
+        state.isApiAuthFetching = false;
+        state.isSuccess = false;
+        state.successMessage = "";
+        state.isError = false;
+        state.errorMessage = "";
+        return state;
+      } catch (error) {
+        console.error("Error: ApiAuth.fulfilled try catch error >>", error);
+      }
+    });
+    builder.addCase(
+      ApiAuth.rejected,
+      (state, { payload }: { payload: any }) => {
+        try {
+          state.ApiAuthData = {};
+          state.isApiAuth = false;
+          state.isApiAuthFetching = false;
+          state.isError = false;
+          payload
+            ? (state.errorMessage = payload?.error?.message
+              ? "Please try again (There was some network issue)."
+              : "Please try again (There was some network issue).")
+            : (state.errorMessage = "API Response Invalid. Please Check API");
+        } catch (error) {
+          console.error(
+            "Error: [Usersignin.rejected] try catch error >>",
+            error
+          );
+        }
+      }
+    );
+    builder.addCase(ApiAuth.pending, (state) => {
+      state.isApiAuthFetching = true;
     });
 
     //AttendancesApi
@@ -1271,7 +1352,6 @@ export const TBSlice = createSlice({
     builder.addCase(
       EmployeeRegcategories.rejected,
       (state, { payload }: { payload: any }) => {
-
         try {
           state.isEmployeeRegcategories = false;
           state.isEmployeeRegcategoriesFetching = false;
@@ -1662,8 +1742,6 @@ export const TBSlice = createSlice({
       state.isgetSalaryRulesFetching = true;
     });
 
-
-
     builder.addCase(getSalaryStructure.fulfilled, (state, { payload }) => {
       try {
         state.getSalaryStructureData = payload;
@@ -1704,8 +1782,6 @@ export const TBSlice = createSlice({
     builder.addCase(getSalaryStructure.pending, (state) => {
       state.isgetSalaryStructureFetching = true;
     });
-
-
 
     builder.addCase(getDashboadrdCount.fulfilled, (state, { payload }) => {
       try {

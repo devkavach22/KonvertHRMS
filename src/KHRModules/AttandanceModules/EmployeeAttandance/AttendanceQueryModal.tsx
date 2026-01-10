@@ -11,10 +11,11 @@ import {
   updateState,
 } from "@/Store/Reducers/TBSlice";
 import { useDispatch, useSelector } from "react-redux";
-// import AddRegCategoryModal from "./AddRegCategoryModal";
+import { AppDispatch } from "@/Store";
+
 interface Props {
   attendance: any;
-  employeeId: number;
+  employeeId: any;
   onClose: () => void;
 }
 
@@ -23,20 +24,24 @@ interface CategoryOption {
   value: number;
 }
 
+interface Option {
+  label: string;
+  value: string;
+}
+
 const AttendanceQueryModal: React.FC<Props> = ({
   attendance,
   employeeId,
   onClose,
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const {
     isEmployeeRegcategories,
     EmployeeRegcategoriesData,
     isEmployeeRegcategoriesFetching,
-    isError,errorMessage
+    isError,
+    errorMessage,
   } = useSelector(TBSelector);
-
-  
 
   const { EmpAttendancevalidateForm } = useFormValidation();
 
@@ -56,7 +61,6 @@ const AttendanceQueryModal: React.FC<Props> = ({
 
   /* ========================= INIT FORM DATA FROM ATTENDANCE ========================= */
   useEffect(() => {
-
     if (attendance) {
       const date = attendance.StartDate || dayjs().format("YYYY-MM-DD");
       setFormData({
@@ -65,43 +69,39 @@ const AttendanceQueryModal: React.FC<Props> = ({
         reg_category: null,
         reg_reason: "",
         check_in: attendance.CheckIn || null,
-        check_out: attendance.CheckOut && attendance.CheckOut !== "-" ? attendance.CheckOut : null,
+        check_out:
+          attendance.CheckOut && attendance.CheckOut !== "-"
+            ? attendance.CheckOut
+            : null,
       });
     }
   }, [attendance]);
 
+  // useEffect(() => {
 
-  
-// useEffect(() => {
+  //         if (!isError) {
+  //            console.log(isError,errorMessage,"iiiiiiiii");
+  //             toast.error(
+  //                 errorMessage || "Failed to submit regularization",
+  //                 {
+  //                     position: "top-right",
+  //                     autoClose: 3000,
+  //                 }
+  //             );
+  //             dispatch(updateState({isError:false}))
+  //         }
+  //     }, [isError])
 
-//         if (!isError) {
-//            console.log(isError,errorMessage,"iiiiiiiii");
-//             toast.error(
-//                 errorMessage || "Failed to submit regularization",
-//                 {
-//                     position: "top-right",
-//                     autoClose: 3000,
-//                 }
-//             );
-//             dispatch(updateState({isError:false}))
-//         }
-//     }, [isError])
+  useEffect(() => {
+    if (isError) {
+      toast.error(errorMessage || "Failed to submit regularization", {
+        position: "top-right",
+        autoClose: 3000,
+      });
 
-useEffect(() => {
-  if (isError) {
-    toast.error(errorMessage || "Failed to submit regularization", {
-      position: "top-right",
-      autoClose: 3000,
-    });
-
-    dispatch(updateState({ isError: false }));
-  }
-}, [isError, errorMessage, dispatch]);
-
-
-
-   
-    
+      dispatch(updateState({ isError: false }));
+    }
+  }, [isError, errorMessage, dispatch]);
 
   useEffect(() => {
     dispatch(EmployeeRegcategories());
@@ -112,55 +112,53 @@ useEffect(() => {
       setCategories(
         EmployeeRegcategoriesData.data.map((item: any) => ({
           label: item.type,
-          value: item.id,
+          value: String(item.id),
         }))
       );
     }
   }, [EmployeeRegcategoriesData]);
-  console.log(categories,"categories");
-  
-const handleSubmit = async () => {
-  setIsSubmitted(true);
+  console.log(categories, "categories");
 
-  const validationErrors = EmpAttendancevalidateForm(formData);
-  if (Object.keys(validationErrors).length) {
-    setErrors(validationErrors);
-    return;
-  }
+  const handleSubmit = async () => {
+    setIsSubmitted(true);
 
-  const payload = {
-    employee_id: employeeId,
-    from_date: formData.from_date,
-    to_date: formData.to_date,
-    reg_category: formData.reg_category,
-    reg_reason: formData.reg_reason,
-    check_in: formData.check_in,
-    check_out: formData.check_out,
-  };
+    const validationErrors = EmpAttendancevalidateForm(formData);
+    if (Object.keys(validationErrors).length) {
+      setErrors(validationErrors);
+      return;
+    }
 
+    const payload = {
+      employee_id: employeeId,
+      from_date: formData.from_date,
+      to_date: formData.to_date,
+      reg_category: formData.reg_category,
+      reg_reason: formData.reg_reason,
+      check_in: formData.check_in,
+      check_out: formData.check_out,
+    };
 
-  const result: any = await dispatch(Employeeregularization(payload));
+    const result: any = await dispatch(Employeeregularization(payload));
 
-  // Check Redux flag
-  if (isEmployeeRegcategories) {
-    toast.success("Attendance regularization submitted successfully!", {
-      position: "top-right",
-      autoClose: 3000,
-    });
-    onClose();
-  } else {
-    toast.error(
-      result?.payload?.message || result?.payload?.error || "Failed to submit regularization",
-      {
+    // Check Redux flag
+    if (isEmployeeRegcategories) {
+      toast.success("Attendance regularization submitted successfully!", {
         position: "top-right",
         autoClose: 3000,
-      }
-    );
-  }
-
-};
-
-
+      });
+      onClose();
+    } else {
+      toast.error(
+        result?.payload?.message ||
+          result?.payload?.error ||
+          "Failed to submit regularization",
+        {
+          position: "top-right",
+          autoClose: 3000,
+        }
+      );
+    }
+  };
 
   /* ========================= HANDLE SUBMIT ========================= */
   // const handleSubmit = async () => {
@@ -203,8 +201,6 @@ const handleSubmit = async () => {
       className="modal fade show d-block"
       style={{ background: "rgba(0,0,0,.5)" }}
     >
-      
-    
       <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content">
           <div className="modal-header">
@@ -232,12 +228,14 @@ const handleSubmit = async () => {
                   <div className="text-danger fs-11">{errors.from_date}</div>
                 )}
               </div>
-               <div className="col-md-4 mb-3">
+              <div className="col-md-4 mb-3">
                 <label className="fw-bold">Check In</label>
                 <TimePicker
                   className="w-100"
                   format="HH:mm"
-                  value={formData.check_in ? dayjs(formData.check_in, "HH:mm") : null}
+                  value={
+                    formData.check_in ? dayjs(formData.check_in, "HH:mm") : null
+                  }
                   onChange={(value) =>
                     setFormData({
                       ...formData,
@@ -252,7 +250,11 @@ const handleSubmit = async () => {
                 <TimePicker
                   className="w-100"
                   format="HH:mm"
-                  value={formData.check_out ? dayjs(formData.check_out, "HH:mm") : null}
+                  value={
+                    formData.check_out
+                      ? dayjs(formData.check_out, "HH:mm")
+                      : null
+                  }
                   onChange={(value) =>
                     setFormData({
                       ...formData,
@@ -261,59 +263,47 @@ const handleSubmit = async () => {
                   }
                 />
               </div>
-                </div>
+            </div>
 
-              {/* Category */}
-              <div className="col-md-12 mb-3">
-                <div className="d-flex justify-content-between align-items-center mb-1">
-                  <label className="fw-bold mb-0">
-                    Category <span className="text-danger">*</span>
-                  </label>
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-outline-primary"
-                    onClick={() => setShowAddCategoryModal(true)}
-                  >
-                    <i className="ti ti-plus me-1" />
-                    Add Category
-                  </button>
-                </div>
-                <CommonSelect
-                  options={categories}
-                  placeholder="Select Category"
-                  value={categories.find(
-                    (c) => c.value === formData.reg_category
-                  )}
-                  onChange={(opt: any) =>
-                    setFormData({ ...formData, reg_category: opt?.value })
-                  }
-                />
-                {isSubmitted && errors.reg_category && (
-                  <div className="text-danger fs-11">{errors.reg_category}</div>
+            {/* Category */}
+            <div className="col-md-12 mb-3">
+              <label className="fw-bold">
+                Category <span className="text-danger">*</span>
+              </label>
+              <CommonSelect
+                options={categories}
+                placeholder="Select Category"
+                value={categories.find(
+                  (c) => c.value === String(formData.reg_category)
                 )}
-              </div>
+                onChange={(opt: any) =>
+                  setFormData({ ...formData, reg_category: opt?.value })
+                }
+              />
+              {isSubmitted && errors.reg_category && (
+                <div className="text-danger fs-11">{errors.reg_category}</div>
+              )}
+            </div>
 
-              {/* Reason */}
-              <div className="col-md-12 mb-3">
-                <label className="fw-bold">
-                  Reason <span className="text-danger">*</span>
-                </label>
-                <textarea
-                  className="form-control"
-                  rows={3}
-                  value={formData.reg_reason}
-                  onChange={(e) =>
-                    setFormData({ ...formData, reg_reason: e.target.value })
-                  }
-                />
-                {isSubmitted && errors.reg_reason && (
-                  <div className="text-danger fs-11">{errors.reg_reason}</div>
-                )}
-              </div>
+            {/* Reason */}
+            <div className="col-md-12 mb-3">
+              <label className="fw-bold">
+                Reason <span className="text-danger">*</span>
+              </label>
+              <textarea
+                className="form-control"
+                rows={3}
+                value={formData.reg_reason}
+                onChange={(e) =>
+                  setFormData({ ...formData, reg_reason: e.target.value })
+                }
+              />
+              {isSubmitted && errors.reg_reason && (
+                <div className="text-danger fs-11">{errors.reg_reason}</div>
+              )}
+            </div>
 
-              {/* Check-In and Check-Out */}
-             
-          
+            {/* Check-In and Check-Out */}
           </div>
           <div className="modal-footer">
             <button className="btn btn-light" onClick={onClose}>
@@ -323,11 +313,8 @@ const handleSubmit = async () => {
               className="btn btn-primary"
               onClick={handleSubmit}
               disabled={isEmployeeRegcategoriesFetching}
-
             >
-              {isEmployeeRegcategoriesFetching
-                ? "Submitting..."
-                : "Submit"}
+              {isEmployeeRegcategoriesFetching ? "Submitting..." : "Submit"}
             </button>
           </div>
         </div>
@@ -336,8 +323,17 @@ const handleSubmit = async () => {
       {/* Add Category Modal */}
     
     </div>
-
   );
 };
 
 export default AttendanceQueryModal;
+
+export interface RegularizationPayload {
+  employee_id: number;
+  from_date: string;
+  to_date: string;
+  reg_category: string | number | null; // Accepting both string and number to match your UI
+  reg_reason: string;
+  check_in: string | null;
+  check_out: string | null;
+}

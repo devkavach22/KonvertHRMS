@@ -392,6 +392,10 @@ export const WorkEntryTypeKHR = createLazyComponent(
   () => import("../KHRModules/Master Modules/WorkEntryType/WorkEntryType")
 );
 
+export const AccruralPlanKHR = createLazyComponent(
+  () => import("../KHRModules/Master Modules/AccruralPlan/AccruralPlanKHR")
+);
+
 export const JobPositionKHR = createLazyComponent(
   () => import("../KHRModules/Master Modules/JobPosition/JobPosition")
 );
@@ -416,11 +420,27 @@ export const EmployeeKHR = createLazyComponent(
   () => import("../KHRModules/EmployeModules/Employee/EmployeeKHR")
 );
 
+export const AllApprovalKHR = createLazyComponent(
+  () => import("../KHRModules/ApprovalModule/AllApproval")
+);
+
+export const ExpenseKHR = createLazyComponent(
+  () => import("../KHRModules/EmployeModules/Expense/ExpenseKHR")
+);
+
+export const EmployeeCalendarsKHR = createLazyComponent(
+  () =>
+    import("../KHRModules/EmployeModules/EmployeeCalander/EmployeeCalendarsKHR")
+);
 export const AdminAttandanceKHR = createLazyComponent(
   () =>
     import("../KHRModules/AttandanceModules/AdminAttandance/AdminAttandanceKHR")
 );
 
+export const ExpenseCategoryKHR = createLazyComponent(
+  () =>
+    import("../KHRModules/Master Modules/ExpenseCategory/ExpenseCategoryKHR")
+);
 export const EmployeeAttandanceKHR = createLazyComponent(
   () =>
     import(
@@ -429,10 +449,7 @@ export const EmployeeAttandanceKHR = createLazyComponent(
 );
 
 export const SalaryStructure = createLazyComponent(
-  () =>
-    import(
-      "../KHRModules/payRollModules/SalaryStructure/SalaryStructure"
-    )
+  () => import("../KHRModules/payRollModules/SalaryStructure/SalaryStructure")
 );
 export const BanksKHR = createLazyComponent(
   () => import("../KHRModules/Master Modules/BanksKHR/BanksKHR")
@@ -467,10 +484,6 @@ export const LeaveAllocationKHR = createLazyComponent(
 
 export const LeaveRequestKHR = createLazyComponent(
   () => import("../KHRModules/LeaveModules/leaveRequest/LeaveRequestKHR")
-);
-
-export const AccuralPlanKHR = createLazyComponent(
-  () => import("../KHRModules/LeaveModules/AccuralPlan/AccuralPlanKHR")
 );
 
 export const PublicHolidayKHR = createLazyComponent(

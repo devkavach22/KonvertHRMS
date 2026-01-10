@@ -14,20 +14,20 @@ interface Props {
 /* ================= OPTIONS ================= */
 
 const categoryOptions: Option[] = [
-  { label: "Basic", value: 1 },
-  { label: "Allowance", value: 2 },
-  { label: "Deduction", value: 3 },
+  { label: "Basic", value: "1" },
+  { label: "Allowance", value: "2" },
+  { label: "Deduction", value: "3" },
 ];
 
 const structOptions: Option[] = [
-  { label: "Worker Pay", value: 1 },
-  { label: "Regular Pay", value: 2 },
-  { label: "13th Month End of Year Bonus", value: 3 },
+  { label: "Worker Pay", value: "1" },
+  { label: "Regular Pay", value: "2" },
+  { label: "13th Month End of Year Bonus", value: "3" },
 ];
 
 const booleanOptions: Option[] = [
-  { label: "True", value: true },
-  { label: "False", value: false },
+  { label: "True", value: "true" },
+  { label: "False", value: "false" },
 ];
 
 const conditionOptions: Option[] = [
@@ -44,23 +44,22 @@ const amountTypeOptions: Option[] = [
   { label: "Python Code", value: "python" },
 ];
 
-
 const partnerOptions: Option[] = [
-  { label: "(BIHAR) KAVACH GLOBAL KONNECTS PRIVATE LIMITED", value: 1 },
-  { label: "(DELHI) KAVACH GLOBAL KONNECTS PRIVATE LIMITED", value: 2 },
-  { label: "(HP) KALIBRE GLOBAL KONNECTS PRIVATE LIMITED", value: 3 },
-  { label: "(HP) KAVACH GLOBAL KONNECTS PRIVATE LIMITED", value: 4 },
-  { label: "(JH) KAVACH GLOBAL KONNECTS PRIVATE LIMITED", value: 5 },
-  { label: "(MH) KAVACH GLOBAL KONNECTS PRIVATE LIMITED", value: 6 },
-  { label: "(UK) KAVACH GLOBAL KONNECTS PRIVATE LIMITED", value: 7 },
-  { label: "(UP) KAVACH GLOBAL KONNECTS PRIVATE LIMITED", value: 8 },
+  { label: "(BIHAR) KAVACH GLOBAL KONNECTS PRIVATE LIMITED", value: "1" },
+  { label: "(DELHI) KAVACH GLOBAL KONNECTS PRIVATE LIMITED", value: "2" },
+  { label: "(HP) KALIBRE GLOBAL KONNECTS PRIVATE LIMITED", value: "3" },
+  { label: "(HP) KAVACH GLOBAL KONNECTS PRIVATE LIMITED", value: "4" },
+  { label: "(JH) KAVACH GLOBAL KONNECTS PRIVATE LIMITED", value: "5" },
+  { label: "(MH) KAVACH GLOBAL KONNECTS PRIVATE LIMITED", value: "6" },
+  { label: "(UK) KAVACH GLOBAL KONNECTS PRIVATE LIMITED", value: "7" },
+  { label: "(UP) KAVACH GLOBAL KONNECTS PRIVATE LIMITED", value: "8" },
 ];
 
 /* ================= COMPONENT ================= */
 
 const AddSalaryRuleModal: React.FC<Props> = ({ onSuccess }) => {
-    const { validateSalaryRule } = useFormValidation();
-  
+  const { validateSalaryRule } = useFormValidation();
+
   const [formData, setFormData] = useState<any>({
     /* BASIC */
     name: "",
@@ -97,20 +96,18 @@ const AddSalaryRuleModal: React.FC<Props> = ({ onSuccess }) => {
     partner_name: "",
   });
   const [errors, setErrors] = useState<any>({});
-const [isSubmitted, setIsSubmitted] = useState(false);
-
-
+  // const [isSubmitted, setIsSubmitted] = useState(false); // Unused
 
   /* ================= SUBMIT ================= */
 
   const handleSubmit = async () => {
-      setIsSubmitted(true);
+    // setIsSubmitted(true);
 
-  const validationErrors = validateSalaryRule(formData);
-  if (Object.keys(validationErrors).length > 0) {
-    setErrors(validationErrors);
-    return;
-  }
+    const validationErrors = validateSalaryRule(formData);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
     const payload = {
       ...formData,
 
@@ -124,8 +121,8 @@ const [isSubmitted, setIsSubmitted] = useState(false);
           ? formData.partner_id.label
           : null,
     };
-    console.log(payload,"payloaddd");
-    
+    console.log(payload, "payloaddd");
+
     try {
       await createSalaryRule(payload);
       toast.success("Salary Rule created successfully");
@@ -149,19 +146,17 @@ const [isSubmitted, setIsSubmitted] = useState(false);
         <div className="col-md-6">
           <FormInput
             label="Rule Name"
+            name="name"
             value={formData.name}
-            onChange={(e) =>
-              setFormData({ ...formData, name: e.target.value })
-            }
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           />
         </div>
         <div className="col-md-6">
           <FormInput
             label="Code"
+            name="code"
             value={formData.code}
-            onChange={(e) =>
-              setFormData({ ...formData, code: e.target.value })
-            }
+            onChange={(e) => setFormData({ ...formData, code: e.target.value })}
           />
         </div>
       </div>
@@ -179,8 +174,9 @@ const [isSubmitted, setIsSubmitted] = useState(false);
         <div className="col-md-6">
           <FormInput
             label="Sequence"
+            name="sequence"
             type="number"
-            value={formData.sequence}
+            value={String(formData.sequence)} // Fixed: Convert number to string
             onChange={(e) =>
               setFormData({ ...formData, sequence: e.target.value })
             }
@@ -204,7 +200,7 @@ const [isSubmitted, setIsSubmitted] = useState(false);
             options={booleanOptions}
             defaultValue={booleanOptions[0]}
             onChange={(opt) =>
-              setFormData({ ...formData, active: opt?.value })
+              setFormData({ ...formData, active: opt?.value === "true" })
             }
           />
         </div>
@@ -291,6 +287,7 @@ const [isSubmitted, setIsSubmitted] = useState(false);
           <div className="col-md-6">
             <FormInput
               label="Range Based On"
+              name="condition_range"
               value={formData.condition_range}
               onChange={(e) =>
                 setFormData({
@@ -303,8 +300,9 @@ const [isSubmitted, setIsSubmitted] = useState(false);
           <div className="col-md-3">
             <FormInput
               label="Min"
+              name="condition_range_min"
               type="number"
-              value={formData.condition_range_min}
+              value={String(formData.condition_range_min)}
               onChange={(e) =>
                 setFormData({
                   ...formData,
@@ -316,8 +314,9 @@ const [isSubmitted, setIsSubmitted] = useState(false);
           <div className="col-md-3">
             <FormInput
               label="Max"
+              name="condition_range_max"
               type="number"
-              value={formData.condition_range_max}
+              value={String(formData.condition_range_max)}
               onChange={(e) =>
                 setFormData({
                   ...formData,
@@ -332,6 +331,7 @@ const [isSubmitted, setIsSubmitted] = useState(false);
       {formData.condition_select === "other_input" && (
         <FormInput
           label="Other Input"
+          name="condition_other_input_id"
           value={formData.condition_other_input_id}
           onChange={(e) =>
             setFormData({
@@ -345,6 +345,7 @@ const [isSubmitted, setIsSubmitted] = useState(false);
       {formData.condition_select === "python" && (
         <FormInput
           label="Python Condition"
+          name="condition_python"
           value={formData.condition_python}
           onChange={(e) =>
             setFormData({
@@ -376,7 +377,8 @@ const [isSubmitted, setIsSubmitted] = useState(false);
           <div className="col-md-6">
             <FormInput
               label="Quantity"
-              value={formData.quantity}
+              name="quantity"
+              value={String(formData.quantity)}
               onChange={(e) =>
                 setFormData({ ...formData, quantity: e.target.value })
               }
@@ -385,8 +387,9 @@ const [isSubmitted, setIsSubmitted] = useState(false);
           <div className="col-md-6">
             <FormInput
               label="Fixed Amount"
+              name="amount_fix"
               type="number"
-              value={formData.amount_fix}
+              value={String(formData.amount_fix)}
               onChange={(e) =>
                 setFormData({ ...formData, amount_fix: e.target.value })
               }
@@ -400,6 +403,7 @@ const [isSubmitted, setIsSubmitted] = useState(false);
           <div className="col-md-4">
             <FormInput
               label="Percentage Based On"
+              name="amount_percentage_based"
               value={formData.amount_percentage_based}
               onChange={(e) =>
                 setFormData({
@@ -412,7 +416,8 @@ const [isSubmitted, setIsSubmitted] = useState(false);
           <div className="col-md-4">
             <FormInput
               label="Quantity"
-              value={formData.quantity}
+              name="quantity"
+              value={String(formData.quantity)}
               onChange={(e) =>
                 setFormData({ ...formData, quantity: e.target.value })
               }
@@ -421,8 +426,9 @@ const [isSubmitted, setIsSubmitted] = useState(false);
           <div className="col-md-4">
             <FormInput
               label="Percentage"
+              name="amount_percentage"
               type="number"
-              value={formData.amount_percentage}
+              value={String(formData.amount_percentage)}
               onChange={(e) =>
                 setFormData({
                   ...formData,
@@ -437,6 +443,7 @@ const [isSubmitted, setIsSubmitted] = useState(false);
       {formData.amount_select === "other_input" && (
         <FormInput
           label="Other Input"
+          name="amount_other_input_id"
           value={formData.amount_other_input_id}
           onChange={(e) =>
             setFormData({
@@ -450,6 +457,7 @@ const [isSubmitted, setIsSubmitted] = useState(false);
       {formData.amount_select === "python" && (
         <FormInput
           label="Python Code"
+          name="amount_python_compute"
           value={formData.amount_python_compute}
           onChange={(e) =>
             setFormData({

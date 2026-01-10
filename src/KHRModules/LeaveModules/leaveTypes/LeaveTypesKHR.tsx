@@ -5,14 +5,12 @@ import DatatableKHR from "../../../CommonComponent/DataTableKHR/DatatableKHR";
 import CommonHeader from "../../../CommonComponent/HeaderKHR/HeaderKHR";
 import AddEditLeaveTypesModal from "./AddEditLeaveTypesModal";
 import { getAllLeaveTypes,deleteLeaveType } from "./LeavetypesServices";
-import moment from "moment";
 
 
 // service imports removed (not used here) — keep file focused on UI
 
 const LeaveAdminKHR = () => { 
   const routes = all_routes;
-  const [loading, setLoading] = useState<boolean>(true);
   const [data, setData] = useState<any[]>([]);
   const [selectedPolicy, setSelectedPolicy] = useState<any | null>(null);
 
@@ -112,6 +110,7 @@ const LeaveAdminKHR = () => {
           <DatatableKHR 
               columns={columns} 
               data={data} 
+              
               />
 
           </div>

@@ -56,8 +56,18 @@ export const getAttendancePolicies = async (): Promise<
 };
 
 // POST: /employee/create/attendance-policy
+// export const addAttendancePolicy = async (data: any) => {
+//   return await Instance.post("/employee/create/attendance-policy", data);
+// };
+
 export const addAttendancePolicy = async (data: any) => {
-  return await Instance.post("/employee/create/attendance-policy", data);
+  const user_id = getUserId();
+  const payload = {
+    ...data,
+  };
+  return await Instance.post("/employee/create/attendance-policy", payload, {
+    params: { user_id },
+  });
 };
 
 // PUT: /employee/attendance-policy/:id

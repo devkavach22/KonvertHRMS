@@ -12,8 +12,8 @@ import RequestModals from "../../../core/modals/requestModal";
 import TodoModal from "../../../core/modals/todoModal";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
 import { useSelector } from "react-redux";
-import { getDashboadrdCount, TBSelector } from "@/Store/Reducers/TBSlice";
-import { useAppDispatch } from "@/core/data/redux/store";
+import { ApiAuth, getDashboadrdCount, TBSelector, updateState } from "@/Store/Reducers/TBSlice";
+import { useAppDispatch } from "@/Store/hooks";
 
 const AdminDashboard = () => {
   const routes = all_routes;
@@ -26,6 +26,7 @@ const AdminDashboard = () => {
     isgetDashboadrdCount,
     isgetDashboadrdCountFetching,
     getDashboadrdCountData,
+    isApiAuth,
   } = useSelector(TBSelector);
 
   const [date, setDate] = useState(new Date());
@@ -312,10 +313,16 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     // fetchData();
-    dispatch(getDashboadrdCount());
-  }, []);
-  console.log(getDashboadrdCountData,"getDashboadrdCountData");
-  
+    if (isApiAuth) {
+      dispatch(getDashboadrdCount() as any);
+      dispatch(updateState({ isApiAuth: false }))
+    }
+  }, [dispatch, isApiAuth]);
+  useEffect(() => {
+    // fetchData();
+    dispatch(ApiAuth() as any);
+  }, [dispatch]);
+  console.log(getDashboadrdCountData, "getDashboadrdCountData");
 
   return (
     <>
@@ -1645,9 +1652,8 @@ const AdminDashboard = () => {
                 </div>
                 <div className="card-body">
                   <div
-                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${
-                      isTodo[0] ? "todo-strike" : ""
-                    }`}
+                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${isTodo[0] ? "todo-strike" : ""
+                      }`}
                   >
                     <i className="ti ti-grid-dots me-2" />
                     <div className="form-check">
@@ -1666,9 +1672,8 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <div
-                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${
-                      isTodo[1] ? "todo-strike" : ""
-                    }`}
+                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${isTodo[1] ? "todo-strike" : ""
+                      }`}
                   >
                     <i className="ti ti-grid-dots me-2" />
                     <div className="form-check">
@@ -1687,9 +1692,8 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <div
-                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${
-                      isTodo[2] ? "todo-strike" : ""
-                    }`}
+                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${isTodo[2] ? "todo-strike" : ""
+                      }`}
                   >
                     <i className="ti ti-grid-dots me-2" />
                     <div className="form-check">
@@ -1708,9 +1712,8 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <div
-                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${
-                      isTodo[3] ? "todo-strike" : ""
-                    }`}
+                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${isTodo[3] ? "todo-strike" : ""
+                      }`}
                   >
                     <i className="ti ti-grid-dots me-2" />
                     <div className="form-check">
@@ -1729,9 +1732,8 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <div
-                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${
-                      isTodo[4] ? "todo-strike" : ""
-                    }`}
+                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${isTodo[4] ? "todo-strike" : ""
+                      }`}
                   >
                     <i className="ti ti-grid-dots me-2" />
                     <div className="form-check">
@@ -1750,9 +1752,8 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <div
-                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${
-                      isTodo[5] ? "todo-strike" : ""
-                    }`}
+                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${isTodo[5] ? "todo-strike" : ""
+                      }`}
                   >
                     <i className="ti ti-grid-dots me-2" />
                     <div className="form-check">
