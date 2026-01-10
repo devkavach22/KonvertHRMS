@@ -5,6 +5,7 @@ export const all_routes = {
   // Master's Modules
   departmentsKHR: "/KHR-departments",
   jobPositionsKHR: "/KHR-job-positions",
+  regCategoryKHR: "/KHR-regularization-category",
   buisnessLocationKHR: "/KHR-business-location",
   buisnessTypeKHR: "/KHR-business-type",
   AttendancePolicyKHR: "/KHR-attedence-policy",

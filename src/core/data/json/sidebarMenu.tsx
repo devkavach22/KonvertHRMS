@@ -19,6 +19,7 @@ export const SidebarDataTest = [
         dot: false,
         submenuItems: [
           { label: "Attendence Policy", link: routes.AttendancePolicyKHR },
+            { label: "Regularization Category", link: routes.regCategoryKHR },
           // { label: "Buisness Location", link: routes.buisnessLocationKHR },
           // { label: "Buisness Type", link: routes.buisnessTypeKHR },
           { label: "Department", link: routes.departmentsKHR },

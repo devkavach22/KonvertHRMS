@@ -11,20 +11,22 @@ import ProjectModals from "../../../core/modals/projectModal";
 import RequestModals from "../../../core/modals/requestModal";
 import TodoModal from "../../../core/modals/todoModal";
 import CollapseHeader from "../../../core/common/collapse-header/collapse-header";
-import { useDispatch, useSelector } from "react-redux";
-import { getDashboadrdCount, TBSelector } from "@/Store/Reducers/TBSlice";
+import { useSelector } from "react-redux";
+import { ApiAuth, getDashboadrdCount, TBSelector, updateState } from "@/Store/Reducers/TBSlice";
+import { useAppDispatch } from "@/Store/hooks";
 
 const AdminDashboard = () => {
   const routes = all_routes;
 
   const [isTodo, setIsTodo] = useState([false, false, false]);
   const userName = localStorage.getItem("full_name") || "John Doe";
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const {
     // getDashboadrdCount
     isgetDashboadrdCount,
     isgetDashboadrdCountFetching,
     getDashboadrdCountData,
+    isApiAuth,
   } = useSelector(TBSelector);
 
   const [date, setDate] = useState(new Date());
@@ -311,7 +313,14 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     // fetchData();
-    dispatch(getDashboadrdCount() as any);
+    if (isApiAuth) {
+      dispatch(getDashboadrdCount() as any);
+      dispatch(updateState({ isApiAuth: false }))
+    }
+  }, [dispatch, isApiAuth]);
+  useEffect(() => {
+    // fetchData();
+    dispatch(ApiAuth() as any);
   }, [dispatch]);
   console.log(getDashboadrdCountData, "getDashboadrdCountData");
 
@@ -406,11 +415,11 @@ const AdminDashboard = () => {
                   <p>
                     You have{" "}
                     <span className="text-primary text-decoration-underline">
-                      21
+                      {getDashboadrdCountData?.data?.pending_approvals ?? 0}
                     </span>{" "}
                     Pending Approvals &amp;{" "}
                     <span className="text-primary text-decoration-underline">
-                      14
+                      {getDashboadrdCountData?.data?.leave_requests ?? 0}
                     </span>{" "}
                     Leave Requests
                   </p>
@@ -1643,9 +1652,8 @@ const AdminDashboard = () => {
                 </div>
                 <div className="card-body">
                   <div
-                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${
-                      isTodo[0] ? "todo-strike" : ""
-                    }`}
+                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${isTodo[0] ? "todo-strike" : ""
+                      }`}
                   >
                     <i className="ti ti-grid-dots me-2" />
                     <div className="form-check">
@@ -1664,9 +1672,8 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <div
-                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${
-                      isTodo[1] ? "todo-strike" : ""
-                    }`}
+                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${isTodo[1] ? "todo-strike" : ""
+                      }`}
                   >
                     <i className="ti ti-grid-dots me-2" />
                     <div className="form-check">
@@ -1685,9 +1692,8 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <div
-                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${
-                      isTodo[2] ? "todo-strike" : ""
-                    }`}
+                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${isTodo[2] ? "todo-strike" : ""
+                      }`}
                   >
                     <i className="ti ti-grid-dots me-2" />
                     <div className="form-check">
@@ -1706,9 +1712,8 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <div
-                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${
-                      isTodo[3] ? "todo-strike" : ""
-                    }`}
+                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${isTodo[3] ? "todo-strike" : ""
+                      }`}
                   >
                     <i className="ti ti-grid-dots me-2" />
                     <div className="form-check">
@@ -1727,9 +1732,8 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <div
-                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${
-                      isTodo[4] ? "todo-strike" : ""
-                    }`}
+                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${isTodo[4] ? "todo-strike" : ""
+                      }`}
                   >
                     <i className="ti ti-grid-dots me-2" />
                     <div className="form-check">
@@ -1748,9 +1752,8 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <div
-                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${
-                      isTodo[5] ? "todo-strike" : ""
-                    }`}
+                    className={`d-flex align-items-center todo-item border p-2 br-5 mb-2 ${isTodo[5] ? "todo-strike" : ""
+                      }`}
                   >
                     <i className="ti ti-grid-dots me-2" />
                     <div className="form-check">

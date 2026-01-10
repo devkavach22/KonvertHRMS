@@ -5,12 +5,14 @@ import { useEffect, useState } from "react";
 import DatatableKHR from "@/CommonComponent/DataTableKHR/DatatableKHR";
 import CommonHeader from "@/CommonComponent/HeaderKHR/HeaderKHR";
 
-import { getAdminAttendance } from "./AdminAttandanceServices";
+import { exportAttendanceToExcel, exportAttendanceToPdf } from "./AdminAttandanceServices";
+// import { toast } from "react-toastify";
 import Link from "antd/es/typography/Link";
 import CommonAttendanceStatus from "@/CommonComponent/CommonAttendanceStatus/CommonAttendanceStatus";
 import EditAttendanceModal from "./EditAdminAttendance";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  ApiAuth,
   AttendancesGetApi,
   TBSelector,
   updateState,
@@ -52,10 +54,54 @@ const AdminAttandanceKHR = () => {
     isAttendancesGetApiFetching,
     AttendancesGetApiData,
     AdminWorkingHoursData,
+    isApiAuth
   } = useSelector(TBSelector);
   const [selectedAttendanceeEditModal, setSelectedAttendanceeEditModal] =
     useState<any>(null);
   const dispatch = useDispatch<AppDispatch>();
+
+  const [isExporting, setIsExporting] = useState(false);
+
+  // Get today's date and 7 days ago for default export range
+  const getDefaultDateRange = () => {
+    const today = new Date();
+    const weekAgo = new Date();
+    weekAgo.setDate(today.getDate() - 7);
+    
+    const formatDate = (date: Date) => date.toISOString().split("T")[0];
+    return {
+      dateFrom: formatDate(weekAgo),
+      dateTo: formatDate(today),
+    };
+  };
+
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      const { dateFrom, dateTo } = getDefaultDateRange();
+      await exportAttendanceToExcel(dateFrom, dateTo);
+      // toast.success("Excel exported successfully!");
+    } catch (error) {
+      console.error("Export failed:", error);
+      // toast.error("Failed to export Excel file");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportPdf = async () => {
+    setIsExporting(true);
+    try {
+      const { dateFrom, dateTo } = getDefaultDateRange();
+      await exportAttendanceToPdf(dateFrom, dateTo);
+      // toast.success("PDF exported successfully!");
+    } catch (error) {
+      console.error("Export failed:", error);
+      // toast.error("Failed to export PDF file");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const formatTime = (dateTime: string | false) => {
     if (!dateTime) return "-";
@@ -235,8 +281,8 @@ const AdminAttandanceKHR = () => {
               ? typeof item.worked_hours === "number"
                 ? item.worked_hours.toFixed(2)
                 : item.worked_hours
-                ? String(item.worked_hours)
-                : "0"
+                  ? String(item.worked_hours)
+                  : "0"
               : "0",
           };
         });
@@ -282,7 +328,7 @@ const AdminAttandanceKHR = () => {
           },
           {
             id: 5,
-            title: "Ununiformed",
+            title: "Uninformed",
             count: meta.Ununiformendemployee ?? 0,
             badgeType: "danger",
             icon: "ti-arrow-wave-right-down",
@@ -298,10 +344,20 @@ const AdminAttandanceKHR = () => {
   }, [isAttendancesGetApi, isAttendancesGetApiFetching]);
 
   useEffect(() => {
-    // fetchData();
-    dispatch(AttendancesGetApi());
-  }, []);
 
+  }, []);
+  useEffect(() => {
+    // fetchData();
+    if (isApiAuth) {
+      dispatch(AttendancesGetApi());
+      dispatch(updateState({ isApiAuth: false }))
+    }
+  }, [dispatch, isApiAuth]);
+  useEffect(() => {
+    // fetchData();
+    dispatch(ApiAuth());
+
+  }, [dispatch]);
   const columns = [
     {
       title: "Employee",
@@ -322,11 +378,10 @@ const AdminAttandanceKHR = () => {
       dataIndex: "Status",
       render: (text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge ${
-            text === "Present"
-              ? "badge-success-transparent"
-              : "badge-danger-transparent"
-          } d-inline-flex align-items-center`}
+          className={`badge ${text === "Present"
+            ? "badge-success-transparent"
+            : "badge-danger-transparent"
+            } d-inline-flex align-items-center`}
         >
           <i className="ti ti-point-filled me-1" />
           {record.Status}
@@ -364,14 +419,13 @@ const AdminAttandanceKHR = () => {
       dataIndex: "ProductionHours",
       render: (_text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge d-inline-flex align-items-center badge-sm ${
-            parseFloat(record.ProductionHours) < 8
-              ? "badge-danger"
-              : parseFloat(record.ProductionHours) >= 8 &&
-                parseFloat(record.ProductionHours) <= 9
+          className={`badge d-inline-flex align-items-center badge-sm ${parseFloat(record.ProductionHours) < 8
+            ? "badge-danger"
+            : parseFloat(record.ProductionHours) >= 8 &&
+              parseFloat(record.ProductionHours) <= 9
               ? "badge-success"
               : "badge-info"
-          }`}
+            }`}
         >
           <i className="ti ti-clock-hour-11 me-1"></i>
           {record.ProductionHours}
@@ -450,13 +504,23 @@ const AdminAttandanceKHR = () => {
                     </button>
                     <ul className="dropdown-menu dropdown-menu-end p-3">
                       <li>
-                        <button className="dropdown-item">
-                          <i className="ti ti-file-type-pdf me-1" /> PDF
+                        <button 
+                          className="dropdown-item"
+                          onClick={handleExportPdf}
+                          disabled={isExporting}
+                        >
+                          <i className="ti ti-file-type-pdf me-1" /> 
+                          {isExporting ? "Exporting..." : "PDF"}
                         </button>
                       </li>
                       <li>
-                        <button className="dropdown-item">
-                          <i className="ti ti-file-type-xls me-1" /> Excel
+                        <button 
+                          className="dropdown-item"
+                          onClick={handleExportExcel}
+                          disabled={isExporting}
+                        >
+                          <i className="ti ti-file-type-xls me-1" /> 
+                          {isExporting ? "Exporting..." : "Excel"}
                         </button>
                       </li>
                     </ul>
@@ -525,7 +589,7 @@ const AdminAttandanceKHR = () => {
                       </span>
                       <Link
                         className="avatar bg-primary avatar-rounded text-fixed-white fs-12"
-                        // to="#"
+                      // to="#"
                       >
                         +1
                       </Link>
@@ -559,8 +623,8 @@ const AdminAttandanceKHR = () => {
                   data={data}
                   columns={columns}
                   selection={true}
-                  // Ensure these keys match what DatatableKHR expects
-                  // textKey="Department_Name"
+                // Ensure these keys match what DatatableKHR expects
+                // textKey="Department_Name"
                 />
               )}
             </div>

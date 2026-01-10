@@ -1,4 +1,4 @@
-interface WorkStat {
+export interface WorkStat {
   label: string;
   value: string;
   color: string;
