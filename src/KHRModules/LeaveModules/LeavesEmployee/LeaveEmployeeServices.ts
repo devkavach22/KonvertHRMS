@@ -30,12 +30,9 @@ const getUserId = () => {
 
 export const getEmployeeLeaveDashboard = async () => {
   try {
-    const response = await Instance.get(
-      "/employee/employee-dashboard?use_mock=true"
-      //   {
-      //   params: { user_id: getUserId() },
-      // }
-    );
+    const response = await Instance.get("/employee/employee-dashboard", {
+      params: { user_id: getUserId() },
+    });
     // This returns the whole object: { status, data: [], meta: {} }
     return response.data;
   } catch (error) {

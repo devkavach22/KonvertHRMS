@@ -86,10 +86,6 @@ export const addWorkingSchedule = async (data: any) => {
   };
   return await Instance.post("/api/create/WorkingSchedules", payload);
 };
-// POST Create
-// export const addWorkingSchedule = async (data: any) => {
-//   return await Instance.post("/api/create/WorkingSchedules", data);
-// };
 
 // PUT Update
 export const updateWorkingSchedule = async (id: string, data: any) => {
