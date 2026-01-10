@@ -5,6 +5,7 @@ interface FormInputProps {
   type?: string;
   error?: string;
   isSubmitted?: boolean;
+  disabled?: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
@@ -15,6 +16,7 @@ const FormInput: React.FC<FormInputProps> = ({
   type = "text",
   error,
   isSubmitted = false,
+  disabled = false,
   onChange,
 }) => (
   <div className="mb-3">
@@ -28,6 +30,7 @@ const FormInput: React.FC<FormInputProps> = ({
       name={name}
       value={value}
       onChange={onChange}
+      disabled={disabled}
       className={`form-control ${
         isSubmitted
           ? error

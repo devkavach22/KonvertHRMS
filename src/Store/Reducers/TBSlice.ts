@@ -142,7 +142,7 @@ export const UpdateAdminAttendanceApi = createAsyncThunk(
     try {
       let result = await axios({
         method: "PUT",
-        baseURL: CONFIG.BASE_URL_ALL,
+        baseURL: CONFIG.BASE_URL_LOGIN,
         headers: {
           "Content-Type": "application/json",
           authorization: `${localStorage.getItem("authToken")}`,
@@ -203,7 +203,7 @@ export const EmployeeRegcategories = createAsyncThunk(
     try {
       let result = await axios({
         method: "GET",
-        baseURL: CONFIG.BASE_URL_ALL,
+        baseURL: CONFIG.BASE_URL_LOGIN,
         headers: {
           "Content-Type": "application/json",
           authorization: `${localStorage.getItem("authToken")}`,
@@ -265,7 +265,7 @@ export const Employeeregularization = createAsyncThunk(
     try {
       let result = await axios({
         method: "POST",
-        baseURL: CONFIG.BASE_URL_ALL,
+        baseURL: CONFIG.BASE_URL_LOGIN,
         headers: {
           "Content-Type": "application/json",
           authorization: `${localStorage.getItem("authToken")}`,

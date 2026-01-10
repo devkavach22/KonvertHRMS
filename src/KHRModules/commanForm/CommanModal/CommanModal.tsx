@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 
 interface CommonModalProps {
   id: string;
@@ -6,6 +6,7 @@ interface CommonModalProps {
   children: React.ReactNode;
   onSubmit: () => void;
   submitText?: string;
+  isLoading?: boolean;
 }
 
 const CommonModal: React.FC<CommonModalProps> = ({
@@ -14,7 +15,25 @@ const CommonModal: React.FC<CommonModalProps> = ({
   children,
   onSubmit,
   submitText = "Save",
+  isLoading = false,
 }) => {
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Expose close function via ref or call it externally
+  const closeModal = () => {
+    if (closeButtonRef.current) {
+      closeButtonRef.current.click();
+    }
+  };
+
+  // Attach closeModal to window for external access
+  React.useEffect(() => {
+    (window as any)[`closeModal_${id}`] = closeModal;
+    return () => {
+      delete (window as any)[`closeModal_${id}`];
+    };
+  }, [id]);
+
   return (
     <div className="modal fade" id={id} role="dialog">
       <div className="modal-dialog modal-dialog-centered modal-lg">
@@ -25,6 +44,8 @@ const CommonModal: React.FC<CommonModalProps> = ({
               type="button"
               className="btn-close"
               data-bs-dismiss="modal"
+              ref={closeButtonRef}
+              disabled={isLoading}
             />
           </div>
 
@@ -35,11 +56,23 @@ const CommonModal: React.FC<CommonModalProps> = ({
               type="button"
               className="btn btn-light"
               data-bs-dismiss="modal"
+              disabled={isLoading}
             >
               Cancel
             </button>
-            <button className="btn btn-primary" onClick={onSubmit}>
-              {submitText}
+            <button 
+              className="btn btn-primary" 
+              onClick={onSubmit}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Saving...
+                </>
+              ) : (
+                submitText
+              )}
             </button>
           </div>
         </div>
