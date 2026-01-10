@@ -194,7 +194,7 @@ const EmployeeAttendanceKHR = () => {
     if (!isEmployeeAttendanceApi || !EmployeeAttendanceApiData?.data) return;
 
     const { today, week, month } =
-      EmployeeAttendanceApiData.data.working_hours_summary;
+      EmployeeAttendanceApiData?.data?.working_hours_summary;
 
     const cards = [
       {
