@@ -227,6 +227,37 @@ export const EmployeeRegcategories = createAsyncThunk(
   }
 );
 
+// Create Regularization Category
+export const createRegCategory = createAsyncThunk(
+  "createRegCategory",
+  async (userdata: { type: string }, thunkAPI) => {
+    try {
+      let result = await axios({
+        method: "POST",
+        baseURL: CONFIG.BASE_URL_ALL,
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `${localStorage.getItem("authToken")}`,
+        },
+        url: `/api/create/regcategory`,
+        params: { user_id },
+        data: userdata,
+      });
+      if (result.data) {
+        return result.data;
+      } else {
+        return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
+      }
+    } catch (error: any) {
+      console.error(
+        "try catch [ createRegCategory ] error.message >>",
+        error?.message
+      );
+      return thunkAPI.rejectWithValue({ error: error?.response?.data?.message || error?.message });
+    }
+  }
+);
+
 export const EmployeeAttendanceApi = createAsyncThunk(
   "EmployeeAttendanceApi",
   async (userdata, thunkAPI) => {
@@ -558,7 +589,7 @@ export const getDashboadrdCount = createAsyncThunk(
     try {
       let result = await axios({
         method: "GET",
-        baseURL: CONFIG.BASE_URL_ALL,
+        baseURL: "http://10.221.59.471:4000/",
         headers: {
           "Content-Type": "application/json",
           authorization: `${localStorage.getItem("authToken")}`,
@@ -577,6 +608,164 @@ export const getDashboadrdCount = createAsyncThunk(
         "try catch [ getSalaryRules ] error.message >>",
         error?.message
       );
+      return thunkAPI.rejectWithValue({ error: error?.message });
+    }
+  }
+);
+
+// Employee Attendance Export Excel
+export const EmployeeAttendanceExportExcel = createAsyncThunk(
+  "EmployeeAttendanceExportExcel",
+  async (userdata: { date_from: string; date_to: string }, thunkAPI) => {
+    try {
+      const result = await axios({
+        method: "GET",
+        baseURL: CONFIG.BASE_URL_ALL,
+        headers: {
+          authorization: `${localStorage.getItem("authToken")}`,
+        },
+        url: `/api/employee/attendance/export/excel`,
+        params: { user_id, date_from: userdata.date_from, date_to: userdata.date_to },
+        responseType: "blob",
+      });
+
+      if (result.data) {
+        // Create download link
+        const blob = new Blob([result.data], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `employee_attendance_${userdata.date_from}_to_${userdata.date_to}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        return { success: true, message: "Excel exported successfully" };
+      } else {
+        return thunkAPI.rejectWithValue({ error: "Export failed" });
+      }
+    } catch (error: any) {
+      console.error("try catch [ EmployeeAttendanceExportExcel ] error.message >>", error?.message);
+      return thunkAPI.rejectWithValue({ error: error?.message });
+    }
+  }
+);
+
+// Employee Attendance Export PDF
+export const EmployeeAttendanceExportPdf = createAsyncThunk(
+  "EmployeeAttendanceExportPdf",
+  async (userdata: { date_from: string; date_to: string }, thunkAPI) => {
+    try {
+      const result = await axios({
+        method: "GET",
+        baseURL: "http://10.221.59.471:4000",
+        headers: {
+          authorization: `${localStorage.getItem("authToken")}`,
+        },
+        url: `/api/employee/attendance/export/pdf`,
+        params: { user_id, date_from: userdata.date_from, date_to: userdata.date_to },
+        responseType: "blob",
+      });
+
+      if (result.data) {
+        // Create download link
+        const blob = new Blob([result.data], {
+          type: "application/pdf",
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `employee_attendance_${userdata.date_from}_to_${userdata.date_to}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        return { success: true, message: "PDF exported successfully" };
+      } else {
+        return thunkAPI.rejectWithValue({ error: "Export failed" });
+      }
+    } catch (error: any) {
+      console.error("try catch [ EmployeeAttendanceExportPdf ] error.message >>", error?.message);
+      return thunkAPI.rejectWithValue({ error: error?.message });
+    }
+  }
+);
+
+// Admin Attendance Export Excel
+export const AdminAttendanceExportExcel = createAsyncThunk(
+  "AdminAttendanceExportExcel",
+  async (userdata: { date_from: string; date_to: string }, thunkAPI) => {
+    try {
+      const result = await axios({
+        method: "GET",
+        baseURL: "http://10.221.59.471:4000",
+        headers: {
+          authorization: `${localStorage.getItem("authToken")}`,
+        },
+        url: `/api/admin/attendances/export/excel`,
+        params: { user_id, date_from: userdata.date_from, date_to: userdata.date_to },
+        responseType: "blob",
+      });
+
+      if (result.data) {
+        const blob = new Blob([result.data], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `admin_attendance_${userdata.date_from}_to_${userdata.date_to}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        return { success: true, message: "Excel exported successfully" };
+      } else {
+        return thunkAPI.rejectWithValue({ error: "Export failed" });
+      }
+    } catch (error: any) {
+      console.error("try catch [ AdminAttendanceExportExcel ] error.message >>", error?.message);
+      return thunkAPI.rejectWithValue({ error: error?.message });
+    }
+  }
+);
+
+// Admin Attendance Export PDF
+export const AdminAttendanceExportPdf = createAsyncThunk(
+  "AdminAttendanceExportPdf",
+  async (userdata: { date_from: string; date_to: string }, thunkAPI) => {
+    try {
+      const result = await axios({
+        method: "GET",
+        baseURL: CONFIG.BASE_URL_ALL,
+        headers: {
+          authorization: `${localStorage.getItem("authToken")}`,
+        },
+        url: `/api/admin/attendances/export/pdf`,
+        params: { user_id, date_from: userdata.date_from, date_to: userdata.date_to },
+        responseType: "blob",
+      });
+
+      if (result.data) {
+        const blob = new Blob([result.data], {
+          type: "application/pdf",
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `admin_attendance_${userdata.date_from}_to_${userdata.date_to}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        return { success: true, message: "PDF exported successfully" };
+      } else {
+        return thunkAPI.rejectWithValue({ error: "Export failed" });
+      }
+    } catch (error: any) {
+      console.error("try catch [ AdminAttendanceExportPdf ] error.message >>", error?.message);
       return thunkAPI.rejectWithValue({ error: error?.message });
     }
   }
@@ -613,6 +802,19 @@ export const TBSlice = createSlice({
     isgetDashboadrdCount: false,
     isgetDashboadrdCountFetching: false,
     getDashboadrdCountData: [],
+
+    // Employee Attendance Export
+    isEmployeeAttendanceExportExcel: false,
+    isEmployeeAttendanceExportExcelFetching: false,
+    isEmployeeAttendanceExportPdf: false,
+    isEmployeeAttendanceExportPdfFetching: false,
+
+    // Admin Attendance Export
+    isAdminAttendanceExportExcel: false,
+    isAdminAttendanceExportExcelFetching: false,
+    isAdminAttendanceExportPdf: false,
+    isAdminAttendanceExportPdfFetching: false,
+
 
     // getSalaryStructure
     isgetSalaryStructure: false,
@@ -663,6 +865,11 @@ export const TBSlice = createSlice({
     isEmployeeRegcategories: false,
     isEmployeeRegcategoriesFetching: false,
     EmployeeRegcategoriesData: [],
+
+    // createRegCategory
+    isCreateRegCategory: false,
+    isCreateRegCategoryFetching: false,
+    createRegCategoryData: {},
 
     // CheckinCheckout
     isCheckinCheckout: false,
@@ -736,6 +943,13 @@ export const TBSlice = createSlice({
         payload.isEmployeeRegcategories !== undefined
           ? payload.isEmployeeRegcategories
           : state.isEmployeeRegcategories;
+
+      // createRegCategory
+      state.isCreateRegCategory =
+        payload.isCreateRegCategory !== undefined
+          ? payload.isCreateRegCategory
+          : state.isCreateRegCategory;
+
       // EmployeeAttendanceApi
       state.isEmployeeAttendanceApi =
         payload.isEmployeeAttendanceApi !== undefined
@@ -777,6 +991,27 @@ export const TBSlice = createSlice({
         payload.isgetDashboadrdCount !== undefined
           ? payload.isgetDashboadrdCount
           : state.isgetDashboadrdCount;
+
+      // Employee Attendance Export
+      state.isEmployeeAttendanceExportExcel =
+        payload.isEmployeeAttendanceExportExcel !== undefined
+          ? payload.isEmployeeAttendanceExportExcel
+          : state.isEmployeeAttendanceExportExcel;
+      state.isEmployeeAttendanceExportPdf =
+        payload.isEmployeeAttendanceExportPdf !== undefined
+          ? payload.isEmployeeAttendanceExportPdf
+          : state.isEmployeeAttendanceExportPdf;
+
+      // Admin Attendance Export
+      state.isAdminAttendanceExportExcel =
+        payload.isAdminAttendanceExportExcel !== undefined
+          ? payload.isAdminAttendanceExportExcel
+          : state.isAdminAttendanceExportExcel;
+      state.isAdminAttendanceExportPdf =
+        payload.isAdminAttendanceExportPdf !== undefined
+          ? payload.isAdminAttendanceExportPdf
+          : state.isAdminAttendanceExportPdf;
+
 
       state.isgetSalaryRules =
         payload.isgetSalaryRules !== undefined
@@ -887,7 +1122,7 @@ export const TBSlice = createSlice({
         state.isAttendancesApi = true;
         state.isAttendancesApiFetching = false;
         state.isSuccess = true;
-        state.successMessage = payload?.message || "Hello";
+        state.successMessage = payload?.message || "";
         state.isError = false;
         state.errorMessage = "";
         return state;
@@ -929,7 +1164,7 @@ export const TBSlice = createSlice({
         state.isAttendancesGetApi = true;
         state.isAttendancesGetApiFetching = false;
         state.isSuccess = true;
-        state.successMessage = payload?.message || "Hello";
+        state.successMessage = payload?.message || "";
         state.isError = false;
         state.errorMessage = "";
         return state;
@@ -973,7 +1208,7 @@ export const TBSlice = createSlice({
           state.isUpdateAdminAttendanceApi = true;
           state.isUpdateAdminAttendanceApiFetching = false;
           state.isSuccess = true;
-          state.successMessage = payload?.message || "Hello";
+          state.successMessage = payload?.message || "";
           state.isError = false;
           state.errorMessage = "";
           return state;
@@ -1018,7 +1253,7 @@ export const TBSlice = createSlice({
         state.isAdminWorkingHours = true;
         state.isAdminWorkingHoursFetching = false;
         state.isSuccess = true;
-        state.successMessage = payload?.message || "Hello";
+        state.successMessage = payload?.message || "";
         state.isError = false;
         state.errorMessage = "";
         return state;
@@ -1060,8 +1295,8 @@ export const TBSlice = createSlice({
         state.EmployeeAttendanceApiData = payload;
         state.isEmployeeAttendanceApi = true;
         state.isEmployeeAttendanceApiFetching = false;
-        state.isSuccess = true;
-        state.successMessage = payload?.message || "Hello";
+        state.isSuccess = false;
+        state.successMessage = payload?.message || "";
         state.isError = false;
         state.errorMessage = "";
         return state;
@@ -1103,7 +1338,7 @@ export const TBSlice = createSlice({
         state.isEmployeeRegcategories = true;
         state.isEmployeeRegcategoriesFetching = false;
         state.isSuccess = true;
-        state.successMessage = payload?.message || "Hello";
+        state.successMessage = payload?.message || "";
         state.isError = false;
         state.errorMessage = "";
         return state;
@@ -1138,13 +1373,51 @@ export const TBSlice = createSlice({
       state.isEmployeeRegcategoriesFetching = true;
     });
 
+    // createRegCategory extraReducers
+    builder.addCase(createRegCategory.fulfilled, (state, { payload }) => {
+      try {
+        state.createRegCategoryData = payload;
+        state.isCreateRegCategory = true;
+        state.isCreateRegCategoryFetching = false;
+        state.isSuccess = true;
+        state.successMessage = payload?.message || "Category created successfully";
+        state.isError = false;
+        state.errorMessage = "";
+        return state;
+      } catch (error) {
+        console.error(
+          "Error: createRegCategory.fulfilled try catch error >>",
+          error
+        );
+      }
+    });
+    builder.addCase(
+      createRegCategory.rejected,
+      (state, { payload }: { payload: any }) => {
+        try {
+          state.isCreateRegCategory = false;
+          state.isCreateRegCategoryFetching = false;
+          state.isError = true;
+          state.errorMessage = payload?.error || "Failed to create category";
+        } catch (error) {
+          console.error(
+            "Error: [createRegCategory.rejected] try catch error >>",
+            error
+          );
+        }
+      }
+    );
+    builder.addCase(createRegCategory.pending, (state) => {
+      state.isCreateRegCategoryFetching = true;
+    });
+
     builder.addCase(Employeeregularization.fulfilled, (state, { payload }) => {
       try {
         state.EmployeeregularizationData = payload;
         state.isEmployeeregularization = true;
         state.isEmployeeregularizationFetching = false;
         state.isSuccess = true;
-        state.successMessage = payload?.message || "Hello";
+        state.successMessage = payload?.message || "";
         state.isError = false;
         state.errorMessage = "";
         return state;
@@ -1158,9 +1431,9 @@ export const TBSlice = createSlice({
     builder.addCase(
       Employeeregularization.rejected,
       (state, { payload }: { payload: any }) => {
-        console.log("====================================");
+        console.log('====================================');
         console.log(payload, "kpkpkp");
-        console.log("====================================");
+        console.log('====================================');
         try {
           state.isEmployeeregularization = false;
           state.isEmployeeregularizationFetching = false;
@@ -1188,7 +1461,7 @@ export const TBSlice = createSlice({
         state.isCheckinCheckout = true;
         state.isCheckinCheckoutFetching = false;
         state.isSuccess = true;
-        state.successMessage = payload?.message || "Hello";
+        state.successMessage = payload?.message || "";
         state.isError = false;
         state.errorMessage = "";
         return state;
@@ -1229,7 +1502,7 @@ export const TBSlice = createSlice({
         state.isGetStructureTypes = true;
         state.isGetStructureTypesFetching = false;
         state.isSuccess = true;
-        state.successMessage = payload?.message || "Hello";
+        state.successMessage = payload?.message || "";
         state.isError = false;
         state.errorMessage = "";
         return state;
@@ -1270,7 +1543,7 @@ export const TBSlice = createSlice({
         state.isGetCountries = true;
         state.isGetCountriesFetching = false;
         state.isSuccess = true;
-        state.successMessage = payload?.message || "Hello";
+        state.successMessage = payload?.message || "";
         state.isError = false;
         state.errorMessage = "";
         return state;
@@ -1311,7 +1584,7 @@ export const TBSlice = createSlice({
         state.isgetWorkingSchedules = true;
         state.isgetWorkingSchedulesFetching = false;
         state.isSuccess = true;
-        state.successMessage = payload?.message || "Hello";
+        state.successMessage = payload?.message || "";
         state.isError = false;
         state.errorMessage = "";
         return state;
@@ -1352,7 +1625,7 @@ export const TBSlice = createSlice({
         state.isgetRegularPayStructure = true;
         state.isgetRegularPayStructureFetching = false;
         state.isSuccess = true;
-        state.successMessage = payload?.message || "Hello";
+        state.successMessage = payload?.message || "";
         state.isError = false;
         state.errorMessage = "";
         return state;
@@ -1393,7 +1666,7 @@ export const TBSlice = createSlice({
         state.isgetWorkEntryType = true;
         state.isgetWorkEntryTypeFetching = false;
         state.isSuccess = true;
-        state.successMessage = payload?.message || "Hello";
+        state.successMessage = payload?.message || "";
         state.isError = false;
         state.errorMessage = "";
         return state;
@@ -1434,7 +1707,7 @@ export const TBSlice = createSlice({
         state.isgetSalaryRules = true;
         state.isgetSalaryRulesFetching = false;
         state.isSuccess = true;
-        state.successMessage = payload?.message || "Hello";
+        state.successMessage = payload?.message || "";
         state.isError = false;
         state.errorMessage = "";
         return state;
@@ -1475,7 +1748,7 @@ export const TBSlice = createSlice({
         state.isgetSalaryStructure = true;
         state.isgetSalaryStructureFetching = false;
         state.isSuccess = true;
-        state.successMessage = payload?.message || "Hello";
+        state.successMessage = payload?.message || "";
         state.isError = false;
         state.errorMessage = "";
         return state;
@@ -1516,7 +1789,7 @@ export const TBSlice = createSlice({
         state.isgetDashboadrdCount = true;
         state.isgetDashboadrdCountFetching = false;
         state.isSuccess = true;
-        state.successMessage = payload?.message || "Hello";
+        state.successMessage = payload?.message || "";
         state.isError = false;
         state.errorMessage = "";
         return state;
@@ -1549,6 +1822,82 @@ export const TBSlice = createSlice({
     );
     builder.addCase(getDashboadrdCount.pending, (state) => {
       state.isgetDashboadrdCountFetching = true;
+    });
+
+    // Employee Attendance Export Excel
+    builder.addCase(EmployeeAttendanceExportExcel.fulfilled, (state, { payload }) => {
+      state.isEmployeeAttendanceExportExcel = true;
+      state.isEmployeeAttendanceExportExcelFetching = false;
+      state.isSuccess = true;
+      state.successMessage = payload?.message || "Excel exported successfully";
+      state.isError = false;
+      state.errorMessage = "";
+    });
+    builder.addCase(EmployeeAttendanceExportExcel.rejected, (state, { payload }: { payload: any }) => {
+      state.isEmployeeAttendanceExportExcel = false;
+      state.isEmployeeAttendanceExportExcelFetching = false;
+      state.isError = true;
+      state.errorMessage = payload?.error || "Export failed";
+    });
+    builder.addCase(EmployeeAttendanceExportExcel.pending, (state) => {
+      state.isEmployeeAttendanceExportExcelFetching = true;
+    });
+
+    // Employee Attendance Export PDF
+    builder.addCase(EmployeeAttendanceExportPdf.fulfilled, (state, { payload }) => {
+      state.isEmployeeAttendanceExportPdf = true;
+      state.isEmployeeAttendanceExportPdfFetching = false;
+      state.isSuccess = true;
+      state.successMessage = payload?.message || "PDF exported successfully";
+      state.isError = false;
+      state.errorMessage = "";
+    });
+    builder.addCase(EmployeeAttendanceExportPdf.rejected, (state, { payload }: { payload: any }) => {
+      state.isEmployeeAttendanceExportPdf = false;
+      state.isEmployeeAttendanceExportPdfFetching = false;
+      state.isError = true;
+      state.errorMessage = payload?.error || "Export failed";
+    });
+    builder.addCase(EmployeeAttendanceExportPdf.pending, (state) => {
+      state.isEmployeeAttendanceExportPdfFetching = true;
+    });
+
+    // Admin Attendance Export Excel
+    builder.addCase(AdminAttendanceExportExcel.fulfilled, (state, { payload }) => {
+      state.isAdminAttendanceExportExcel = true;
+      state.isAdminAttendanceExportExcelFetching = false;
+      state.isSuccess = true;
+      state.successMessage = payload?.message || "Excel exported successfully";
+      state.isError = false;
+      state.errorMessage = "";
+    });
+    builder.addCase(AdminAttendanceExportExcel.rejected, (state, { payload }: { payload: any }) => {
+      state.isAdminAttendanceExportExcel = false;
+      state.isAdminAttendanceExportExcelFetching = false;
+      state.isError = true;
+      state.errorMessage = payload?.error || "Export failed";
+    });
+    builder.addCase(AdminAttendanceExportExcel.pending, (state) => {
+      state.isAdminAttendanceExportExcelFetching = true;
+    });
+
+    // Admin Attendance Export PDF
+    builder.addCase(AdminAttendanceExportPdf.fulfilled, (state, { payload }) => {
+      state.isAdminAttendanceExportPdf = true;
+      state.isAdminAttendanceExportPdfFetching = false;
+      state.isSuccess = true;
+      state.successMessage = payload?.message || "PDF exported successfully";
+      state.isError = false;
+      state.errorMessage = "";
+    });
+    builder.addCase(AdminAttendanceExportPdf.rejected, (state, { payload }: { payload: any }) => {
+      state.isAdminAttendanceExportPdf = false;
+      state.isAdminAttendanceExportPdfFetching = false;
+      state.isError = true;
+      state.errorMessage = payload?.error || "Export failed";
+    });
+    builder.addCase(AdminAttendanceExportPdf.pending, (state) => {
+      state.isAdminAttendanceExportPdfFetching = true;
     });
   },
 });

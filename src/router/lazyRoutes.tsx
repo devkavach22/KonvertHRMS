@@ -365,6 +365,11 @@ export const Department = createLazyComponent(
 export const DepartmentKHR = createLazyComponent(
   () => import("../KHRModules/Master Modules/Department/DepartmentKHR")
 );
+
+export const RegCategoryKHR = createLazyComponent(
+  () => import("../KHRModules/Master Modules/RegCategory/RegCategoryKHR")
+);
+
 export const BuisnessLocationKHR = createLazyComponent(
   () => import("../KHRModules/Master Modules/BusinessLocation/BusinessLocation")
 );

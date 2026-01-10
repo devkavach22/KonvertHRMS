@@ -289,6 +289,7 @@ import {
   BudgetExpenses,
   BudgetRevenues,
   DepartmentKHR,
+  RegCategoryKHR,
   AttendancePolicyKHR,
   SkillsKHR,
   IndustriesKHR,
@@ -1793,6 +1794,11 @@ export const publicRoutes = [
   {
     path: routes.departmentsKHR,
     element: <DepartmentKHR />,
+    route: Route,
+  },
+  {
+    path: routes.regCategoryKHR,
+    element: <RegCategoryKHR />,
     route: Route,
   },
   {

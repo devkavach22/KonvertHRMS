@@ -57,6 +57,7 @@ const AttendanceQueryModal: React.FC<Props> = ({
   const [categories, setCategories] = useState<Option[]>([]);
   const [errors, setErrors] = useState<any>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
 
   /* ========================= INIT FORM DATA FROM ATTENDANCE ========================= */
   useEffect(() => {
@@ -318,6 +319,9 @@ const AttendanceQueryModal: React.FC<Props> = ({
           </div>
         </div>
       </div>
+
+      {/* Add Category Modal */}
+    
     </div>
   );
 };
