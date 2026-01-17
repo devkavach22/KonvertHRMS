@@ -3340,7 +3340,6 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                             />
                           </div>
 
-                          {/* Employee Password - OPTIONAL */}
                           {/* Employee Password - MANDATORY */}
                           <div className="col-md-3">
                             <label className="form-label fs-13">

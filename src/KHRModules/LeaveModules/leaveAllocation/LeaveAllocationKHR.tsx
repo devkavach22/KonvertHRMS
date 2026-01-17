@@ -22,50 +22,46 @@ const LeaveAllocationKHR = () => {
     try {
       const response: any = await getLeaveAllocations();
 
-      let rawArray: any[] = [];
-      if (Array.isArray(response)) rawArray = response;
-      else if (response?.data && Array.isArray(response.data))
+      // DEBUG: Open your browser console (F12) to see what the API actually returns
+      console.log("API Full Response:", response);
+
+      let rawArray = [];
+
+      // CHECK 1: Is the response exactly the JSON you pasted?
+      if (response && Array.isArray(response.data)) {
         rawArray = response.data;
-      else if (response?.data?.data && Array.isArray(response.data.data))
+      }
+      // CHECK 2: Is it wrapped in an Axios object? (Common issue)
+      else if (response && response.data && Array.isArray(response.data.data)) {
         rawArray = response.data.data;
-      else if (response?.allocations) rawArray = response.allocations;
+      }
+      // CHECK 3: Fallback for other structures
+      else if (Array.isArray(response)) {
+        rawArray = response;
+      }
+
+      console.log("Extracted Array:", rawArray); // Should be an array of 3 items
 
       const mappedData = rawArray.map((item: any) => ({
         ...item,
-        key: String(item.id),
+        key: String(item.id), // Unique key for AntD/React tables
 
-        // --- 1. FLATTEN NAMES FOR TABLE DISPLAY ---
-        employee_name:
-          item.employee?.name ||
-          (Array.isArray(item.employee_id) ? item.employee_id[1] : "-"),
-        leave_type_name:
-          item.leave_type?.name ||
-          (Array.isArray(item.holiday_status_id)
-            ? item.holiday_status_id[1]
-            : "-"),
-        accrual_plan_name: item.accrual_plan?.name || "-",
+        // --- MAPPING ---
+        employee_name: item.employee_name || "-",
+        leave_type_name: item.leave_type_name || "-",
+        accrual_plan_name: item.accrual_plan_name || "-",
 
-        // --- 2. FLATTEN DATA FOR EDIT MODAL ---
-        // Extract IDs securely from Objects or Arrays
-        employee_id:
-          item.employee?.id ||
-          (Array.isArray(item.employee_id)
-            ? item.employee_id[0]
-            : item.employee_id),
-        leave_type_id:
-          item.leave_type?.id ||
-          (Array.isArray(item.holiday_status_id)
-            ? item.holiday_status_id[0]
-            : item.leave_type_id),
-        accrual_plan_id: item.accrual_plan?.id || item.accrual_plan_id,
+        // --- IDS & DATES ---
+        employee_id: item.employee_id,
+        leave_type_id: item.leave_type_id,
+        from_date: item.date_from,
+        to_date: item.date_to,
 
-        // Extract Dates from 'validity' object if present
-        from_date: item.validity?.start || item.date_from || item.from_date,
-        to_date: item.validity?.end || item.date_to || item.to_date,
+        // --- STATUS MAPPING ---
+        // Your table column looks for 'state', but API sends 'status'
+        state: item.status,
 
-        // Map days
-        number_of_days: item.days_allocated ?? item.number_of_days,
-        state: item.status || item.state,
+        number_of_days: item.number_of_days,
       }));
 
       setData(mappedData);

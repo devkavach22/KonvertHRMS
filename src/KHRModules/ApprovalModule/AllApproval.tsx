@@ -34,13 +34,14 @@ const AllApproval = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const result = await getApprovalRequests(3145);
+      const id = localStorage.getItem("user_id");
+      const result = await getApprovalRequests(Number(id));
 
       const list = Array.isArray(result.data?.data)
         ? result.data.data
         : Array.isArray(result.data)
-        ? result.data
-        : [];
+          ? result.data
+          : [];
 
       // Note: mapping 'id' from API to 'attendance_regulzie_id' if that's the ID needed for approval
       // Based on your JSON, 'id' is the request ID. If API needs 'attendance_regulzie_id', change mappedData below.
@@ -84,7 +85,7 @@ const AllApproval = () => {
         fetchData();
       } catch (error: any) {
         toast.error(
-          error.response?.data?.message || "Failed to approve request"
+          error.response?.data?.message || "Failed to approve request",
         );
       }
     }

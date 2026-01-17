@@ -51,7 +51,6 @@ export const getAdminAttendance = async (): Promise<APIAdminAttendance[]> => {
   }
 };
 
-
 export const updateAdminAttendance = async (
   attendanceId: number,
   payload: UpdateAttendancePayload

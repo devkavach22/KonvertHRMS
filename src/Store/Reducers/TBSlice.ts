@@ -36,41 +36,35 @@ export const Usersignin = createAsyncThunk(
     } catch (error: any) {
       console.error(
         "try catch [ Usersignin ] error.message >>",
-        error?.message
+        error?.message,
       );
       return thunkAPI.rejectWithValue({ error: error?.message });
     }
-  }
+  },
 );
 //
 // https://konverthrnode.onrender.com/api/auth
-export const ApiAuth = createAsyncThunk(
-  "ApiAuth",
-  async (_, thunkAPI) => {
-    try {
-      let result = await axios({
-        method: "POST",
-        baseURL: CONFIG.BASE_URL_LOGIN,
-        // headers: authheader,
-        url: `api/auth`,
-        data: { user_name: "dhaval" },
-      });
-      if (result.data) {
-
-        localStorage.setItem("authToken", result?.data?.token);
-        return result.data;
-      } else {
-        return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
-      }
-    } catch (error: any) {
-      console.error(
-        "try catch [ Usersignin ] error.message >>",
-        error?.message
-      );
-      return thunkAPI.rejectWithValue({ error: error?.message });
+export const ApiAuth = createAsyncThunk("ApiAuth", async (_, thunkAPI) => {
+  try {
+    let result = await axios({
+      method: "POST",
+      baseURL: CONFIG.BASE_URL_LOGIN,
+      // headers: authheader,
+      url: `api/auth`,
+      data: { user_name: "dhaval" },
+    });
+    if (result.data) {
+      localStorage.setItem("authToken", result?.data?.token);
+      return result.data;
+    } else {
+      return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
     }
+  } catch (error: any) {
+    console.error("try catch [ Usersignin ] error.message >>", error?.message);
+    return thunkAPI.rejectWithValue({ error: error?.message });
   }
-);
+});
+
 //AttendancesApi
 export const AttendancesApi = createAsyncThunk(
   "AttendancesApi",
@@ -95,11 +89,11 @@ export const AttendancesApi = createAsyncThunk(
     } catch (error: any) {
       console.error(
         "try catch [ AttendancesApi ] error.message >>",
-        error?.message
+        error?.message,
       );
       return thunkAPI.rejectWithValue({ error: error?.message });
     }
-  }
+  },
 );
 //AttendancesGetApi
 export const AttendancesGetApi = createAsyncThunk(
@@ -125,18 +119,18 @@ export const AttendancesGetApi = createAsyncThunk(
     } catch (error: any) {
       console.error(
         "try catch [ AttendancesGetApi ] error.message >>",
-        error?.message
+        error?.message,
       );
       return thunkAPI.rejectWithValue({ error: error?.message });
     }
-  }
+  },
 );
 //UpdateAdminAttendanceApi
 export const UpdateAdminAttendanceApi = createAsyncThunk(
   "UpdateAdminAttendanceApi",
   async (
     userdata: { attendanceId: string | number; payload: any },
-    thunkAPI
+    thunkAPI,
   ) => {
     console.log(userdata);
     try {
@@ -159,11 +153,11 @@ export const UpdateAdminAttendanceApi = createAsyncThunk(
     } catch (error: any) {
       console.error(
         "try catch [ UpdateAdminAttendanceApi ] error.message >>",
-        error?.message
+        error?.message,
       );
       return thunkAPI.rejectWithValue({ error: error?.message });
     }
-  }
+  },
 );
 export const AdminWorkingHours = createAsyncThunk(
   "AdminWorkingHours",
@@ -189,11 +183,11 @@ export const AdminWorkingHours = createAsyncThunk(
     } catch (error: any) {
       console.error(
         "try catch [ AdminWorkingHours ] error.message >>",
-        error?.message
+        error?.message,
       );
       return thunkAPI.rejectWithValue({ error: error?.message });
     }
-  }
+  },
 );
 
 export const EmployeeRegcategories = createAsyncThunk(
@@ -203,7 +197,7 @@ export const EmployeeRegcategories = createAsyncThunk(
     try {
       let result = await axios({
         method: "GET",
-        baseURL: CONFIG.BASE_URL_LOGIN,
+        baseURL: CONFIG.BASE_URL_ALL,
         headers: {
           "Content-Type": "application/json",
           authorization: `${localStorage.getItem("authToken")}`,
@@ -220,11 +214,11 @@ export const EmployeeRegcategories = createAsyncThunk(
     } catch (error: any) {
       console.error(
         "try catch [ AdminWorkingHours ] error.message >>",
-        error?.message
+        error?.message,
       );
       return thunkAPI.rejectWithValue({ error: error?.message });
     }
-  }
+  },
 );
 
 // Create Regularization Category
@@ -251,11 +245,13 @@ export const createRegCategory = createAsyncThunk(
     } catch (error: any) {
       console.error(
         "try catch [ createRegCategory ] error.message >>",
-        error?.message
+        error?.message,
       );
-      return thunkAPI.rejectWithValue({ error: error?.response?.data?.message || error?.message });
+      return thunkAPI.rejectWithValue({
+        error: error?.response?.data?.message || error?.message,
+      });
     }
-  }
+  },
 );
 
 export const EmployeeAttendanceApi = createAsyncThunk(
@@ -282,11 +278,11 @@ export const EmployeeAttendanceApi = createAsyncThunk(
     } catch (error: any) {
       console.error(
         "try catch [ AttendancesGetApi ] error.message >>",
-        error?.message
+        error?.message,
       );
       return thunkAPI.rejectWithValue({ error: error?.message });
     }
-  }
+  },
 );
 
 export const Employeeregularization = createAsyncThunk(
@@ -318,11 +314,11 @@ export const Employeeregularization = createAsyncThunk(
       console.log("====================================");
       console.error(
         "try catch [ AdminWorkingHours ] error.message >>",
-        error?.message
+        error?.message,
       );
       return thunkAPI.rejectWithValue({ error: error?.message });
     }
-  }
+  },
 );
 
 export const CheckinCheckout = createAsyncThunk(
@@ -362,7 +358,7 @@ export const CheckinCheckout = createAsyncThunk(
         error: error?.message || "API error",
       });
     }
-  }
+  },
 );
 
 export const GetStructureTypes = createAsyncThunk(
@@ -389,11 +385,11 @@ export const GetStructureTypes = createAsyncThunk(
     } catch (error: any) {
       console.error(
         "try catch [ AttendancesGetApi ] error.message >>",
-        error?.message
+        error?.message,
       );
       return thunkAPI.rejectWithValue({ error: error?.message });
     }
-  }
+  },
 );
 
 export const getCountries = createAsyncThunk(
@@ -420,11 +416,11 @@ export const getCountries = createAsyncThunk(
     } catch (error: any) {
       console.error(
         "try catch [ AttendancesGetApi ] error.message >>",
-        error?.message
+        error?.message,
       );
       return thunkAPI.rejectWithValue({ error: error?.message });
     }
-  }
+  },
 );
 
 export const getWorkingSchedules = createAsyncThunk(
@@ -451,11 +447,11 @@ export const getWorkingSchedules = createAsyncThunk(
     } catch (error: any) {
       console.error(
         "try catch [ AttendancesGetApi ] error.message >>",
-        error?.message
+        error?.message,
       );
       return thunkAPI.rejectWithValue({ error: error?.message });
     }
-  }
+  },
 );
 
 export const getRegularPayStructure = createAsyncThunk(
@@ -482,11 +478,11 @@ export const getRegularPayStructure = createAsyncThunk(
     } catch (error: any) {
       console.error(
         "try catch [ getRegularPayStructure ] error.message >>",
-        error?.message
+        error?.message,
       );
       return thunkAPI.rejectWithValue({ error: error?.message });
     }
-  }
+  },
 );
 
 export const getWorkEntryType = createAsyncThunk(
@@ -513,11 +509,11 @@ export const getWorkEntryType = createAsyncThunk(
     } catch (error: any) {
       console.error(
         "try catch [ getRegularPayStructure ] error.message >>",
-        error?.message
+        error?.message,
       );
       return thunkAPI.rejectWithValue({ error: error?.message });
     }
-  }
+  },
 );
 
 export const getSalaryRules = createAsyncThunk(
@@ -544,11 +540,11 @@ export const getSalaryRules = createAsyncThunk(
     } catch (error: any) {
       console.error(
         "try catch [ getSalaryRules ] error.message >>",
-        error?.message
+        error?.message,
       );
       return thunkAPI.rejectWithValue({ error: error?.message });
     }
-  }
+  },
 );
 
 export const getSalaryStructure = createAsyncThunk(
@@ -575,11 +571,11 @@ export const getSalaryStructure = createAsyncThunk(
     } catch (error: any) {
       console.error(
         "try catch [ getSalaryRules ] error.message >>",
-        error?.message
+        error?.message,
       );
       return thunkAPI.rejectWithValue({ error: error?.message });
     }
-  }
+  },
 );
 
 export const getDashboadrdCount = createAsyncThunk(
@@ -606,11 +602,11 @@ export const getDashboadrdCount = createAsyncThunk(
     } catch (error: any) {
       console.error(
         "try catch [ getSalaryRules ] error.message >>",
-        error?.message
+        error?.message,
       );
       return thunkAPI.rejectWithValue({ error: error?.message });
     }
-  }
+  },
 );
 
 // Employee Attendance Export Excel
@@ -625,7 +621,11 @@ export const EmployeeAttendanceExportExcel = createAsyncThunk(
           authorization: `${localStorage.getItem("authToken")}`,
         },
         url: `/api/employee/attendance/export/excel`,
-        params: { user_id, date_from: userdata.date_from, date_to: userdata.date_to },
+        params: {
+          user_id,
+          date_from: userdata.date_from,
+          date_to: userdata.date_to,
+        },
         responseType: "blob",
       });
 
@@ -647,10 +647,13 @@ export const EmployeeAttendanceExportExcel = createAsyncThunk(
         return thunkAPI.rejectWithValue({ error: "Export failed" });
       }
     } catch (error: any) {
-      console.error("try catch [ EmployeeAttendanceExportExcel ] error.message >>", error?.message);
+      console.error(
+        "try catch [ EmployeeAttendanceExportExcel ] error.message >>",
+        error?.message,
+      );
       return thunkAPI.rejectWithValue({ error: error?.message });
     }
-  }
+  },
 );
 
 // Employee Attendance Export PDF
@@ -665,7 +668,11 @@ export const EmployeeAttendanceExportPdf = createAsyncThunk(
           authorization: `${localStorage.getItem("authToken")}`,
         },
         url: `/api/employee/attendance/export/pdf`,
-        params: { user_id, date_from: userdata.date_from, date_to: userdata.date_to },
+        params: {
+          user_id,
+          date_from: userdata.date_from,
+          date_to: userdata.date_to,
+        },
         responseType: "blob",
       });
 
@@ -687,10 +694,13 @@ export const EmployeeAttendanceExportPdf = createAsyncThunk(
         return thunkAPI.rejectWithValue({ error: "Export failed" });
       }
     } catch (error: any) {
-      console.error("try catch [ EmployeeAttendanceExportPdf ] error.message >>", error?.message);
+      console.error(
+        "try catch [ EmployeeAttendanceExportPdf ] error.message >>",
+        error?.message,
+      );
       return thunkAPI.rejectWithValue({ error: error?.message });
     }
-  }
+  },
 );
 
 // Admin Attendance Export Excel
@@ -705,7 +715,11 @@ export const AdminAttendanceExportExcel = createAsyncThunk(
           authorization: `${localStorage.getItem("authToken")}`,
         },
         url: `/api/admin/attendances/export/excel`,
-        params: { user_id, date_from: userdata.date_from, date_to: userdata.date_to },
+        params: {
+          user_id,
+          date_from: userdata.date_from,
+          date_to: userdata.date_to,
+        },
         responseType: "blob",
       });
 
@@ -726,10 +740,13 @@ export const AdminAttendanceExportExcel = createAsyncThunk(
         return thunkAPI.rejectWithValue({ error: "Export failed" });
       }
     } catch (error: any) {
-      console.error("try catch [ AdminAttendanceExportExcel ] error.message >>", error?.message);
+      console.error(
+        "try catch [ AdminAttendanceExportExcel ] error.message >>",
+        error?.message,
+      );
       return thunkAPI.rejectWithValue({ error: error?.message });
     }
-  }
+  },
 );
 
 // Admin Attendance Export PDF
@@ -744,7 +761,11 @@ export const AdminAttendanceExportPdf = createAsyncThunk(
           authorization: `${localStorage.getItem("authToken")}`,
         },
         url: `/api/admin/attendances/export/pdf`,
-        params: { user_id, date_from: userdata.date_from, date_to: userdata.date_to },
+        params: {
+          user_id,
+          date_from: userdata.date_from,
+          date_to: userdata.date_to,
+        },
         responseType: "blob",
       });
 
@@ -765,10 +786,13 @@ export const AdminAttendanceExportPdf = createAsyncThunk(
         return thunkAPI.rejectWithValue({ error: "Export failed" });
       }
     } catch (error: any) {
-      console.error("try catch [ AdminAttendanceExportPdf ] error.message >>", error?.message);
+      console.error(
+        "try catch [ AdminAttendanceExportPdf ] error.message >>",
+        error?.message,
+      );
       return thunkAPI.rejectWithValue({ error: error?.message });
     }
-  }
+  },
 );
 export const TBSlice = createSlice({
   name: "TBSlice",
@@ -814,7 +838,6 @@ export const TBSlice = createSlice({
     isAdminAttendanceExportExcelFetching: false,
     isAdminAttendanceExportPdf: false,
     isAdminAttendanceExportPdfFetching: false,
-
 
     // getSalaryStructure
     isgetSalaryStructure: false,
@@ -905,9 +928,7 @@ export const TBSlice = createSlice({
 
       //isApiAuth
       state.isApiAuth =
-        payload.isApiAuth !== undefined
-          ? payload.isApiAuth
-          : state.isApiAuth;
+        payload.isApiAuth !== undefined ? payload.isApiAuth : state.isApiAuth;
 
       //AttendancesGetApi
       state.isAttendancesGetApi =
@@ -1012,7 +1033,6 @@ export const TBSlice = createSlice({
           ? payload.isAdminAttendanceExportPdf
           : state.isAdminAttendanceExportPdf;
 
-
       state.isgetSalaryRules =
         payload.isgetSalaryRules !== undefined
           ? payload.isgetSalaryRules
@@ -1061,16 +1081,16 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-              ? "Please try again (There was some network issue)."
-              : "Please try again (There was some network issue).")
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
             "Error: [Usersignin.rejected] try catch error >>",
-            error
+            error,
           );
         }
-      }
+      },
     );
     builder.addCase(Usersignin.pending, (state) => {
       state.isUsersigninFetching = true;
@@ -1100,16 +1120,16 @@ export const TBSlice = createSlice({
           state.isError = false;
           payload
             ? (state.errorMessage = payload?.error?.message
-              ? "Please try again (There was some network issue)."
-              : "Please try again (There was some network issue).")
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
             "Error: [Usersignin.rejected] try catch error >>",
-            error
+            error,
           );
         }
-      }
+      },
     );
     builder.addCase(ApiAuth.pending, (state) => {
       state.isApiAuthFetching = true;
@@ -1129,7 +1149,7 @@ export const TBSlice = createSlice({
       } catch (error) {
         console.error(
           "Error: AttendancesApi.fulfilled try catch error >>",
-          error
+          error,
         );
       }
     });
@@ -1143,16 +1163,16 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-              ? "Please try again (There was some network issue)."
-              : "Please try again (There was some network issue).")
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
             "Error: [AttendancesApi.rejected] try catch error >>",
-            error
+            error,
           );
         }
-      }
+      },
     );
     builder.addCase(AttendancesApi.pending, (state) => {
       state.isAttendancesApiFetching = true;
@@ -1171,7 +1191,7 @@ export const TBSlice = createSlice({
       } catch (error) {
         console.error(
           "Error: AttendancesGetApi.fulfilled try catch error >>",
-          error
+          error,
         );
       }
     });
@@ -1185,16 +1205,16 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-              ? "Please try again (There was some network issue)."
-              : "Please try again (There was some network issue).")
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
             "Error: [AttendancesGetApi.rejected] try catch error >>",
-            error
+            error,
           );
         }
-      }
+      },
     );
     builder.addCase(AttendancesGetApi.pending, (state) => {
       state.isAttendancesGetApiFetching = true;
@@ -1215,10 +1235,10 @@ export const TBSlice = createSlice({
         } catch (error) {
           console.error(
             "Error: UpdateAdminAttendanceApi.fulfilled try catch error >>",
-            error
+            error,
           );
         }
-      }
+      },
     );
     builder.addCase(
       UpdateAdminAttendanceApi.rejected,
@@ -1230,16 +1250,16 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-              ? "Please try again (There was some network issue)."
-              : "Please try again (There was some network issue).")
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
             "Error: [UpdateAdminAttendanceApi.rejected] try catch error >>",
-            error
+            error,
           );
         }
-      }
+      },
     );
     builder.addCase(UpdateAdminAttendanceApi.pending, (state) => {
       state.isUpdateAdminAttendanceApiFetching = true;
@@ -1260,7 +1280,7 @@ export const TBSlice = createSlice({
       } catch (error) {
         console.error(
           "Error: AttendancesGetApi.fulfilled try catch error >>",
-          error
+          error,
         );
       }
     });
@@ -1274,16 +1294,16 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-              ? "Please try again (There was some network issue)."
-              : "Please try again (There was some network issue).")
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
             "Error: [AttendancesGetApi.rejected] try catch error >>",
-            error
+            error,
           );
         }
-      }
+      },
     );
     builder.addCase(AdminWorkingHours.pending, (state) => {
       state.isAdminWorkingHoursFetching = true;
@@ -1303,7 +1323,7 @@ export const TBSlice = createSlice({
       } catch (error) {
         console.error(
           "Error: AttendancesGetApi.fulfilled try catch error >>",
-          error
+          error,
         );
       }
     });
@@ -1317,16 +1337,16 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-              ? "Please try again (There was some network issue)."
-              : "Please try again (There was some network issue).")
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
             "Error: [AttendancesGetApi.rejected] try catch error >>",
-            error
+            error,
           );
         }
-      }
+      },
     );
     builder.addCase(EmployeeAttendanceApi.pending, (state) => {
       state.isEmployeeAttendanceApiFetching = true;
@@ -1345,7 +1365,7 @@ export const TBSlice = createSlice({
       } catch (error) {
         console.error(
           "Error: AttendancesGetApi.fulfilled try catch error >>",
-          error
+          error,
         );
       }
     });
@@ -1358,16 +1378,16 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-              ? "Please try again (There was some network issue)."
-              : "Please try again (There was some network issue).")
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
             "Error: [AttendancesGetApi.rejected] try catch error >>",
-            error
+            error,
           );
         }
-      }
+      },
     );
     builder.addCase(EmployeeRegcategories.pending, (state) => {
       state.isEmployeeRegcategoriesFetching = true;
@@ -1380,14 +1400,15 @@ export const TBSlice = createSlice({
         state.isCreateRegCategory = true;
         state.isCreateRegCategoryFetching = false;
         state.isSuccess = true;
-        state.successMessage = payload?.message || "Category created successfully";
+        state.successMessage =
+          payload?.message || "Category created successfully";
         state.isError = false;
         state.errorMessage = "";
         return state;
       } catch (error) {
         console.error(
           "Error: createRegCategory.fulfilled try catch error >>",
-          error
+          error,
         );
       }
     });
@@ -1402,10 +1423,10 @@ export const TBSlice = createSlice({
         } catch (error) {
           console.error(
             "Error: [createRegCategory.rejected] try catch error >>",
-            error
+            error,
           );
         }
-      }
+      },
     );
     builder.addCase(createRegCategory.pending, (state) => {
       state.isCreateRegCategoryFetching = true;
@@ -1424,32 +1445,32 @@ export const TBSlice = createSlice({
       } catch (error) {
         console.error(
           "Error: AttendancesGetApi.fulfilled try catch error >>",
-          error
+          error,
         );
       }
     });
     builder.addCase(
       Employeeregularization.rejected,
       (state, { payload }: { payload: any }) => {
-        console.log('====================================');
+        console.log("====================================");
         console.log(payload, "kpkpkp");
-        console.log('====================================');
+        console.log("====================================");
         try {
           state.isEmployeeregularization = false;
           state.isEmployeeregularizationFetching = false;
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error
-              ? payload?.error
-              : "Please try again (There was some network issue).")
+                ? payload?.error
+                : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
             "Error: [AttendancesGetApi.rejected] try catch error >>",
-            error
+            error,
           );
         }
-      }
+      },
     );
     builder.addCase(Employeeregularization.pending, (state) => {
       state.isEmployeeregularizationFetching = true;
@@ -1468,7 +1489,7 @@ export const TBSlice = createSlice({
       } catch (error) {
         console.error(
           "Error: AttendancesGetApi.fulfilled try catch error >>",
-          error
+          error,
         );
       }
     });
@@ -1481,16 +1502,16 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-              ? "Please try again (There was some network issue)."
-              : "Please try again (There was some network issue).")
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
             "Error: [AttendancesGetApi.rejected] try catch error >>",
-            error
+            error,
           );
         }
-      }
+      },
     );
     builder.addCase(CheckinCheckout.pending, (state) => {
       state.isCheckinCheckoutFetching = true;
@@ -1509,7 +1530,7 @@ export const TBSlice = createSlice({
       } catch (error) {
         console.error(
           "Error: AttendancesGetApi.fulfilled try catch error >>",
-          error
+          error,
         );
       }
     });
@@ -1522,16 +1543,16 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-              ? "Please try again (There was some network issue)."
-              : "Please try again (There was some network issue).")
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
             "Error: [AttendancesGetApi.rejected] try catch error >>",
-            error
+            error,
           );
         }
-      }
+      },
     );
     builder.addCase(GetStructureTypes.pending, (state) => {
       state.isGetStructureTypesFetching = true;
@@ -1550,7 +1571,7 @@ export const TBSlice = createSlice({
       } catch (error) {
         console.error(
           "Error: AttendancesGetApi.fulfilled try catch error >>",
-          error
+          error,
         );
       }
     });
@@ -1563,16 +1584,16 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-              ? "Please try again (There was some network issue)."
-              : "Please try again (There was some network issue).")
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
             "Error: [AttendancesGetApi.rejected] try catch error >>",
-            error
+            error,
           );
         }
-      }
+      },
     );
     builder.addCase(getCountries.pending, (state) => {
       state.isGetCountriesFetching = true;
@@ -1591,7 +1612,7 @@ export const TBSlice = createSlice({
       } catch (error) {
         console.error(
           "Error: AttendancesGetApi.fulfilled try catch error >>",
-          error
+          error,
         );
       }
     });
@@ -1604,16 +1625,16 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-              ? "Please try again (There was some network issue)."
-              : "Please try again (There was some network issue).")
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
             "Error: [AttendancesGetApi.rejected] try catch error >>",
-            error
+            error,
           );
         }
-      }
+      },
     );
     builder.addCase(getWorkingSchedules.pending, (state) => {
       state.isgetWorkingSchedulesFetching = true;
@@ -1632,7 +1653,7 @@ export const TBSlice = createSlice({
       } catch (error) {
         console.error(
           "Error: AttendancesGetApi.fulfilled try catch error >>",
-          error
+          error,
         );
       }
     });
@@ -1645,16 +1666,16 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-              ? "Please try again (There was some network issue)."
-              : "Please try again (There was some network issue).")
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
             "Error: [AttendancesGetApi.rejected] try catch error >>",
-            error
+            error,
           );
         }
-      }
+      },
     );
     builder.addCase(getRegularPayStructure.pending, (state) => {
       state.isgetRegularPayStructureFetching = true;
@@ -1673,7 +1694,7 @@ export const TBSlice = createSlice({
       } catch (error) {
         console.error(
           "Error: AttendancesGetApi.fulfilled try catch error >>",
-          error
+          error,
         );
       }
     });
@@ -1686,16 +1707,16 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-              ? "Please try again (There was some network issue)."
-              : "Please try again (There was some network issue).")
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
             "Error: [AttendancesGetApi.rejected] try catch error >>",
-            error
+            error,
           );
         }
-      }
+      },
     );
     builder.addCase(getWorkEntryType.pending, (state) => {
       state.isgetWorkEntryTypeFetching = true;
@@ -1714,7 +1735,7 @@ export const TBSlice = createSlice({
       } catch (error) {
         console.error(
           "Error: AttendancesGetApi.fulfilled try catch error >>",
-          error
+          error,
         );
       }
     });
@@ -1727,16 +1748,16 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-              ? "Please try again (There was some network issue)."
-              : "Please try again (There was some network issue).")
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
             "Error: [AttendancesGetApi.rejected] try catch error >>",
-            error
+            error,
           );
         }
-      }
+      },
     );
     builder.addCase(getSalaryRules.pending, (state) => {
       state.isgetSalaryRulesFetching = true;
@@ -1755,7 +1776,7 @@ export const TBSlice = createSlice({
       } catch (error) {
         console.error(
           "Error: AttendancesGetApi.fulfilled try catch error >>",
-          error
+          error,
         );
       }
     });
@@ -1768,16 +1789,16 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-              ? "Please try again (There was some network issue)."
-              : "Please try again (There was some network issue).")
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
             "Error: [AttendancesGetApi.rejected] try catch error >>",
-            error
+            error,
           );
         }
-      }
+      },
     );
     builder.addCase(getSalaryStructure.pending, (state) => {
       state.isgetSalaryStructureFetching = true;
@@ -1796,7 +1817,7 @@ export const TBSlice = createSlice({
       } catch (error) {
         console.error(
           "Error: AttendancesGetApi.fulfilled try catch error >>",
-          error
+          error,
         );
       }
     });
@@ -1809,93 +1830,120 @@ export const TBSlice = createSlice({
           state.isError = true;
           payload
             ? (state.errorMessage = payload?.error?.message
-              ? "Please try again (There was some network issue)."
-              : "Please try again (There was some network issue).")
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
             : (state.errorMessage = "API Response Invalid. Please Check API");
         } catch (error) {
           console.error(
             "Error: [AttendancesGetApi.rejected] try catch error >>",
-            error
+            error,
           );
         }
-      }
+      },
     );
     builder.addCase(getDashboadrdCount.pending, (state) => {
       state.isgetDashboadrdCountFetching = true;
     });
 
     // Employee Attendance Export Excel
-    builder.addCase(EmployeeAttendanceExportExcel.fulfilled, (state, { payload }) => {
-      state.isEmployeeAttendanceExportExcel = true;
-      state.isEmployeeAttendanceExportExcelFetching = false;
-      state.isSuccess = true;
-      state.successMessage = payload?.message || "Excel exported successfully";
-      state.isError = false;
-      state.errorMessage = "";
-    });
-    builder.addCase(EmployeeAttendanceExportExcel.rejected, (state, { payload }: { payload: any }) => {
-      state.isEmployeeAttendanceExportExcel = false;
-      state.isEmployeeAttendanceExportExcelFetching = false;
-      state.isError = true;
-      state.errorMessage = payload?.error || "Export failed";
-    });
+    builder.addCase(
+      EmployeeAttendanceExportExcel.fulfilled,
+      (state, { payload }) => {
+        state.isEmployeeAttendanceExportExcel = true;
+        state.isEmployeeAttendanceExportExcelFetching = false;
+        state.isSuccess = true;
+        state.successMessage =
+          payload?.message || "Excel exported successfully";
+        state.isError = false;
+        state.errorMessage = "";
+      },
+    );
+    builder.addCase(
+      EmployeeAttendanceExportExcel.rejected,
+      (state, { payload }: { payload: any }) => {
+        state.isEmployeeAttendanceExportExcel = false;
+        state.isEmployeeAttendanceExportExcelFetching = false;
+        state.isError = true;
+        state.errorMessage = payload?.error || "Export failed";
+      },
+    );
     builder.addCase(EmployeeAttendanceExportExcel.pending, (state) => {
       state.isEmployeeAttendanceExportExcelFetching = true;
     });
 
     // Employee Attendance Export PDF
-    builder.addCase(EmployeeAttendanceExportPdf.fulfilled, (state, { payload }) => {
-      state.isEmployeeAttendanceExportPdf = true;
-      state.isEmployeeAttendanceExportPdfFetching = false;
-      state.isSuccess = true;
-      state.successMessage = payload?.message || "PDF exported successfully";
-      state.isError = false;
-      state.errorMessage = "";
-    });
-    builder.addCase(EmployeeAttendanceExportPdf.rejected, (state, { payload }: { payload: any }) => {
-      state.isEmployeeAttendanceExportPdf = false;
-      state.isEmployeeAttendanceExportPdfFetching = false;
-      state.isError = true;
-      state.errorMessage = payload?.error || "Export failed";
-    });
+    builder.addCase(
+      EmployeeAttendanceExportPdf.fulfilled,
+      (state, { payload }) => {
+        state.isEmployeeAttendanceExportPdf = true;
+        state.isEmployeeAttendanceExportPdfFetching = false;
+        state.isSuccess = true;
+        state.successMessage = payload?.message || "PDF exported successfully";
+        state.isError = false;
+        state.errorMessage = "";
+      },
+    );
+    builder.addCase(
+      EmployeeAttendanceExportPdf.rejected,
+      (state, { payload }: { payload: any }) => {
+        state.isEmployeeAttendanceExportPdf = false;
+        state.isEmployeeAttendanceExportPdfFetching = false;
+        state.isError = true;
+        state.errorMessage = payload?.error || "Export failed";
+      },
+    );
     builder.addCase(EmployeeAttendanceExportPdf.pending, (state) => {
       state.isEmployeeAttendanceExportPdfFetching = true;
     });
 
     // Admin Attendance Export Excel
-    builder.addCase(AdminAttendanceExportExcel.fulfilled, (state, { payload }) => {
-      state.isAdminAttendanceExportExcel = true;
-      state.isAdminAttendanceExportExcelFetching = false;
-      state.isSuccess = true;
-      state.successMessage = payload?.message || "Excel exported successfully";
-      state.isError = false;
-      state.errorMessage = "";
-    });
-    builder.addCase(AdminAttendanceExportExcel.rejected, (state, { payload }: { payload: any }) => {
-      state.isAdminAttendanceExportExcel = false;
-      state.isAdminAttendanceExportExcelFetching = false;
-      state.isError = true;
-      state.errorMessage = payload?.error || "Export failed";
-    });
+    builder.addCase(
+      AdminAttendanceExportExcel.fulfilled,
+      (state, { payload }) => {
+        state.isAdminAttendanceExportExcel = true;
+        state.isAdminAttendanceExportExcelFetching = false;
+        state.isSuccess = true;
+        state.successMessage =
+          payload?.message || "Excel exported successfully";
+        state.isError = false;
+        state.errorMessage = "";
+      },
+    );
+
+    builder.addCase(
+      AdminAttendanceExportExcel.rejected,
+      (state, { payload }: { payload: any }) => {
+        state.isAdminAttendanceExportExcel = false;
+        state.isAdminAttendanceExportExcelFetching = false;
+        state.isError = true;
+        state.errorMessage = payload?.error || "Export failed";
+      },
+    );
     builder.addCase(AdminAttendanceExportExcel.pending, (state) => {
       state.isAdminAttendanceExportExcelFetching = true;
     });
 
     // Admin Attendance Export PDF
-    builder.addCase(AdminAttendanceExportPdf.fulfilled, (state, { payload }) => {
-      state.isAdminAttendanceExportPdf = true;
-      state.isAdminAttendanceExportPdfFetching = false;
-      state.isSuccess = true;
-      state.successMessage = payload?.message || "PDF exported successfully";
-      state.isError = false;
-      state.errorMessage = "";
-    });
-    builder.addCase(AdminAttendanceExportPdf.rejected, (state, { payload }: { payload: any }) => {
-      state.isAdminAttendanceExportPdf = false;
-      state.isAdminAttendanceExportPdfFetching = false;
-      state.isError = true;
-      state.errorMessage = payload?.error || "Export failed";
-    });
+    builder.addCase(
+      AdminAttendanceExportPdf.fulfilled,
+      (state, { payload }) => {
+        state.isAdminAttendanceExportPdf = true;
+        state.isAdminAttendanceExportPdfFetching = false;
+        state.isSuccess = true;
+        state.successMessage = payload?.message || "PDF exported successfully";
+        state.isError = false;
+        state.errorMessage = "";
+      },
+    );
+    builder.addCase(
+      AdminAttendanceExportPdf.rejected,
+      (state, { payload }: { payload: any }) => {
+        state.isAdminAttendanceExportPdf = false;
+        state.isAdminAttendanceExportPdfFetching = false;
+        state.isError = true;
+        state.errorMessage = payload?.error || "Export failed";
+      },
+    );
     builder.addCase(AdminAttendanceExportPdf.pending, (state) => {
       state.isAdminAttendanceExportPdfFetching = true;
     });

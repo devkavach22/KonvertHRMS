@@ -224,6 +224,7 @@ const GeoKHR = () => {
 };
 
 export default GeoKHR;
+
 // import React, { useEffect, useState } from "react";
 // import { all_routes } from "../../../router/all_routes";
 // import DatatableKHR from "../../../CommonComponent/DataTableKHR/DatatableKHR";

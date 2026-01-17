@@ -7,11 +7,10 @@ interface LoadingSpinnerProps {
   text?: string;
 }
 
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
-}) => {
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({}) => {
   return (
-      <div id="global-loader">
-		<div className="page-loader"></div>
-	</div>
+    <div id="global-loader">
+      <div className="page-loader"></div>
+    </div>
   );
 };

@@ -49,7 +49,7 @@ const Sidebar = React.memo(() => {
         setSubopen(title);
       }
     },
-    [subOpen]
+    [subOpen],
   );
 
   // Memoize the toggle subsidebar function
@@ -61,7 +61,7 @@ const Sidebar = React.memo(() => {
         setSubsidebar(subitem);
       }
     },
-    [subsidebar]
+    [subsidebar],
   );
 
   const dispatch = useDispatch<AppDispatch>();
@@ -71,7 +71,7 @@ const Sidebar = React.memo(() => {
     (layout: string) => {
       dispatch(setDataLayout(layout));
     },
-    [dispatch]
+    [dispatch],
   );
 
   // Memoize the click handler
@@ -82,7 +82,7 @@ const Sidebar = React.memo(() => {
         handleLayoutChange(layout);
       }
     },
-    [toggleSidebar, handleLayoutChange]
+    [toggleSidebar, handleLayoutChange],
   );
 
   // Memoize the layout class getter
@@ -300,10 +300,10 @@ const Sidebar = React.memo(() => {
                                       link.submenuItems?.forEach(
                                         (item: SidebarMenuItem) => {
                                           link_array.push(item?.link);
-                                        }
+                                        },
                                       );
                                     }
-                                  }
+                                  },
                                 );
                               }
                               data.links = link_array;
@@ -316,7 +316,7 @@ const Sidebar = React.memo(() => {
                                       handleClick(
                                         data?.label,
                                         data?.themeSetting || false,
-                                        getLayoutClass(data?.label)
+                                        getLayoutClass(data?.label),
                                       )
                                     }
                                     className={`${
@@ -328,7 +328,7 @@ const Sidebar = React.memo(() => {
                                     } ${
                                       data?.submenuItems
                                         ?.map(
-                                          (link: SidebarMenuItem) => link?.link
+                                          (link: SidebarMenuItem) => link?.link,
                                         )
                                         .includes(Location.pathname) ||
                                       data?.link === Location.pathname
@@ -369,7 +369,7 @@ const Sidebar = React.memo(() => {
                                         {data?.submenuItems?.map(
                                           (
                                             item: SidebarMenuItem,
-                                            j: number
+                                            j: number,
                                           ) => (
                                             <li
                                               className={
@@ -431,7 +431,7 @@ const Sidebar = React.memo(() => {
                                                     {item?.submenuItems?.map(
                                                       (
                                                         subItem: SidebarMenuItem,
-                                                        k: number
+                                                        k: number,
                                                       ) => (
                                                         <li
                                                           key={`subitem-${k}`}
@@ -453,23 +453,23 @@ const Sidebar = React.memo(() => {
                                                             </span>
                                                           </Link>
                                                         </li>
-                                                      )
+                                                      ),
                                                     )}
                                                   </ul>
                                                 )}
                                             </li>
-                                          )
+                                          ),
                                         )}
                                       </ul>
                                     )}
                                 </li>
                               );
-                            }
+                            },
                           )}
                         </ul>
                       </li>
                     </React.Fragment>
-                  )
+                  ),
                 )}
               </ul>
             </div>
