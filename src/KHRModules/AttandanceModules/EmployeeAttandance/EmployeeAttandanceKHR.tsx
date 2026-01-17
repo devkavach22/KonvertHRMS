@@ -18,7 +18,6 @@ import {
   EmployeeAttendanceExportPdf,
   TBSelector,
   updateState,
-  
 } from "@/Store/Reducers/TBSlice";
 import { useDispatch, useSelector } from "react-redux";
 // import { toast } from "react-toastify";
@@ -68,7 +67,7 @@ const EmployeeAttendanceKHR = () => {
     isEmployeeAttendanceExportExcelFetching,
     isEmployeeAttendanceExportPdfFetching,
     isAdminWorkingHours,
-    isApiAuth
+    isApiAuth,
   } = useSelector(TBSelector);
 
   const [selectedAttendancee, setSelectedAttendancee] = useState<any>(null);
@@ -85,9 +84,10 @@ const EmployeeAttendanceKHR = () => {
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const dateFrom = firstDayOfMonth.toISOString().split("T")[0];
     const dateTo = today.toISOString().split("T")[0];
-    
-    dispatch(EmployeeAttendanceExportExcel({ date_from: dateFrom, date_to: dateTo }))
-    
+
+    dispatch(
+      EmployeeAttendanceExportExcel({ date_from: dateFrom, date_to: dateTo })
+    );
   };
 
   const handleExportPdf = () => {
@@ -95,8 +95,10 @@ const EmployeeAttendanceKHR = () => {
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const dateFrom = firstDayOfMonth.toISOString().split("T")[0];
     const dateTo = today.toISOString().split("T")[0];
-    
-    dispatch(EmployeeAttendanceExportPdf({ date_from: dateFrom, date_to: dateTo }))
+
+    dispatch(
+      EmployeeAttendanceExportPdf({ date_from: dateFrom, date_to: dateTo })
+    );
   };
 
   if (!CheckinCheckoutData) return null;
@@ -121,16 +123,16 @@ const EmployeeAttendanceKHR = () => {
   const formatDate = (dateStr: string) =>
     dateStr
       ? new Date(dateStr).toLocaleDateString([], {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
       : "";
 
   const handleAction = () => {
     if (!navigator.geolocation) {
       console.log("Geolocation is not supported by your browser");
-      
+
       // toast.error("Geolocation is not supported by your browser");
       return;
     }
@@ -157,7 +159,7 @@ const EmployeeAttendanceKHR = () => {
     // fetchData();
     if (isApiAuth) {
       dispatch(EmployeeAttendanceApi() as any);
-      dispatch(updateState({ isApiAuth: false }))
+      dispatch(updateState({ isApiAuth: false }));
     }
   }, [dispatch, isApiAuth]);
   useEffect(() => {
@@ -192,8 +194,8 @@ const EmployeeAttendanceKHR = () => {
                 typeof item.overtime_hours === "number"
                   ? item.overtime_hours.toFixed(2)
                   : item.overtime_hours
-                    ? String(item.overtime_hours)
-                    : "0",
+                  ? String(item.overtime_hours)
+                  : "0",
               ProductionHours: formatHours(item.total_productive_hours),
             };
           }
@@ -345,10 +347,11 @@ const EmployeeAttendanceKHR = () => {
       dataIndex: "Status",
       render: (text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge ${text === "Present"
-            ? "badge-success-transparent"
-            : "badge-danger-transparent"
-            } d-inline-flex align-items-center`}
+          className={`badge ${
+            text === "Present"
+              ? "badge-success-transparent"
+              : "badge-danger-transparent"
+          } d-inline-flex align-items-center`}
         >
           <i className="ti ti-point-filled me-1" />
           {record.Status}
@@ -386,13 +389,14 @@ const EmployeeAttendanceKHR = () => {
       dataIndex: "ProductionHours",
       render: (_text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge d-inline-flex align-items-center badge-sm ${parseFloat(record.ProductionHours) < 8
-            ? "badge-danger"
-            : parseFloat(record.ProductionHours) >= 8 &&
-              parseFloat(record.ProductionHours) <= 9
+          className={`badge d-inline-flex align-items-center badge-sm ${
+            parseFloat(record.ProductionHours) < 8
+              ? "badge-danger"
+              : parseFloat(record.ProductionHours) >= 8 &&
+                parseFloat(record.ProductionHours) <= 9
               ? "badge-success"
               : "badge-info"
-            }`}
+          }`}
         >
           <i className="ti ti-clock-hour-11 me-1"></i>
           {record.ProductionHours}
@@ -458,23 +462,27 @@ const EmployeeAttendanceKHR = () => {
                     </button>
                     <ul className="dropdown-menu dropdown-menu-end p-3">
                       <li>
-                        <button 
+                        <button
                           className="dropdown-item"
                           onClick={handleExportPdf}
                           disabled={isEmployeeAttendanceExportPdfFetching}
                         >
-                          <i className="ti ti-file-type-pdf me-1" /> 
-                          {isEmployeeAttendanceExportPdfFetching ? "Exporting..." : "PDF"}
+                          <i className="ti ti-file-type-pdf me-1" />
+                          {isEmployeeAttendanceExportPdfFetching
+                            ? "Exporting..."
+                            : "PDF"}
                         </button>
                       </li>
                       <li>
-                        <button 
+                        <button
                           className="dropdown-item"
                           onClick={handleExportExcel}
                           disabled={isEmployeeAttendanceExportExcelFetching}
                         >
-                          <i className="ti ti-file-type-xls me-1" /> 
-                          {isEmployeeAttendanceExportExcelFetching ? "Exporting..." : "Excel"}
+                          <i className="ti ti-file-type-xls me-1" />
+                          {isEmployeeAttendanceExportExcelFetching
+                            ? "Exporting..."
+                            : "Excel"}
                         </button>
                       </li>
                     </ul>
@@ -548,13 +556,14 @@ const EmployeeAttendanceKHR = () => {
                       {datass?.check_out_time
                         ? `Checked Out at ${formatTime(datass.check_out_time)}`
                         : datass?.check_in_time
-                          ? `Punch In at ${formatTime(datass.check_in_time)}`
-                          : "Not Checked In Yet"}
+                        ? `Punch In at ${formatTime(datass.check_in_time)}`
+                        : "Not Checked In Yet"}
                     </h6>
 
                     <button
-                      className={`btn w-100 ${isCheckedIn ? "btn-warning" : "btn-success"
-                        }`}
+                      className={`btn w-100 ${
+                        isCheckedIn ? "btn-warning" : "btn-success"
+                      }`}
                       onClick={handleAction}
                       disabled={isCheckinCheckoutFetching}
                     >
@@ -563,8 +572,8 @@ const EmployeeAttendanceKHR = () => {
                           ? "Checking Out..."
                           : "Checking In..."
                         : isCheckedIn
-                          ? "Punch Out ↪"
-                          : "Punch In"}
+                        ? "Punch Out ↪"
+                        : "Punch In"}
                     </button>
                   </div>
                 </div>

@@ -77,24 +77,24 @@ const LeaveRequestKHR = () => {
           String(b.employee_name || "")
         ),
     },
-    {
-      title: "Company Name",
-      dataIndex: "company_name",
-      render: (val: any) => <span>{val || "-"}</span>,
-      sorter: (a: any, b: any) =>
-        String(a.company_name || "").localeCompare(
-          String(b.company_name || "")
-        ),
-    },
-    {
-      title: "Department Name",
-      dataIndex: "department_name",
-      render: (val: any) => <span>{val || "-"}</span>,
-      sorter: (a: any, b: any) =>
-        String(a.department_name || "").localeCompare(
-          String(b.department_name || "")
-        ),
-    },
+    // {
+    //   title: "Company Name",
+    //   dataIndex: "company_name",
+    //   render: (val: any) => <span>{val || "-"}</span>,
+    //   sorter: (a: any, b: any) =>
+    //     String(a.company_name || "").localeCompare(
+    //       String(b.company_name || "")
+    //     ),
+    // },
+    // {
+    //   title: "Department Name",
+    //   dataIndex: "department_name",
+    //   render: (val: any) => <span>{val || "-"}</span>,
+    //   sorter: (a: any, b: any) =>
+    //     String(a.department_name || "").localeCompare(
+    //       String(b.department_name || "")
+    //     ),
+    // },
     {
       title: "Leave Type",
       dataIndex: "leave_type",
@@ -104,31 +104,20 @@ const LeaveRequestKHR = () => {
     },
     {
       title: "From Date",
-      dataIndex: "from_date",
-      render: (val: any) => (
-        <span>{val ? moment(val).format("YYYY-MM-DD") : "-"}</span>
-      ),
-      sorter: (a: any, b: any) => {
-        const aDate = moment(a.from_date);
-        const bDate = moment(b.from_date);
-        return aDate.isValid() && bDate.isValid()
-          ? aDate.valueOf() - bDate.valueOf()
-          : 0;
-      },
+      dataIndex: ["validity", "from"],
+      render: (val: string) =>
+        val ? moment(val, "YYYY-MM-DD HH:mm:ss").format("YYYY-MM-DD") : "-",
+      sorter: (a: any, b: any) =>
+        moment(a.validity?.from).valueOf() - moment(b.validity?.from).valueOf(),
     },
+
     {
       title: "To Date",
-      dataIndex: "to_date",
-      render: (val: any) => (
-        <span>{val ? moment(val).format("YYYY-MM-DD") : "-"}</span>
-      ),
-      sorter: (a: any, b: any) => {
-        const aDate = moment(a.to_date);
-        const bDate = moment(b.to_date);
-        return aDate.isValid() && bDate.isValid()
-          ? aDate.valueOf() - bDate.valueOf()
-          : 0;
-      },
+      dataIndex: ["validity", "to"],
+      render: (val: string) =>
+        val ? moment(val, "YYYY-MM-DD HH:mm:ss").format("YYYY-MM-DD") : "-",
+      sorter: (a: any, b: any) =>
+        moment(a.validity?.to).valueOf() - moment(b.validity?.to).valueOf(),
     },
     {
       title: "Status",

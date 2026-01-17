@@ -4,7 +4,7 @@ import Instance from "@/api/axiosInstance";
 
 // Helper to get current user ID
 const getCurrentUserId = () => {
-  return localStorage.getItem("user_id") || 3145;
+  return localStorage.getItem("user_id");
 };
 
 /**

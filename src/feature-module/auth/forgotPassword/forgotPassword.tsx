@@ -174,7 +174,7 @@ const ForgotPassword = () => {
                     </div>
                     <div className="mt-5 pb-4 text-center">
                       <p className="mb-0 text-gray-9">
-                        Copyright © 2025 - Konverthr All Rights Reserved{" "}
+                        Copyright © 2026 - Konverthr All Rights Reserved{" "}
                       </p>
                     </div>
                   </div>

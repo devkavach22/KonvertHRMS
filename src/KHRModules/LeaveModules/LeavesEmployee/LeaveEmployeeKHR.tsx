@@ -165,8 +165,8 @@ const LeaveEmployeeKHR = () => {
           parentMenu="Employee"
           activeMenu="Leaves"
           routes={routes}
-          buttonText="Apply Leave"
-          modalTarget="#add_leave_modal"
+          // buttonText="Apply Leave"
+          // modalTarget="#add_leave_modal"
         />
 
         <div className="row">
