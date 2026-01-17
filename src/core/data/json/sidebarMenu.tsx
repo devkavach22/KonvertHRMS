@@ -24,7 +24,7 @@ const rawSidebarData = [
     icon: "airplay",
     showAsTab: true,
     separateRoute: false,
-    roles: [ROLES.EMPLOYEE], // 🔥 Admin Only Section
+    roles: [ROLES.ADMIN], // 🔥 Admin Only Section
     submenuItems: [
       {
         label: "Settings",
@@ -133,7 +133,7 @@ const rawSidebarData = [
           {
             label: "Leaves (Employee)",
             link: routes.leaveEmployeeKHR,
-            roles: [ROLES.EMPLOYEE], // 🔥 Employee Only
+            roles: [ROLES.ADMIN], // 🔥 Employee Only
           },
           {
             label: "Leave Allocation",
@@ -194,7 +194,7 @@ const rawSidebarData = [
     icon: "Approval",
     submenu: true,
     showSubRoute: false,
-    roles: [ROLES.EMPLOYEE], // Both
+    roles: [ROLES.ADMIN], // Both
     submenuItems: [
       {
         label: "Approval",
