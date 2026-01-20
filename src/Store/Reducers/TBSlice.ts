@@ -4,17 +4,16 @@ import Service from "@/Service";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 const { user_id, email } = Service.getAuthDetails();
-console.log(user_id,"uuuuu");
+console.log(user_id, "uuuuu");
 
+// const authheader = () => {
+//   const token = localStorage.getItem("token");
 
-const authheader = () => {
-  const token = localStorage.getItem("token");
-
-  return {
-    Authorization: token ? `Bearer ${token}` : "",
-    "Content-Type": "application/json",
-  };
-};
+//   return {
+//     Authorization: token ? `Bearer ${token}` : "",
+//     "Content-Type": "application/json",
+//   };
+// };
 
 // console.log(user_id, "user_iddd");
 
@@ -46,6 +45,7 @@ export const Usersignin = createAsyncThunk(
 );
 //
 // https://konverthrnode.onrender.com/api/auth
+
 export const ApiAuth = createAsyncThunk("ApiAuth", async (_, thunkAPI) => {
   try {
     console.log("BASE_URL_ALL 👉", CONFIG.BASE_URL_ALL);
@@ -74,7 +74,7 @@ export const AttendancesApi = createAsyncThunk(
   async (userdata, thunkAPI) => {
     console.log(userdata);
     try {
-            const { user_id } = Service.getAuthDetails();
+      const { user_id } = Service.getAuthDetails();
 
       let result = await axios({
         method: "GET",
@@ -1062,44 +1062,44 @@ export const TBSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(Usersignin.fulfilled, (state, { payload }) => {
-      try {
-        state.UsersigninData = payload;
-        state.isUsersignin = true;
-        state.isUsersigninFetching = false;
-        state.isSuccess = true;
-        state.successMessage = "Login Successfull";
-        state.isError = false;
-        state.errorMessage = "";
-        return state;
-      } catch (error) {
-        console.error("Error: Usersignin.fulfilled try catch error >>", error);
-      }
-    });
-    builder.addCase(
-      Usersignin.rejected,
-      (state, { payload }: { payload: any }) => {
-        try {
-          state.UsersigninData = {};
-          state.isUsersignin = false;
-          state.isUsersigninFetching = false;
-          state.isError = true;
-          payload
-            ? (state.errorMessage = payload?.error?.message
-                ? "Please try again (There was some network issue)."
-                : "Please try again (There was some network issue).")
-            : (state.errorMessage = "API Response Invalid. Please Check API");
-        } catch (error) {
-          console.error(
-            "Error: [Usersignin.rejected] try catch error >>",
-            error,
-          );
-        }
-      },
-    );
-    builder.addCase(Usersignin.pending, (state) => {
-      state.isUsersigninFetching = true;
-    });
+    // builder.addCase(Usersignin.fulfilled, (state, { payload }) => {
+    //   try {
+    //     state.UsersigninData = payload;
+    //     state.isUsersignin = true;
+    //     state.isUsersigninFetching = false;
+    //     state.isSuccess = true;
+    //     state.successMessage = "Login Successfull";
+    //     state.isError = false;
+    //     state.errorMessage = "";
+    //     return state;
+    //   } catch (error) {
+    //     console.error("Error: Usersignin.fulfilled try catch error >>", error);
+    //   }
+    // });
+    // builder.addCase(
+    //   Usersignin.rejected,
+    //   (state, { payload }: { payload: any }) => {
+    //     try {
+    //       state.UsersigninData = {};
+    //       state.isUsersignin = false;
+    //       state.isUsersigninFetching = false;
+    //       state.isError = true;
+    //       payload
+    //         ? (state.errorMessage = payload?.error?.message
+    //             ? "Please try again (There was some network issue)."
+    //             : "Please try again (There was some network issue).")
+    //         : (state.errorMessage = "API Response Invalid. Please Check API");
+    //     } catch (error) {
+    //       console.error(
+    //         "Error: [Usersignin.rejected] try catch error >>",
+    //         error,
+    //       );
+    //     }
+    //   },
+    // );
+    // builder.addCase(Usersignin.pending, (state) => {
+    //   state.isUsersigninFetching = true;
+    // });
     ///ApiAuth
     builder.addCase(ApiAuth.fulfilled, (state, { payload }) => {
       try {
