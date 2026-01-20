@@ -1,7 +1,7 @@
 import { DatePicker, TimePicker } from "antd";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import CommonSelect from "@/core/common/commonSelect";
 import { useFormValidation } from "@/KHRModules/commanForm/FormValidation";
 import {
@@ -17,11 +17,6 @@ interface Props {
   attendance: any;
   employeeId: any;
   onClose: () => void;
-}
-
-interface CategoryOption {
-  label: string;
-  value: number;
 }
 
 interface Option {
@@ -57,7 +52,6 @@ const AttendanceQueryModal: React.FC<Props> = ({
   const [categories, setCategories] = useState<Option[]>([]);
   const [errors, setErrors] = useState<any>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
 
   /* ========================= INIT FORM DATA FROM ATTENDANCE ========================= */
   useEffect(() => {
@@ -128,14 +122,12 @@ const AttendanceQueryModal: React.FC<Props> = ({
       return;
     }
 
-    const payload = {
+    const payload: RegularizationPayload = {
       employee_id: employeeId,
       from_date: `${formData.from_date} ${formData.check_in}`,
       to_date: `${formData.to_date} ${formData.check_out}`,
       reg_category: formData.reg_category,
       reg_reason: formData.reg_reason,
-      check_in: formData.check_in,
-      check_out: formData.check_out,
     };
 
     const result: any = await dispatch(Employeeregularization(payload));
@@ -333,6 +325,4 @@ export interface RegularizationPayload {
   to_date: string;
   reg_category: string | number | null; // Accepting both string and number to match your UI
   reg_reason: string;
-  check_in: string | null;
-  check_out: string | null;
 }
