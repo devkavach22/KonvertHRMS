@@ -4,6 +4,7 @@ import Service from "@/Service";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 const { user_id, email } = Service.getAuthDetails();
+console.log(user_id, "uuuuu");
 
 // const authheader = () => {
 //   const token = localStorage.getItem("token");
@@ -17,39 +18,40 @@ const { user_id, email } = Service.getAuthDetails();
 // console.log(user_id, "user_iddd");
 
 //Usersignin
-// export const Usersignin = createAsyncThunk(
-//   "Usersignin",
-//   async (userdata, thunkAPI) => {
-//     try {
-//       let result = await axios({
-//         method: "POST",
-//         baseURL: CONFIG.BASE_URL_LOGIN,
-//         // headers: authheader,
-//         url: `api/login`,
-//         data: userdata,
-//       });
-//       if (result.data) {
-//         return result.data;
-//       } else {
-//         return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
-//       }
-//     } catch (error: any) {
-//       console.error(
-//         "try catch [ Usersignin ] error.message >>",
-//         error?.message,
-//       );
-//       return thunkAPI.rejectWithValue({ error: error?.message });
-//     }
-//   },
-// );
+export const Usersignin = createAsyncThunk(
+  "Usersignin",
+  async (userdata, thunkAPI) => {
+    try {
+      let result = await axios({
+        method: "POST",
+        baseURL: CONFIG.BASE_URL_ALL,
+        // headers: authheader,
+        url: `api/login`,
+        data: userdata,
+      });
+      if (result.data) {
+        return result.data;
+      } else {
+        return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
+      }
+    } catch (error: any) {
+      console.error(
+        "try catch [ Usersignin ] error.message >>",
+        error?.message,
+      );
+      return thunkAPI.rejectWithValue({ error: error?.message });
+    }
+  },
+);
 //
 // https://konverthrnode.onrender.com/api/auth
 
 export const ApiAuth = createAsyncThunk("ApiAuth", async (_, thunkAPI) => {
   try {
+    console.log("BASE_URL_ALL 👉", CONFIG.BASE_URL_ALL);
     let result = await axios({
       method: "POST",
-      baseURL: CONFIG.BASE_URL_LOGIN,
+      baseURL: CONFIG.BASE_URL_ALL,
       // headers: authheader,
       url: `api/auth`,
       data: { user_name: "dhaval" },
@@ -72,9 +74,11 @@ export const AttendancesApi = createAsyncThunk(
   async (userdata, thunkAPI) => {
     console.log(userdata);
     try {
+      const { user_id } = Service.getAuthDetails();
+
       let result = await axios({
         method: "GET",
-        baseURL: CONFIG.BASE_URL_LOGIN,
+        baseURL: CONFIG.BASE_URL_ALL,
         headers: {
           "Content-Type": "application/json",
         },
@@ -104,7 +108,7 @@ export const AttendancesGetApi = createAsyncThunk(
     try {
       let result = await axios({
         method: "GET",
-        baseURL: CONFIG.BASE_URL_LOGIN,
+        baseURL: CONFIG.BASE_URL_ALL,
         headers: {
           "Content-Type": "application/json",
           authorization: `${localStorage.getItem("authToken")}`,
@@ -137,7 +141,7 @@ export const UpdateAdminAttendanceApi = createAsyncThunk(
     try {
       let result = await axios({
         method: "PUT",
-        baseURL: CONFIG.BASE_URL_LOGIN,
+        baseURL: CONFIG.BASE_URL_ALL,
         headers: {
           "Content-Type": "application/json",
           authorization: `${localStorage.getItem("authToken")}`,
@@ -262,7 +266,7 @@ export const EmployeeAttendanceApi = createAsyncThunk(
     try {
       let result = await axios({
         method: "GET",
-        baseURL: CONFIG.BASE_URL_LOGIN,
+        baseURL: CONFIG.BASE_URL_ALL,
         headers: {
           "Content-Type": "application/json",
           authorization: `${localStorage.getItem("authToken")}`,
@@ -293,7 +297,7 @@ export const Employeeregularization = createAsyncThunk(
     try {
       let result = await axios({
         method: "POST",
-        baseURL: CONFIG.BASE_URL_LOGIN,
+        baseURL: CONFIG.BASE_URL_ALL,
         headers: {
           "Content-Type": "application/json",
           authorization: `${localStorage.getItem("authToken")}`,
@@ -586,7 +590,7 @@ export const getDashboadrdCount = createAsyncThunk(
     try {
       let result = await axios({
         method: "GET",
-        baseURL: "http://10.221.59.471:4000/",
+        baseURL: CONFIG.BASE_URL_ALL,
         headers: {
           "Content-Type": "application/json",
           authorization: `${localStorage.getItem("authToken")}`,
