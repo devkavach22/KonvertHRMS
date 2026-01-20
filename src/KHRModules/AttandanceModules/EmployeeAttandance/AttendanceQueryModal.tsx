@@ -107,7 +107,7 @@ const AttendanceQueryModal: React.FC<Props> = ({
         EmployeeRegcategoriesData.data.map((item: any) => ({
           label: item.type,
           value: String(item.id),
-        }))
+        })),
       );
     }
   }, [EmployeeRegcategoriesData]);
@@ -122,13 +122,13 @@ const AttendanceQueryModal: React.FC<Props> = ({
       return;
     }
 
-  const payload: RegularizationPayload = {
-    employee_id: employeeId,
-    from_date: `${formData.from_date} ${formData.check_in}`,
-    to_date: `${formData.to_date} ${formData.check_out}`,
-    reg_category: formData.reg_category,
-    reg_reason: formData.reg_reason
-  };
+    const payload: RegularizationPayload = {
+      employee_id: employeeId,
+      from_date: `${formData.from_date} ${formData.check_in}`,
+      to_date: `${formData.to_date} ${formData.check_out}`,
+      reg_category: formData.reg_category,
+      reg_reason: formData.reg_reason,
+    };
 
     const result: any = await dispatch(Employeeregularization(payload));
 
@@ -142,12 +142,12 @@ const AttendanceQueryModal: React.FC<Props> = ({
     } else {
       toast.error(
         result?.payload?.message ||
-        result?.payload?.error ||
-        "Failed to submit regularization",
+          result?.payload?.error ||
+          "Failed to submit regularization",
         {
           position: "top-right",
           autoClose: 3000,
-        }
+        },
       );
     }
   };
@@ -266,7 +266,7 @@ const AttendanceQueryModal: React.FC<Props> = ({
                 options={categories}
                 placeholder="Select Category"
                 value={categories.find(
-                  (c) => c.value === String(formData.reg_category)
+                  (c) => c.value === String(formData.reg_category),
                 )}
                 onChange={(opt: any) =>
                   setFormData({ ...formData, reg_category: opt?.value })
@@ -313,7 +313,6 @@ const AttendanceQueryModal: React.FC<Props> = ({
       </div>
 
       {/* Add Category Modal */}
-
     </div>
   );
 };
