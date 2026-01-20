@@ -2,15 +2,10 @@ services:
   konvertHR-saas-frontend:
     image: konverthr-saas-frontend
     container_name: konvertHR-saas-frontend-container
-    env_file:
-      # ENV FILE path 
-      - "C:\\Users\\B A P S\\Downloads\\env.development.download"
-    build:
-      context: .
-      args:
-        PORT: ${PORT:-3001}
-        
+    # env_file:
+    #   - .env.development
+    build: .
     ports:
-      - "${PORT:-3001}:${PORT:-3001}"
+      - "3000:3000"
     restart: always
     # scale: 3
