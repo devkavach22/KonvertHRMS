@@ -127,9 +127,7 @@ const AttendanceQueryModal: React.FC<Props> = ({
     from_date: `${formData.from_date} ${formData.check_in}`,
     to_date: `${formData.to_date} ${formData.check_out}`,
     reg_category: formData.reg_category,
-    reg_reason: formData.reg_reason,
-    check_in: formData.check_in,
-    check_out: formData.check_out,
+    reg_reason: formData.reg_reason
   };
 
     const result: any = await dispatch(Employeeregularization(payload));
@@ -328,6 +326,4 @@ export interface RegularizationPayload {
   to_date: string;
   reg_category: string | number | null; // Accepting both string and number to match your UI
   reg_reason: string;
-  check_in: string | null;
-  check_out: string | null;
 }
