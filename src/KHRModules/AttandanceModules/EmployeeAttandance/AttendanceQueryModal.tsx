@@ -122,15 +122,15 @@ const AttendanceQueryModal: React.FC<Props> = ({
       return;
     }
 
-    const payload: RegularizationPayload = {
-      employee_id: employeeId,
+  const payload: RegularizationPayload = {
+    employee_id: employeeId,
     from_date: `${formData.from_date} ${formData.check_in}`,
-  to_date: `${formData.to_date} ${formData.check_out}`,
-      reg_category: formData.reg_category,
-      reg_reason: formData.reg_reason,
-      check_in: formData.check_in,
-      check_out: formData.check_out,
-    };
+    to_date: `${formData.to_date} ${formData.check_out}`,
+    reg_category: formData.reg_category,
+    reg_reason: formData.reg_reason,
+    check_in: formData.check_in,
+    check_out: formData.check_out,
+  };
 
     const result: any = await dispatch(Employeeregularization(payload));
 
