@@ -80,7 +80,7 @@ const DatatableKHR = <T extends object>({
         {/* <h5>{title}</h5> */}
         <div className="d-flex my-xl-auto right-content align-items-center flex-wrap row-gap-3">
           {/* Status Filter */}
-          {showStatusFilter && (
+          {/* {showStatusFilter && (
             <div className="dropdown me-3">
               <button
                 type="button"
@@ -117,7 +117,7 @@ const DatatableKHR = <T extends object>({
                 </li>
               </ul>
             </div>
-          )}
+          )} */}
 
           {/* Sort Filter */}
           {showSortFilter && (
