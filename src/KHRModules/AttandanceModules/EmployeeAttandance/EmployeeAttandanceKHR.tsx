@@ -86,7 +86,7 @@ const EmployeeAttendanceKHR = () => {
     const dateTo = today.toISOString().split("T")[0];
 
     dispatch(
-      EmployeeAttendanceExportExcel({ date_from: dateFrom, date_to: dateTo })
+      EmployeeAttendanceExportExcel({ date_from: dateFrom, date_to: dateTo }),
     );
   };
 
@@ -97,7 +97,7 @@ const EmployeeAttendanceKHR = () => {
     const dateTo = today.toISOString().split("T")[0];
 
     dispatch(
-      EmployeeAttendanceExportPdf({ date_from: dateFrom, date_to: dateTo })
+      EmployeeAttendanceExportPdf({ date_from: dateFrom, date_to: dateTo }),
     );
   };
 
@@ -144,14 +144,14 @@ const EmployeeAttendanceKHR = () => {
           CheckinCheckout({
             Latitude: latitude,
             Longitude: longitude,
-          }) as any
+          }) as any,
         );
       },
       (error) => {
         console.error(error);
         // toast.error("Unable to get your location");
       },
-      { enableHighAccuracy: true }
+      { enableHighAccuracy: true },
     );
   };
 
@@ -174,7 +174,7 @@ const EmployeeAttendanceKHR = () => {
   useEffect(() => {
     if (isEmployeeAttendanceApi) {
       setEmployeeId(
-        EmployeeAttendanceApiData?.data?.employee?.employee_id || null
+        EmployeeAttendanceApiData?.data?.employee?.employee_id || null,
       );
 
       const mappedData: AttendanceAdminData[] =
@@ -194,11 +194,11 @@ const EmployeeAttendanceKHR = () => {
                 typeof item.overtime_hours === "number"
                   ? item.overtime_hours.toFixed(2)
                   : item.overtime_hours
-                  ? String(item.overtime_hours)
-                  : "0",
+                    ? String(item.overtime_hours)
+                    : "0",
               ProductionHours: formatHours(item.total_productive_hours),
             };
-          }
+          },
         );
       setData(mappedData);
       dispatch(updateState({ isEmployeeAttendanceApi: false }));
@@ -274,20 +274,20 @@ const EmployeeAttendanceKHR = () => {
     // 🧮 Calculations
     const totalWorkingHours = attendance_records.reduce(
       (sum: number, r: any) => sum + Number(r.total_working_hours || 0),
-      0
+      0,
     );
 
     console.log(totalWorkingHours, "totalWorkingHours");
 
     const productiveHours = attendance_records.reduce(
       (sum: number, r: any) => sum + Number(r.total_productive_hours || 0),
-      0
+      0,
     );
 
     const overtimeHours = attendance_records.reduce(
       (sum: number, r: any) =>
         Number(r.overtime_hours) > 0 ? sum + Number(r.overtime_hours) : sum,
-      0
+      0,
     );
 
     const breakHours =
@@ -393,9 +393,9 @@ const EmployeeAttendanceKHR = () => {
             parseFloat(record.ProductionHours) < 8
               ? "badge-danger"
               : parseFloat(record.ProductionHours) >= 8 &&
-                parseFloat(record.ProductionHours) <= 9
-              ? "badge-success"
-              : "badge-info"
+                  parseFloat(record.ProductionHours) <= 9
+                ? "badge-success"
+                : "badge-info"
           }`}
         >
           <i className="ti ti-clock-hour-11 me-1"></i>
@@ -556,8 +556,8 @@ const EmployeeAttendanceKHR = () => {
                       {datass?.check_out_time
                         ? `Checked Out at ${formatTime(datass.check_out_time)}`
                         : datass?.check_in_time
-                        ? `Punch In at ${formatTime(datass.check_in_time)}`
-                        : "Not Checked In Yet"}
+                          ? `Punch In at ${formatTime(datass.check_in_time)}`
+                          : "Not Checked In Yet"}
                     </h6>
 
                     <button
@@ -572,8 +572,8 @@ const EmployeeAttendanceKHR = () => {
                           ? "Checking Out..."
                           : "Checking In..."
                         : isCheckedIn
-                        ? "Punch Out ↪"
-                        : "Punch In"}
+                          ? "Punch Out ↪"
+                          : "Punch In"}
                     </button>
                   </div>
                 </div>

@@ -1,7 +1,10 @@
 import MultiSelect from "@/KHRModules/commanForm/inputComman/MultiSelect";
 import React, { useEffect, useState } from "react";
 import { addGeoConfig, updateGeoConfig } from "./GeoServices";
-import { getEmployees } from "@/KHRModules/EmployeModules/Employee/EmployeeServices";
+import {
+  getEmployees,
+  getEmployeesBasicInfo,
+} from "@/KHRModules/EmployeModules/Employee/EmployeeServices";
 import { toast } from "react-toastify";
 
 interface Props {
@@ -33,7 +36,7 @@ const AddEditGeoModal: React.FC<Props> = ({ data, onSuccess, onClose }) => {
   useEffect(() => {
     const fetchEmploymentData = async () => {
       try {
-        const employees = await getEmployees();
+        const employees = await getEmployeesBasicInfo();
         setEmployeeList(employees || []);
       } catch (error) {
         console.error("Error loading employees:", error);
@@ -156,7 +159,7 @@ const AddEditGeoModal: React.FC<Props> = ({ data, onSuccess, onClose }) => {
       // Close Modal Logic
       const modalElement = document.getElementById("add_geo_config");
       const closeBtn = modalElement?.querySelector(
-        '[data-bs-dismiss="modal"]'
+        '[data-bs-dismiss="modal"]',
       ) as HTMLElement;
       if (closeBtn) closeBtn.click();
 
@@ -284,14 +287,14 @@ const AddEditGeoModal: React.FC<Props> = ({ data, onSuccess, onClose }) => {
                   <MultiSelect
                     label="Assigned Employees"
                     value={formData.employees_selection.map(
-                      (e: { id: any }) => e.id
+                      (e: { id: any }) => e.id,
                     )}
                     options={employeesList || []}
                     onChange={(selectedIds: number[]) =>
                       setFormData({
                         ...formData,
                         employees_selection: employeesList?.filter((e) =>
-                          selectedIds.includes(e.id)
+                          selectedIds.includes(e.id),
                         ),
                       })
                     }

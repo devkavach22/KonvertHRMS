@@ -1,126 +1,97 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { all_routes } from "../../../router/all_routes";
 import DatatableKHR from "../../../CommonComponent/DataTableKHR/DatatableKHR";
 import CommonHeader from "../../../CommonComponent/HeaderKHR/HeaderKHR";
+import AddEditRegCategory from "./AddEditRegCategory";
 import {
-  EmployeeRegcategories,
-  createRegCategory,
-  TBSelector,
-  updateState,
-} from "@/Store/Reducers/TBSlice";
-import type { AppDispatch } from "@/Store";
-
-interface RegCategory {
-  id: string;
-  key: string;
-  Category_Type: string;
-  Created_Date: string;
-}
+  getRegCategories,
+  deleteRegCategory,
+  RegCategory,
+} from "./RegCategoryService";
 
 const RegCategoryKHR = () => {
   const routes = all_routes;
-  const dispatch = useDispatch<AppDispatch>();
   const [data, setData] = useState<RegCategory[]>([]);
-  const [type, setType] = useState("");
-  const [editData, setEditData] = useState<RegCategory | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [selectedCategory, setSelectedCategory] = useState<RegCategory | null>(
+    null,
+  );
 
-  const {
-    isEmployeeRegcategories,
-    isEmployeeRegcategoriesFetching,
-    EmployeeRegcategoriesData,
-    isCreateRegCategory,
-    isCreateRegCategoryFetching,
-    isError,
-    errorMessage,
-  } = useSelector(TBSelector);
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // Direct Service Call
+      const response: any = await getRegCategories();
 
-  // Fetch categories on mount
-  useEffect(() => {
-    dispatch(EmployeeRegcategories());
-  }, []);
+      const rawArray = Array.isArray(response) ? response : [];
 
-  // Map data when fetched
-  useEffect(() => {
-    if (isEmployeeRegcategories && EmployeeRegcategoriesData?.data) {
-      const mappedData: RegCategory[] = EmployeeRegcategoriesData.data.map(
-        (item: any) => ({
-          id: String(item.id),
-          key: String(item.id),
-          Category_Type: item.type || "-",
-          Created_Date: item.create_date || "-",
-        })
-      );
+      const mappedData = rawArray.map((item: any) => ({
+        ...item,
+        id: String(item.id),
+        key: String(item.id), // Unique key for Table
+      }));
+
       setData(mappedData);
-      dispatch(updateState({ isEmployeeRegcategories: false }));
+    } catch (error) {
+      console.error("Fetch error:", error);
+      toast.error("Failed to load categories");
+    } finally {
+      setLoading(false);
     }
-  }, [isEmployeeRegcategories, EmployeeRegcategoriesData]);
-
-  // Handle create success
-  useEffect(() => {
-    if (isCreateRegCategory) {
-      toast.success("Category created successfully!");
-      setType("");
-      dispatch(updateState({ isCreateRegCategory: false }));
-      dispatch(EmployeeRegcategories());
-      // Close modal
-      const closeBtn = document.getElementById("close-btn-regcat");
-      closeBtn?.click();
-    }
-  }, [isCreateRegCategory]);
-
-  // Handle error
-  useEffect(() => {
-    if (isError && errorMessage) {
-      toast.error(errorMessage);
-      dispatch(updateState({ isError: false, errorMessage: "" }));
-    }
-  }, [isError, errorMessage]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!type.trim()) {
-      toast.error("Please enter a category type");
-      return;
-    }
-    dispatch(createRegCategory({ type: type.trim() }));
   };
 
-  // Clear form when modal opens for new entry
   useEffect(() => {
-    const modalElement = document.getElementById("add_regcategory");
-    const handleShow = () => {
-      if (!editData) setType("");
-    };
-    const handleHidden = () => {
-      setType("");
-      setEditData(null);
-    };
-    modalElement?.addEventListener("show.bs.modal", handleShow);
-    modalElement?.addEventListener("hidden.bs.modal", handleHidden);
-    return () => {
-      modalElement?.removeEventListener("show.bs.modal", handleShow);
-      modalElement?.removeEventListener("hidden.bs.modal", handleHidden);
-    };
-  }, [editData]);
+    fetchData();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this category?")) {
+      try {
+        await deleteRegCategory(id);
+        toast.success("Category deleted successfully");
+        fetchData();
+      } catch (error) {
+        toast.error("Failed to delete category");
+      }
+    }
+  };
 
   const columns = [
     {
       title: "Category Type",
-      dataIndex: "Category_Type",
+      dataIndex: "type",
       render: (text: string) => (
-        <span className="fs-14 fw-medium text-dark">{text}</span>
+        <span className="fs-14 fw-bold text-dark">{text}</span>
       ),
-      sorter: (a: RegCategory, b: RegCategory) =>
-        a.Category_Type.localeCompare(b.Category_Type),
+      sorter: (a: RegCategory, b: RegCategory) => a.type.localeCompare(b.type),
     },
+    // {
+    //   title: "Created Date",
+    //   dataIndex: "Created_Date",
+    //   sorter: (a: RegCategory, b: RegCategory) =>
+    //     a.Created_Date.localeCompare(b.Created_Date),
+    // },
     {
-      title: "Created Date",
-      dataIndex: "Created_Date",
-      sorter: (a: RegCategory, b: RegCategory) =>
-        a.Created_Date.localeCompare(b.Created_Date),
+      title: "Actions",
+      dataIndex: "id",
+      render: (_: any, record: RegCategory) => (
+        <div className="action-icon d-inline-flex">
+          <Link
+            to="#"
+            className="me-2"
+            data-bs-toggle="modal"
+            data-bs-target="#add_reg_cat_modal"
+            onClick={() => setSelectedCategory(record)}
+          >
+            <i className="ti ti-edit text-blue" />
+          </Link>
+          <Link to="#" onClick={() => handleDelete(String(record.id))}>
+            <i className="ti ti-trash text-danger" />
+          </Link>
+        </div>
+      ),
     },
   ];
 
@@ -128,30 +99,33 @@ const RegCategoryKHR = () => {
     <>
       <div className="page-wrapper">
         <div className="content">
-          <div onClick={() => setEditData(null)}>
+          <div onClick={() => setSelectedCategory(null)}>
             <CommonHeader
               title="Regularization Category"
               parentMenu="Settings"
-              activeMenu="Regularization Category"
+              activeMenu="Reg Category"
               routes={routes}
               buttonText="Add Category"
-              modalTarget="#add_regcategory"
+              modalTarget="#add_reg_cat_modal"
             />
           </div>
 
           <div className="card">
             <div className="card-body p-0">
-              {isEmployeeRegcategoriesFetching ? (
+              {loading ? (
                 <div className="text-center p-5">
-                  <div className="spinner-border text-primary" role="status"></div>
-                  <div className="mt-2">Loading Categories...</div>
+                  <div
+                    className="spinner-border text-primary"
+                    role="status"
+                  ></div>
+                  <div className="mt-2">Fetching Categories...</div>
                 </div>
               ) : (
                 <DatatableKHR
                   data={data}
                   columns={columns}
                   selection={true}
-                  textKey="Category_Type"
+                  textKey="type"
                 />
               )}
             </div>
@@ -159,58 +133,226 @@ const RegCategoryKHR = () => {
         </div>
       </div>
 
-      {/* Add Category Modal */}
-      <div className="modal custom-modal fade" id="add_regcategory" role="dialog">
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header border-0">
-              <h5 className="modal-title">Add Regularization Category</h5>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-                id="close-btn-regcat"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div className="modal-body">
-              <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <label className="form-label">
-                    Category Type <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    required
-                    value={type}
-                    onChange={(e) => setType(e.target.value)}
-                    placeholder="Enter category type (e.g., Work From Home)"
-                  />
-                </div>
-                <div className="modal-footer border-0">
-                  <button
-                    type="button"
-                    className="btn btn-light"
-                    data-bs-dismiss="modal"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={isCreateRegCategoryFetching}
-                  >
-                    {isCreateRegCategoryFetching ? "Creating..." : "Create Category"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
+      <AddEditRegCategory onSuccess={fetchData} data={selectedCategory} />
     </>
   );
 };
 
 export default RegCategoryKHR;
+
+// import React, { useEffect, useState } from "react";
+// import { Link } from "react-router-dom";
+// import { useDispatch, useSelector } from "react-redux";
+// import { toast } from "react-toastify";
+// import { all_routes } from "../../../router/all_routes";
+// import DatatableKHR from "../../../CommonComponent/DataTableKHR/DatatableKHR";
+// import CommonHeader from "../../../CommonComponent/HeaderKHR/HeaderKHR";
+// import {
+//   EmployeeRegcategories,
+//   createRegCategory,
+//   TBSelector,
+//   updateState,
+// } from "@/Store/Reducers/TBSlice";
+// import type { AppDispatch } from "@/Store";
+
+// interface RegCategory {
+//   id: string;
+//   key: string;
+//   Category_Type: string;
+//   Created_Date: string;
+// }
+
+// const RegCategoryKHR = () => {
+//   const routes = all_routes;
+//   const dispatch = useDispatch<AppDispatch>();
+//   const [data, setData] = useState<RegCategory[]>([]);
+//   const [type, setType] = useState("");
+//   const [editData, setEditData] = useState<RegCategory | null>(null);
+
+//   const {
+//     isEmployeeRegcategories,
+//     isEmployeeRegcategoriesFetching,
+//     EmployeeRegcategoriesData,
+//     isCreateRegCategory,
+//     isCreateRegCategoryFetching,
+//     isError,
+//     errorMessage,
+//   } = useSelector(TBSelector);
+
+//   // Fetch categories on mount
+//   useEffect(() => {
+//     dispatch(EmployeeRegcategories());
+//   }, []);
+
+//   // Map data when fetched
+//   useEffect(() => {
+//     if (isEmployeeRegcategories && EmployeeRegcategoriesData?.data) {
+//       const mappedData: RegCategory[] = EmployeeRegcategoriesData.data.map(
+//         (item: any) => ({
+//           id: String(item.id),
+//           key: String(item.id),
+//           Category_Type: item.type || "-",
+//           Created_Date: item.create_date || "-",
+//         })
+//       );
+//       setData(mappedData);
+//       dispatch(updateState({ isEmployeeRegcategories: false }));
+//     }
+//   }, [isEmployeeRegcategories, EmployeeRegcategoriesData]);
+
+//   // Handle create success
+//   useEffect(() => {
+//     if (isCreateRegCategory) {
+//       toast.success("Category created successfully!");
+//       setType("");
+//       dispatch(updateState({ isCreateRegCategory: false }));
+//       dispatch(EmployeeRegcategories());
+//       // Close modal
+//       const closeBtn = document.getElementById("close-btn-regcat");
+//       closeBtn?.click();
+//     }
+//   }, [isCreateRegCategory]);
+
+//   // Handle error
+//   useEffect(() => {
+//     if (isError && errorMessage) {
+//       toast.error(errorMessage);
+//       dispatch(updateState({ isError: false, errorMessage: "" }));
+//     }
+//   }, [isError, errorMessage]);
+
+//   const handleSubmit = (e: React.FormEvent) => {
+//     e.preventDefault();
+//     if (!type.trim()) {
+//       toast.error("Please enter a category type");
+//       return;
+//     }
+//     dispatch(createRegCategory({ type: type.trim() }));
+//   };
+
+//   // Clear form when modal opens for new entry
+//   useEffect(() => {
+//     const modalElement = document.getElementById("add_regcategory");
+//     const handleShow = () => {
+//       if (!editData) setType("");
+//     };
+//     const handleHidden = () => {
+//       setType("");
+//       setEditData(null);
+//     };
+//     modalElement?.addEventListener("show.bs.modal", handleShow);
+//     modalElement?.addEventListener("hidden.bs.modal", handleHidden);
+//     return () => {
+//       modalElement?.removeEventListener("show.bs.modal", handleShow);
+//       modalElement?.removeEventListener("hidden.bs.modal", handleHidden);
+//     };
+//   }, [editData]);
+
+//   const columns = [
+//     {
+//       title: "Category Type",
+//       dataIndex: "Category_Type",
+//       render: (text: string) => (
+//         <span className="fs-14 fw-medium text-dark">{text}</span>
+//       ),
+//       sorter: (a: RegCategory, b: RegCategory) =>
+//         a.Category_Type.localeCompare(b.Category_Type),
+//     },
+//     {
+//       title: "Created Date",
+//       dataIndex: "Created_Date",
+//       sorter: (a: RegCategory, b: RegCategory) =>
+//         a.Created_Date.localeCompare(b.Created_Date),
+//     },
+//   ];
+
+//   return (
+//     <>
+//       <div className="page-wrapper">
+//         <div className="content">
+//           <div onClick={() => setEditData(null)}>
+//             <CommonHeader
+//               title="Regularization Category"
+//               parentMenu="Settings"
+//               activeMenu="Regularization Category"
+//               routes={routes}
+//               buttonText="Add Category"
+//               modalTarget="#add_regcategory"
+//             />
+//           </div>
+
+//           <div className="card">
+//             <div className="card-body p-0">
+//               {isEmployeeRegcategoriesFetching ? (
+//                 <div className="text-center p-5">
+//                   <div className="spinner-border text-primary" role="status"></div>
+//                   <div className="mt-2">Loading Categories...</div>
+//                 </div>
+//               ) : (
+//                 <DatatableKHR
+//                   data={data}
+//                   columns={columns}
+//                   selection={true}
+//                   textKey="Category_Type"
+//                 />
+//               )}
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Add Category Modal */}
+//       <div className="modal custom-modal fade" id="add_regcategory" role="dialog">
+//         <div className="modal-dialog modal-dialog-centered">
+//           <div className="modal-content">
+//             <div className="modal-header border-0">
+//               <h5 className="modal-title">Add Regularization Category</h5>
+//               <button
+//                 type="button"
+//                 className="btn-close"
+//                 data-bs-dismiss="modal"
+//                 id="close-btn-regcat"
+//                 aria-label="Close"
+//               ></button>
+//             </div>
+//             <div className="modal-body">
+//               <form onSubmit={handleSubmit}>
+//                 <div className="mb-3">
+//                   <label className="form-label">
+//                     Category Type <span className="text-danger">*</span>
+//                   </label>
+//                   <input
+//                     type="text"
+//                     className="form-control"
+//                     required
+//                     value={type}
+//                     onChange={(e) => setType(e.target.value)}
+//                     placeholder="Enter category type (e.g., Work From Home)"
+//                   />
+//                 </div>
+//                 <div className="modal-footer border-0">
+//                   <button
+//                     type="button"
+//                     className="btn btn-light"
+//                     data-bs-dismiss="modal"
+//                   >
+//                     Cancel
+//                   </button>
+//                   <button
+//                     type="submit"
+//                     className="btn btn-primary"
+//                     disabled={isCreateRegCategoryFetching}
+//                   >
+//                     {isCreateRegCategoryFetching ? "Creating..." : "Create Category"}
+//                   </button>
+//                 </div>
+//               </form>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </>
+//   );
+// };
+
+// export default RegCategoryKHR;
