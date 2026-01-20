@@ -54,7 +54,7 @@ export const getExpenseAccounts = async () => {
       `employee/expense-account?user_id=${user_id}`,
       {
         headers: { Authorization: token },
-      }
+      },
     );
 
     // Most Odoo-based APIs return an array of [id, "name"] or a data object
@@ -76,7 +76,7 @@ export const createExpense = async (data: any) => {
   // The API expects JSON with a base64 string for the attachment
   return await Instance.post(
     `/employee/create/expense?user_id=${user_id}`,
-    data
+    data,
   );
 };
 
