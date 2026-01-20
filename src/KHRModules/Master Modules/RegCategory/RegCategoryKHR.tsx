@@ -67,6 +67,12 @@ const RegCategoryKHR = () => {
       ),
       sorter: (a: RegCategory, b: RegCategory) => a.type.localeCompare(b.type),
     },
+    // {
+    //   title: "Created Date",
+    //   dataIndex: "Created_Date",
+    //   sorter: (a: RegCategory, b: RegCategory) =>
+    //     a.Created_Date.localeCompare(b.Created_Date),
+    // },
     {
       title: "Actions",
       dataIndex: "id",
