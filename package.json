@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "rimraf dist && tsc -b && vite build",
+    "start": "npx serve -s dist -l 3001",
+    "build": "tsc -b && vite build",
     "build:analyze": "npm run build && node scripts/analyze-bundle.js",
     "analyze": "node scripts/analyze-bundle.js",
     "lint": "eslint .",
-    "preview": "vite preview",
+    "preview": "vite preview --port $PORT",
     "performance": "npm run build:analyze",
     "test": "vitest",
     "test:ui": "vitest --ui",
@@ -31,7 +32,8 @@
     "react-hot-toast": "^2.6.0",
     "react-perfect-scrollbar": "^1.5.8",
     "react-toastify": "^11.0.5",
-    "rollup-plugin-node-polyfills": "^0.2.1"
+    "rollup-plugin-node-polyfills": "^0.2.1",
+    "serve": "^14.2.5"
   },
   "devDependencies": {
     "@ant-design/icons": "^5.6.1",

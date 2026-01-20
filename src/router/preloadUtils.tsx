@@ -7,7 +7,7 @@ export const preloadCriticalComponents = () => {
   preloadComponent(() => import("../feature-module/mainMenu/adminDashboard"))();
   preloadComponent(
     () =>
-      import("../feature-module/mainMenu/employeeDashboard/employee-dashboard")
+      import("../feature-module/mainMenu/employeeDashboard/employee-dashboard"),
   )();
 };
 
@@ -16,46 +16,44 @@ export const preloadRoleBasedComponents = (userRole: string) => {
   switch (userRole) {
     case "admin":
       preloadComponent(
-        () => import("../feature-module/mainMenu/adminDashboard")
+        () => import("../feature-module/mainMenu/adminDashboard"),
       )();
       preloadComponent(
-        () => import("../feature-module/userManagement/manageusers")
+        () => import("../feature-module/userManagement/manageusers"),
       )();
       preloadComponent(
         () =>
-          import("../feature-module/settings/generalSettings/profile-settings")
+          import("../feature-module/settings/generalSettings/profile-settings"),
       )();
       break;
     case "employee":
       preloadComponent(
         () =>
-          import(
-            "../feature-module/mainMenu/employeeDashboard/employee-dashboard"
-          )
+          import("../feature-module/mainMenu/employeeDashboard/employee-dashboard"),
       )();
       preloadComponent(
-        () => import("../feature-module/hrm/attendance/attendance_employee")
+        () => import("../feature-module/hrm/attendance/attendance_employee"),
       )();
       preloadComponent(
-        () => import("../feature-module/hrm/attendance/leaves/leaveEmployee")
+        () => import("../feature-module/hrm/attendance/leaves/leaveEmployee"),
       )();
       break;
     case "super_admin":
       preloadComponent(
-        () => import("../feature-module/super-admin/dashboard")
+        () => import("../feature-module/super-admin/dashboard"),
       )();
       preloadComponent(
-        () => import("../feature-module/super-admin/companies")
+        () => import("../feature-module/super-admin/companies"),
       )();
       preloadComponent(
-        () => import("../feature-module/super-admin/subscription")
+        () => import("../feature-module/super-admin/subscription"),
       )();
       break;
     default:
       // Preload common components for all users
       preloadComponent(() => import("../feature-module/application/chat"))();
       preloadComponent(
-        () => import("../feature-module/mainMenu/apps/calendar")
+        () => import("../feature-module/mainMenu/apps/calendar"),
       )();
   }
 };
@@ -65,7 +63,7 @@ export const preloadRouteComponents = (currentPath: string) => {
   // Preload related components based on current route
   if (currentPath.includes("/crm")) {
     preloadComponent(
-      () => import("../feature-module/crm/contacts/contactList")
+      () => import("../feature-module/crm/contacts/contactList"),
     )();
     preloadComponent(() => import("../feature-module/crm/leads/leadsList"))();
     preloadComponent(() => import("../feature-module/crm/deals/dealsList"))();
@@ -73,51 +71,51 @@ export const preloadRouteComponents = (currentPath: string) => {
 
   if (currentPath.includes("/hrm")) {
     preloadComponent(
-      () => import("../feature-module/hrm/employees/employeesList")
+      () => import("../feature-module/hrm/employees/employeesList"),
     )();
     preloadComponent(
-      () => import("../feature-module/hrm/attendance/attendanceadmin")
+      () => import("../feature-module/hrm/attendance/attendanceadmin"),
     )();
     preloadComponent(
-      () => import("../feature-module/hrm/attendance/leaves/leaveAdmin")
+      () => import("../feature-module/hrm/attendance/leaves/leaveAdmin"),
     )();
   }
 
   if (currentPath.includes("/projects")) {
     preloadComponent(
-      () => import("../feature-module/projects/project/projectlist")
+      () => import("../feature-module/projects/project/projectlist"),
     )();
     preloadComponent(
-      () => import("../feature-module/projects/task/task-board")
+      () => import("../feature-module/projects/task/task-board"),
     )();
     preloadComponent(
-      () => import("../feature-module/projects/clinet/clientlist")
+      () => import("../feature-module/projects/clinet/clientlist"),
     )();
   }
 
   if (currentPath.includes("/finance")) {
     preloadComponent(
-      () => import("../feature-module/finance-accounts/sales/invoices")
+      () => import("../feature-module/finance-accounts/sales/invoices"),
     )();
     preloadComponent(
-      () => import("../feature-module/finance-accounts/sales/expenses")
+      () => import("../feature-module/finance-accounts/sales/expenses"),
     )();
     preloadComponent(
-      () => import("../feature-module/finance-accounts/payrool/payroll")
+      () => import("../feature-module/finance-accounts/payrool/payroll"),
     )();
   }
 
   if (currentPath.includes("/settings")) {
     preloadComponent(
       () =>
-        import("../feature-module/settings/generalSettings/profile-settings")
+        import("../feature-module/settings/generalSettings/profile-settings"),
     )();
     preloadComponent(
       () =>
-        import("../feature-module/settings/generalSettings/security-settings")
+        import("../feature-module/settings/generalSettings/security-settings"),
     )();
     preloadComponent(
-      () => import("../feature-module/settings/websiteSettings/appearance")
+      () => import("../feature-module/settings/websiteSettings/appearance"),
     )();
   }
 };
@@ -129,21 +127,21 @@ export const preloadOnInteraction = (componentPath: string) => {
       preloadComponent(() => import("../feature-module/application/chat"))(),
     "/calendar": () =>
       preloadComponent(
-        () => import("../feature-module/mainMenu/apps/calendar")
+        () => import("../feature-module/mainMenu/apps/calendar"),
       )(),
     "/email": () =>
       preloadComponent(() => import("../feature-module/application/email"))(),
     "/file-manager": () =>
       preloadComponent(
-        () => import("../feature-module/application/fileManager")
+        () => import("../feature-module/application/fileManager"),
       )(),
     "/todo": () =>
       preloadComponent(
-        () => import("../feature-module/application/todo/todo")
+        () => import("../feature-module/application/todo/todo"),
       )(),
     "/contacts": () =>
       preloadComponent(
-        () => import("../feature-module/crm/contacts/contactList")
+        () => import("../feature-module/crm/contacts/contactList"),
       )(),
     "/leads": () =>
       preloadComponent(() => import("../feature-module/crm/leads/leadsList"))(),
@@ -151,23 +149,23 @@ export const preloadOnInteraction = (componentPath: string) => {
       preloadComponent(() => import("../feature-module/crm/deals/dealsList"))(),
     "/employees": () =>
       preloadComponent(
-        () => import("../feature-module/hrm/employees/employeesList")
+        () => import("../feature-module/hrm/employees/employeesList"),
       )(),
     "/projects": () =>
       preloadComponent(
-        () => import("../feature-module/projects/project/projectlist")
+        () => import("../feature-module/projects/project/projectlist"),
       )(),
     "/tasks": () =>
       preloadComponent(
-        () => import("../feature-module/projects/task/task-board")
+        () => import("../feature-module/projects/task/task-board"),
       )(),
     "/invoices": () =>
       preloadComponent(
-        () => import("../feature-module/finance-accounts/sales/invoices")
+        () => import("../feature-module/finance-accounts/sales/invoices"),
       )(),
     "/reports": () =>
       preloadComponent(
-        () => import("../feature-module/administration/reports/expensereport")
+        () => import("../feature-module/administration/reports/expensereport"),
       )(),
   };
 
