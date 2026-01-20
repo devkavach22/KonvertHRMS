@@ -5,45 +5,46 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 const { user_id, email } = Service.getAuthDetails();
 
-const authheader = () => {
-  const token = localStorage.getItem("token");
+// const authheader = () => {
+//   const token = localStorage.getItem("token");
 
-  return {
-    Authorization: token ? `Bearer ${token}` : "",
-    "Content-Type": "application/json",
-  };
-};
+//   return {
+//     Authorization: token ? `Bearer ${token}` : "",
+//     "Content-Type": "application/json",
+//   };
+// };
 
 // console.log(user_id, "user_iddd");
 
 //Usersignin
-export const Usersignin = createAsyncThunk(
-  "Usersignin",
-  async (userdata, thunkAPI) => {
-    try {
-      let result = await axios({
-        method: "POST",
-        baseURL: CONFIG.BASE_URL_LOGIN,
-        // headers: authheader,
-        url: `api/login`,
-        data: userdata,
-      });
-      if (result.data) {
-        return result.data;
-      } else {
-        return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
-      }
-    } catch (error: any) {
-      console.error(
-        "try catch [ Usersignin ] error.message >>",
-        error?.message,
-      );
-      return thunkAPI.rejectWithValue({ error: error?.message });
-    }
-  },
-);
+// export const Usersignin = createAsyncThunk(
+//   "Usersignin",
+//   async (userdata, thunkAPI) => {
+//     try {
+//       let result = await axios({
+//         method: "POST",
+//         baseURL: CONFIG.BASE_URL_LOGIN,
+//         // headers: authheader,
+//         url: `api/login`,
+//         data: userdata,
+//       });
+//       if (result.data) {
+//         return result.data;
+//       } else {
+//         return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
+//       }
+//     } catch (error: any) {
+//       console.error(
+//         "try catch [ Usersignin ] error.message >>",
+//         error?.message,
+//       );
+//       return thunkAPI.rejectWithValue({ error: error?.message });
+//     }
+//   },
+// );
 //
 // https://konverthrnode.onrender.com/api/auth
+
 export const ApiAuth = createAsyncThunk("ApiAuth", async (_, thunkAPI) => {
   try {
     let result = await axios({
@@ -1057,44 +1058,44 @@ export const TBSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(Usersignin.fulfilled, (state, { payload }) => {
-      try {
-        state.UsersigninData = payload;
-        state.isUsersignin = true;
-        state.isUsersigninFetching = false;
-        state.isSuccess = true;
-        state.successMessage = "Login Successfull";
-        state.isError = false;
-        state.errorMessage = "";
-        return state;
-      } catch (error) {
-        console.error("Error: Usersignin.fulfilled try catch error >>", error);
-      }
-    });
-    builder.addCase(
-      Usersignin.rejected,
-      (state, { payload }: { payload: any }) => {
-        try {
-          state.UsersigninData = {};
-          state.isUsersignin = false;
-          state.isUsersigninFetching = false;
-          state.isError = true;
-          payload
-            ? (state.errorMessage = payload?.error?.message
-                ? "Please try again (There was some network issue)."
-                : "Please try again (There was some network issue).")
-            : (state.errorMessage = "API Response Invalid. Please Check API");
-        } catch (error) {
-          console.error(
-            "Error: [Usersignin.rejected] try catch error >>",
-            error,
-          );
-        }
-      },
-    );
-    builder.addCase(Usersignin.pending, (state) => {
-      state.isUsersigninFetching = true;
-    });
+    // builder.addCase(Usersignin.fulfilled, (state, { payload }) => {
+    //   try {
+    //     state.UsersigninData = payload;
+    //     state.isUsersignin = true;
+    //     state.isUsersigninFetching = false;
+    //     state.isSuccess = true;
+    //     state.successMessage = "Login Successfull";
+    //     state.isError = false;
+    //     state.errorMessage = "";
+    //     return state;
+    //   } catch (error) {
+    //     console.error("Error: Usersignin.fulfilled try catch error >>", error);
+    //   }
+    // });
+    // builder.addCase(
+    //   Usersignin.rejected,
+    //   (state, { payload }: { payload: any }) => {
+    //     try {
+    //       state.UsersigninData = {};
+    //       state.isUsersignin = false;
+    //       state.isUsersigninFetching = false;
+    //       state.isError = true;
+    //       payload
+    //         ? (state.errorMessage = payload?.error?.message
+    //             ? "Please try again (There was some network issue)."
+    //             : "Please try again (There was some network issue).")
+    //         : (state.errorMessage = "API Response Invalid. Please Check API");
+    //     } catch (error) {
+    //       console.error(
+    //         "Error: [Usersignin.rejected] try catch error >>",
+    //         error,
+    //       );
+    //     }
+    //   },
+    // );
+    // builder.addCase(Usersignin.pending, (state) => {
+    //   state.isUsersigninFetching = true;
+    // });
     ///ApiAuth
     builder.addCase(ApiAuth.fulfilled, (state, { payload }) => {
       try {

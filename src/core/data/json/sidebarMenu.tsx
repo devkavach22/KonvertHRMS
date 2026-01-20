@@ -4,7 +4,7 @@ const routes = all_routes;
 // 1. Define Roles
 const ROLES = {
   ADMIN: "REGISTER_ADMIN",
-  EMPLOYEE: "EMPLOYEE",
+  EMPLOYEE: "EMPLOYEE_RELATED_OWN_USER",
 };
 
 // 2. Get current role safely (handles SSR or missing localstorage)
@@ -24,7 +24,7 @@ const rawSidebarData = [
     icon: "airplay",
     showAsTab: true,
     separateRoute: false,
-    roles: [ROLES.ADMIN], // 🔥 Admin Only Section
+    roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only Section
     submenuItems: [
       {
         label: "Settings",
@@ -70,7 +70,7 @@ const rawSidebarData = [
         base: "dashboard",
         materialicons: "start",
         dot: false,
-        roles: [ROLES.ADMIN], // 🔥 Admin Only
+        roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only
         submenuItems: [
           { label: "Employees", link: routes.employeeKHR },
           { label: "Expense", link: routes.expenseKHR },
@@ -98,7 +98,7 @@ const rawSidebarData = [
           {
             label: "Admin Attendance",
             link: routes.attendanceAdminKHR,
-            roles: [ROLES.ADMIN], // 🔥 Admin Only
+            roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only
           },
           {
             label: "Employees Attendance",
@@ -128,7 +128,7 @@ const rawSidebarData = [
           {
             label: "Leaves (Admin)",
             link: routes.leaveAdminKHR,
-            roles: [ROLES.ADMIN], // 🔥 Admin Only
+            roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only
           },
           {
             label: "Leaves (Employee)",
@@ -158,7 +158,7 @@ const rawSidebarData = [
           {
             label: "Mendetory Days",
             link: routes.mendetoryDaysKHR,
-            roles: [ROLES.ADMIN],
+            roles: [ROLES.ADMIN, ROLES.EMPLOYEE],
           },
         ],
       },
@@ -169,7 +169,7 @@ const rawSidebarData = [
     icon: "payroll",
     showAsTab: true,
     separateRoute: false,
-    roles: [ROLES.ADMIN], // 🔥 Admin Only Section
+    roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only Section
     submenuItems: [
       {
         label: "Payroll",
@@ -194,7 +194,7 @@ const rawSidebarData = [
     icon: "Approval",
     submenu: true,
     showSubRoute: false,
-    roles: [ROLES.ADMIN], // Both
+    roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // Both
     submenuItems: [
       {
         label: "Approval",

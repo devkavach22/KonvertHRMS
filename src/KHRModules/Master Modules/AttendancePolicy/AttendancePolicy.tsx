@@ -46,7 +46,7 @@ const AttendancePolicy = () => {
             late_beyond_time: item.late_beyond_time || 0,
             created_date: item.create_date || "-",
           };
-        }
+        },
       );
 
       setData(mappedData);
@@ -98,14 +98,14 @@ const AttendancePolicy = () => {
         <span className="text-muted">{text.replace(/_/g, " ")}</span>
       ),
     },
-    {
-      title: "Created Date",
-      dataIndex: "created_date",
-      render: (date: string) => {
-        if (!date || date === "-") return <span>-</span>;
-        return <span>{moment(date).format("DD MMM YYYY")}</span>;
-      },
-    },
+    // {
+    //   title: "Created Date",
+    //   dataIndex: "created_date",
+    //   render: (date: string) => {
+    //     if (!date || date === "-") return <span>-</span>;
+    //     return <span>{moment(date).format("DD MMM YYYY")}</span>;
+    //   },
+    // },
     {
       title: "Actions",
       key: "actions",

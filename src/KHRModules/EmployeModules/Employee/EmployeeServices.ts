@@ -67,12 +67,12 @@ export const getApprovalGroups = async () => {
   }
 };
 
-export const getGroupUsers = async (groupId: string) => {
+export const getGroupUsers = async (groupId: string, userId?: string) => {
   if (!groupId) return [];
   try {
     // Calling: http://localhost:4000/api/groups/users?group_id=69
     const response = await Instance.get("/api/groups/users", {
-      params: { group_id: groupId },
+      params: { group_id: groupId, user_id: userId || getUserId() },
     });
     return response.data || [];
   } catch (error) {
