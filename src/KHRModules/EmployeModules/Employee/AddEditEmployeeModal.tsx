@@ -287,7 +287,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
         employee_category: data.employee_category
           ? data.employee_category.toLowerCase()
           : "staff",
-        attendance_capture_mode: data.attendance_capture_mode || "MobileAPP",
+        attendance_capture_mode: data.attendance_capture_mode,
 
         // --- Handle numeric fields ---
         pin_code: data.pin_code === 0 ? "" : data.pin_code,
@@ -747,7 +747,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
         data.map((b: any) => ({
           value: b.id.toString(),
           label: b.name,
-        }))
+        })),
       );
     };
     fetchBranchData();
@@ -760,10 +760,10 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
       ]);
 
       setAttendancePolicies(
-        policies.map((p: any) => ({ value: p.id, label: p.name }))
+        policies.map((p: any) => ({ value: p.id, label: p.name })),
       );
       setWorkingSchedules(
-        schedules.map((s: any) => ({ value: s.id, label: s.name }))
+        schedules.map((s: any) => ({ value: s.id, label: s.name })),
       );
     };
     fetchDropdownData();
@@ -776,13 +776,13 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
         getDistricts(),
       ]);
       setStates(
-        stateData.map((s: any) => ({ value: s.id.toString(), label: s.name }))
+        stateData.map((s: any) => ({ value: s.id.toString(), label: s.name })),
       );
       setDistricts(
         districtData.map((d: any) => ({
           value: d.id.toString(),
           label: d.name,
-        }))
+        })),
       );
     };
     fetchAddressData();
@@ -890,7 +890,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
     const fetchCountries = async () => {
       const data = await getCountries();
       setCountries(
-        data.map((c: any) => ({ value: c.id.toString(), label: c.name }))
+        data.map((c: any) => ({ value: c.id.toString(), label: c.name })),
       );
     };
     fetchCountries();
@@ -928,22 +928,22 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
         ]);
 
         setBusinessTypes(
-          bTypes.map((i: any) => ({ value: i.id.toString(), label: i.name }))
+          bTypes.map((i: any) => ({ value: i.id.toString(), label: i.name })),
         );
         setBusinessLocations(
-          bLocs.map((i: any) => ({ value: i.id.toString(), label: i.name }))
+          bLocs.map((i: any) => ({ value: i.id.toString(), label: i.name })),
         );
         setDepartments(
-          depts.map((i: any) => ({ value: i.id.toString(), label: i.name }))
+          depts.map((i: any) => ({ value: i.id.toString(), label: i.name })),
         );
         setDesignations(
           jobs.map((i: any) => ({
             value: String(i.job_id || i.id),
             label: i.name,
-          }))
+          })),
         );
         setWorkLocations(
-          wLocs.map((i: any) => ({ value: i.id.toString(), label: i.name }))
+          wLocs.map((i: any) => ({ value: i.id.toString(), label: i.name })),
         );
 
         const managerOptions = empList.map((i: any) => ({
@@ -1446,7 +1446,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
 
     // Check if every single tab is valid
     const isFormValid = Object.values(validations).every(
-      (isValid) => isValid === true
+      (isValid) => isValid === true,
     );
 
     console.log("Validation Results:", validations);
@@ -1454,7 +1454,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
     if (!isFormValid) {
       setShowErrorAlert(true);
       toast.error(
-        "Required fields are missing. Please check the highlighted tabs."
+        "Required fields are missing. Please check the highlighted tabs.",
       );
 
       // SMOOTH SCROLL: Jump to top of modal to show error alert
@@ -1606,7 +1606,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
       toast.success(
         data?.id
           ? "Employee updated successfully"
-          : "Employee created successfully"
+          : "Employee created successfully",
       );
       onSuccess();
       document.getElementById("close-emp-modal")?.click();
@@ -1661,8 +1661,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                               ? errors.name
                                 ? "is-invalid"
                                 : formData.name
-                                ? "is-valid"
-                                : ""
+                                  ? "is-valid"
+                                  : ""
                               : ""
                           }`}
                           placeholder="Enter Name"
@@ -1692,8 +1692,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                               ? errors.father_name
                                 ? "is-invalid"
                                 : formData.father_name
-                                ? "is-valid"
-                                : ""
+                                  ? "is-valid"
+                                  : ""
                               : ""
                           }`}
                           placeholder="Enter Father's Name"
@@ -1765,7 +1765,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                             options={branches}
                             placeholder="Select Branch"
                             defaultValue={branches.find(
-                              (b) => b.value === formData.name_of_client
+                              (b) => b.value === formData.name_of_client,
                             )}
                             onChange={(opt) => {
                               setFormData({
@@ -1785,7 +1785,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                           options={attendancePolicies}
                           placeholder="Select Policy"
                           defaultValue={attendancePolicies.find(
-                            (opt) => opt.value === formData.attendance_policy_id
+                            (opt) =>
+                              opt.value === formData.attendance_policy_id,
                           )}
                           onChange={(opt) =>
                             setFormData({
@@ -1830,7 +1831,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                           options={workingSchedules}
                           placeholder="Select Hours"
                           defaultValue={workingSchedules.find(
-                            (opt) => opt.value === formData.resource_calendar_id
+                            (opt) =>
+                              opt.value === formData.resource_calendar_id,
                           )}
                           onChange={(opt) =>
                             setFormData({
@@ -1848,7 +1850,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                           options={shiftRosters}
                           placeholder="Select Roster"
                           defaultValue={shiftRosters.find(
-                            (opt) => opt.value === formData.shift_roster_id
+                            (opt) => opt.value === formData.shift_roster_id,
                           )}
                           onChange={(opt) =>
                             setFormData({
@@ -1866,7 +1868,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                           options={timezones}
                           placeholder="Select Timezone"
                           defaultValue={timezones.find(
-                            (opt) => opt.value === formData.timezone
+                            (opt) => opt.value === formData.timezone,
                           )}
                           onChange={(opt) =>
                             setFormData({
@@ -1986,8 +1988,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                           {tab === "Legal"
                             ? "Legal / Identification"
                             : tab === "Group Access"
-                            ? "Group Access"
-                            : tab + " Information"}
+                              ? "Group Access"
+                              : tab + " Information"}
                         </button>
                       </li>
                     ))}
@@ -2022,8 +2024,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                   ? errors.aadhaar_number
                                     ? "is-invalid"
                                     : formData.aadhaar_number
-                                    ? "is-valid"
-                                    : ""
+                                      ? "is-valid"
+                                      : ""
                                   : ""
                               }`}
                               placeholder="12 Digit Aadhaar"
@@ -2060,8 +2062,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                   ? errors.pan_number
                                     ? "is-invalid"
                                     : formData.pan_number
-                                    ? "is-valid"
-                                    : ""
+                                      ? "is-valid"
+                                      : ""
                                   : ""
                               }`}
                               maxLength={10}
@@ -2454,8 +2456,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                       ? errors.spouse_name
                                         ? "is-invalid"
                                         : formData.spouse_name
-                                        ? "is-valid"
-                                        : ""
+                                          ? "is-valid"
+                                          : ""
                                       : ""
                                   }`}
                                   placeholder="Enter Spouse Name"
@@ -2486,8 +2488,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                       ? errors.date_of_marriage
                                         ? "is-invalid"
                                         : formData.date_of_marriage
-                                        ? "is-valid"
-                                        : ""
+                                          ? "is-valid"
+                                          : ""
                                       : ""
                                   }`}
                                   value={
@@ -2528,8 +2530,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                   ? errors.birthday
                                     ? "is-invalid"
                                     : formData.birthday
-                                    ? "is-valid"
-                                    : ""
+                                      ? "is-valid"
+                                      : ""
                                   : ""
                               }`}
                               value={
@@ -2561,8 +2563,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                   ? errors.blood_group
                                     ? "border border-danger rounded"
                                     : formData.blood_group
-                                    ? "border border-success rounded"
-                                    : ""
+                                      ? "border border-success rounded"
+                                      : ""
                                   : ""
                               }
                             >
@@ -2691,8 +2693,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                     ? errors.work_phone
                                       ? "is-invalid"
                                       : formData.work_phone
-                                      ? "is-valid"
-                                      : ""
+                                        ? "is-valid"
+                                        : ""
                                     : ""
                                 }`}
                                 maxLength={10}
@@ -2702,7 +2704,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                     ...formData,
                                     work_phone: e.target.value.replace(
                                       /\D/g,
-                                      ""
+                                      "",
                                     ),
                                   });
                                   // Clear error immediately on type
@@ -2732,8 +2734,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                   ? errors.private_email
                                     ? "is-invalid"
                                     : formData.private_email
-                                    ? "is-valid"
-                                    : ""
+                                      ? "is-valid"
+                                      : ""
                                   : ""
                               }`}
                               placeholder="example@gmail.com"
@@ -2770,7 +2772,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                   ...formData,
                                   mobile_phone: e.target.value.replace(
                                     /\D/g,
-                                    ""
+                                    "",
                                   ),
                                 })
                               }
@@ -2846,8 +2848,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                   ? errors.present_address
                                     ? "is-invalid"
                                     : formData.present_address
-                                    ? "is-valid"
-                                    : ""
+                                      ? "is-valid"
+                                      : ""
                                   : ""
                               }`}
                               placeholder="House no, Building, Street..."
@@ -2882,8 +2884,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                   ? errors.permanent_address
                                     ? "is-invalid"
                                     : formData.permanent_address
-                                    ? "is-valid"
-                                    : ""
+                                      ? "is-valid"
+                                      : ""
                                   : ""
                               }`}
                               placeholder="Same as present or different..."
@@ -2944,7 +2946,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                               options={districts}
                               placeholder="Select City/District"
                               defaultValue={districts.find(
-                                (d) => d.value === String(formData.district_id)
+                                (d) => d.value === String(formData.district_id),
                               )}
                               onChange={(opt) =>
                                 setFormData({
@@ -2962,7 +2964,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                               options={states}
                               placeholder="Select State"
                               defaultValue={states.find(
-                                (s) => s.value === String(formData.state_id)
+                                (s) => s.value === String(formData.state_id),
                               )}
                               onChange={(opt) =>
                                 setFormData({
@@ -2980,7 +2982,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                               options={countries}
                               placeholder="Select Country"
                               defaultValue={countries.find(
-                                (c) => c.value === String(formData.country_id)
+                                (c) => c.value === String(formData.country_id),
                               )}
                               onChange={(opt) =>
                                 setFormData({
@@ -3018,8 +3020,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                   ? errors.emergency_contact_name
                                     ? "is-invalid"
                                     : formData.emergency_contact_name
-                                    ? "is-valid"
-                                    : ""
+                                      ? "is-valid"
+                                      : ""
                                   : ""
                               }`}
                               placeholder="Full Name"
@@ -3056,8 +3058,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                   ? errors.emergency_contact_relation
                                     ? "is-invalid"
                                     : formData.emergency_contact_relation
-                                    ? "is-valid"
-                                    : ""
+                                      ? "is-valid"
+                                      : ""
                                   : ""
                               }`}
                               placeholder="e.g. Spouse, Father, Brother"
@@ -3100,8 +3102,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                     ? errors.emergency_contact_mobile
                                       ? "is-invalid"
                                       : formData.emergency_contact_mobile
-                                      ? "is-valid"
-                                      : ""
+                                        ? "is-valid"
+                                        : ""
                                     : ""
                                 }`}
                                 maxLength={10}
@@ -3189,7 +3191,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                 placeholder="Select Department"
                                 defaultValue={departments.find(
                                   (o) =>
-                                    o.value === String(formData.department_id)
+                                    o.value === String(formData.department_id),
                                 )}
                                 onChange={(opt) => {
                                   setFormData({
@@ -3211,7 +3213,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                 options={designations}
                                 placeholder="Select Designation"
                                 defaultValue={designations.find(
-                                  (o) => o.value === String(formData.job_id)
+                                  (o) => o.value === String(formData.job_id),
                                 )}
                                 onChange={(opt) => {
                                   setFormData({
@@ -3239,7 +3241,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                 { value: "fixed_term", label: "Fixed Term" },
                                 { value: "temporary", label: "Temporary" },
                               ].find(
-                                (opt) => opt.value === formData.employment_type
+                                (opt) => opt.value === formData.employment_type,
                               )}
                               onChange={(opt) =>
                                 setFormData({
@@ -3353,8 +3355,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                   ? errors.employee_password
                                     ? "is-invalid"
                                     : formData.employee_password
-                                    ? "is-valid"
-                                    : ""
+                                      ? "is-valid"
+                                      : ""
                                   : ""
                               }`}
                               placeholder="System Access Password"
@@ -3452,7 +3454,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                               defaultValue={managers.find(
                                 (o) =>
                                   o.value ===
-                                  String(formData.reporting_manager_id)
+                                  String(formData.reporting_manager_id),
                               )}
                               onChange={(opt) =>
                                 setFormData({
@@ -3472,7 +3474,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                               defaultValue={managers.find(
                                 (o) =>
                                   o.value ===
-                                  String(formData.head_of_department_id)
+                                  String(formData.head_of_department_id),
                               )}
                               onChange={(opt) =>
                                 setFormData({
@@ -3629,8 +3631,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                   ? errors.bank_account_id
                                     ? "border border-danger rounded shadow-sm"
                                     : formData.bank_account_id
-                                    ? "border border-success rounded shadow-sm"
-                                    : ""
+                                      ? "border border-success rounded shadow-sm"
+                                      : ""
                                   : ""
                               }
                             >
@@ -3640,7 +3642,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                 defaultValue={banks.find(
                                   (opt) =>
                                     opt.value ===
-                                    String(formData.bank_account_id)
+                                    String(formData.bank_account_id),
                                 )}
                                 onChange={(option) => {
                                   setFormData({
@@ -3858,8 +3860,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                   ? errors.type_of_sepration
                                     ? "border border-danger rounded shadow-sm"
                                     : formData.type_of_sepration
-                                    ? "border border-success rounded shadow-sm"
-                                    : ""
+                                      ? "border border-success rounded shadow-sm"
+                                      : ""
                                   : ""
                               }
                             >
@@ -3918,8 +3920,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                   ? errors.resignation_date
                                     ? "is-invalid"
                                     : formData.resignation_date
-                                    ? "is-valid"
-                                    : ""
+                                      ? "is-valid"
+                                      : ""
                                   : ""
                               }`}
                               value={
@@ -3943,7 +3945,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                 ) {
                                   calculateNoticeEndDate(
                                     Number(formData.notice_period_days),
-                                    dateStr
+                                    dateStr,
                                   );
                                 }
                               }}
@@ -3968,8 +3970,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                   ? errors.notice_period_days
                                     ? "is-invalid"
                                     : formData.notice_period_days > 0
-                                    ? "is-valid"
-                                    : ""
+                                      ? "is-valid"
+                                      : ""
                                   : ""
                               }`}
                               placeholder="e.g. 30"
@@ -3990,7 +3992,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                 ) {
                                   calculateNoticeEndDate(
                                     Number(val),
-                                    formData.resignation_date
+                                    formData.resignation_date,
                                   );
                                 }
                               }}
@@ -4166,12 +4168,12 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                       defaultValue={groupOptions.find(
                                         (g) =>
                                           String(g.value) ===
-                                          String(line.group_id)
+                                          String(line.group_id),
                                       )}
                                       onChange={(opt) =>
                                         handleGroupSelect(
                                           index,
-                                          opt?.value || ""
+                                          opt?.value || "",
                                         )
                                       }
                                     />
@@ -4210,13 +4212,13 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                       ).find(
                                         (u) =>
                                           String(u.value) ===
-                                          String(line.approval_user_id)
+                                          String(line.approval_user_id),
                                       )}
                                       onChange={(opt) =>
                                         handleLineChange(
                                           index,
                                           "approval_user_id",
-                                          opt?.value
+                                          opt?.value,
                                         )
                                       }
                                     />
@@ -4233,7 +4235,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({ onSuccess, data }) => {
                                         handleLineChange(
                                           index,
                                           "approval_sequance",
-                                          e.target.value
+                                          e.target.value,
                                         )
                                       }
                                     />
