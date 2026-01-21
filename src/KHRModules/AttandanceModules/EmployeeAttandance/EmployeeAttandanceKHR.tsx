@@ -16,6 +16,7 @@ import {
   EmployeeAttendanceApi,
   EmployeeAttendanceExportExcel,
   EmployeeAttendanceExportPdf,
+  getRegularizationStatus,
   TBSelector,
   updateState,
 } from "@/Store/Reducers/TBSlice";
@@ -37,6 +38,8 @@ interface AttendanceAdminData {
   Late: string;
   ProductionHours: string;
   employeeId: number;
+  regularizationStatus?: string;
+  hasRegularization?: boolean;
 }
 
 // Define a type for employee attendance
@@ -68,6 +71,8 @@ const EmployeeAttendanceKHR = () => {
     isEmployeeAttendanceExportPdfFetching,
     isAdminWorkingHours,
     isApiAuth,
+    isGetRegularizationStatus,
+    getRegularizationStatusData,
   } = useSelector(TBSelector);
 
   const [selectedAttendancee, setSelectedAttendancee] = useState<any>(null);
@@ -159,6 +164,7 @@ const EmployeeAttendanceKHR = () => {
     // fetchData();
     if (isApiAuth) {
       dispatch(EmployeeAttendanceApi() as any);
+      dispatch(getRegularizationStatus() as any);
       dispatch(updateState({ isApiAuth: false }));
     }
   }, [dispatch, isApiAuth]);
@@ -172,14 +178,30 @@ const EmployeeAttendanceKHR = () => {
   console.log(employeeId, "employeeIdddd");
 
   useEffect(() => {
+    console.log(getRegularizationStatusData,"getRegularizationStatusData");
+    
     if (isEmployeeAttendanceApi) {
       setEmployeeId(
         EmployeeAttendanceApiData?.data?.employee?.employee_id || null,
       );
 
+      const regularizationMap = new Map();
+      if (getRegularizationStatusData?.data) {
+        getRegularizationStatusData.data.forEach((reg: any) => {
+          const dateKey = reg.from_date?.split(' ')[0]; // Get date part only
+          regularizationMap.set(dateKey, {
+            status: reg.state_select,
+            hasRegularization: true
+          });
+        });
+      }
+
       const mappedData: AttendanceAdminData[] =
         EmployeeAttendanceApiData?.data?.attendance_records?.map(
           (item: any) => {
+            const dateKey = formatDateOnly(item.check_in);
+            const regularization = regularizationMap.get(dateKey);
+            
             return {
               Image: item.employee?.avatar || "avatar-1.jpg",
               Role: item.employee?.role || "Employee",
@@ -197,13 +219,15 @@ const EmployeeAttendanceKHR = () => {
                     ? String(item.overtime_hours)
                     : "0",
               ProductionHours: formatHours(item.total_productive_hours),
+              regularizationStatus: regularization?.status || null,
+              hasRegularization: regularization?.hasRegularization || false,
             };
           },
         );
       setData(mappedData);
       dispatch(updateState({ isEmployeeAttendanceApi: false }));
     }
-  }, [isEmployeeAttendanceApi, isEmployeeAttendanceApiFetching]);
+  }, [isEmployeeAttendanceApi, isEmployeeAttendanceApiFetching, getRegularizationStatusData]);
 
   useEffect(() => {
     if (!isEmployeeAttendanceApi || !EmployeeAttendanceApiData?.data) return;
@@ -407,19 +431,64 @@ const EmployeeAttendanceKHR = () => {
     },
 
     {
+      title: "Regularization Status",
+      dataIndex: "regularizationStatus",
+      render: (status: string, record: AttendanceAdminData) => {
+        if (!record.hasRegularization) {
+          return <span className="text-muted">-</span>;
+        }
+        
+        const statusConfig = {
+          pending: { class: "badge-warning", text: "Pending" },
+          approved: { class: "badge-success", text: "Approved" },
+          rejected: { class: "badge-danger", text: "Rejected" },
+        };
+        
+        const config = statusConfig[status as keyof typeof statusConfig] || 
+                      { class: "badge-secondary", text: status || "Unknown" };
+        
+        return (
+          <span className={`badge ${config.class} d-inline-flex align-items-center`}>
+            <i className="ti ti-point-filled me-1" />
+            {config.text}
+          </span>
+        );
+      },
+    },
+
+    {
       title: "Action",
       dataIndex: "actions",
-      render: (_: any, record: AttendanceAdminData) => (
-        <button
-          className="btn btn-sm btn-outline-primary"
-          onClick={() => {
-            setSelectedAttendancee(record);
-            setShowQueryModal(true);
-          }}
-        >
-          Raise Query
-        </button>
-      ),
+      render: (_: any, record: AttendanceAdminData) => {
+        const today = new Date().toISOString().split('T')[0];
+        const isToday = record.StartDate === today;
+        const hasRegularization = record.hasRegularization;
+        
+        // Don't show button if it's today's attendance or already has regularization
+        if (isToday || hasRegularization) {
+          return (
+            <button
+              className="btn btn-sm btn-outline-secondary"
+              disabled
+              title={isToday ? "Cannot raise query for today's attendance" : "Query already raised"}
+            >
+              {hasRegularization ? "Query Raised" : "Not Available"}
+            </button>
+          );
+        }
+        
+        return (
+          <button
+            className="btn btn-sm btn-outline-primary"
+            onClick={() => {
+              setSelectedAttendancee(record);
+              setShowQueryModal(true);
+            }}
+          >
+            Raise Query
+          </button>
+        );
+      },
     },
   ];
 
@@ -618,6 +687,10 @@ trendType: card.trendType === "up" ? "up" : "down",
           attendance={selectedAttendancee}
           employeeId={employeeId}
           onClose={() => setShowQueryModal(false)}
+          onSuccess={() => {
+            // Refresh regularization status after successful submission
+            dispatch(getRegularizationStatus() as any);
+          }}
         />
       )}
     </>
