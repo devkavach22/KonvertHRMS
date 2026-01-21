@@ -40,6 +40,7 @@ interface AttendanceAdminData {
   employeeId: number;
   regularizationStatus?: string;
   hasRegularization?: boolean;
+  rejectedReason?: string;
 }
 
 // Define a type for employee attendance
@@ -128,10 +129,10 @@ const EmployeeAttendanceKHR = () => {
   const formatDate = (dateStr: string) =>
     dateStr
       ? new Date(dateStr).toLocaleDateString([], {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        })
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
       : "";
 
   const handleAction = () => {
@@ -178,8 +179,8 @@ const EmployeeAttendanceKHR = () => {
   console.log(employeeId, "employeeIdddd");
 
   useEffect(() => {
-    console.log(getRegularizationStatusData,"getRegularizationStatusData");
-    
+    console.log(getRegularizationStatusData, "getRegularizationStatusData");
+
     if (isEmployeeAttendanceApi) {
       setEmployeeId(
         EmployeeAttendanceApiData?.data?.employee?.employee_id || null,
@@ -189,9 +190,15 @@ const EmployeeAttendanceKHR = () => {
       if (getRegularizationStatusData?.data) {
         getRegularizationStatusData.data.forEach((reg: any) => {
           const dateKey = reg.from_date?.split(' ')[0]; // Get date part only
+          // regularizationMap.set(dateKey, {
+          //   status: reg.state_select,
+          //   hasRegularization: true,
+          //   rejectedReason: reg.RejectedReason || null
+          // });
           regularizationMap.set(dateKey, {
-            status: reg.state_select,
-            hasRegularization: true
+            status: reg.state_select === "reject" ? "rejected" : reg.state_select,
+            hasRegularization: true,
+            rejectedReason: reg.RejectedReason || null,
           });
         });
       }
@@ -201,7 +208,7 @@ const EmployeeAttendanceKHR = () => {
           (item: any) => {
             const dateKey = formatDateOnly(item.check_in);
             const regularization = regularizationMap.get(dateKey);
-            
+
             return {
               Image: item.employee?.avatar || "avatar-1.jpg",
               Role: item.employee?.role || "Employee",
@@ -221,6 +228,7 @@ const EmployeeAttendanceKHR = () => {
               ProductionHours: formatHours(item.total_productive_hours),
               regularizationStatus: regularization?.status || null,
               hasRegularization: regularization?.hasRegularization || false,
+              rejectedReason: regularization?.rejectedReason || null,
             };
           },
         );
@@ -228,6 +236,9 @@ const EmployeeAttendanceKHR = () => {
       dispatch(updateState({ isEmployeeAttendanceApi: false }));
     }
   }, [isEmployeeAttendanceApi, isEmployeeAttendanceApiFetching, getRegularizationStatusData]);
+
+  console.log(data, "mappedDatamappedData");
+
 
   useEffect(() => {
     if (!isEmployeeAttendanceApi || !EmployeeAttendanceApiData?.data) return;
@@ -371,11 +382,10 @@ const EmployeeAttendanceKHR = () => {
       dataIndex: "Status",
       render: (text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge ${
-            text === "Present"
+          className={`badge ${text === "Present"
               ? "badge-success-transparent"
               : "badge-danger-transparent"
-          } d-inline-flex align-items-center`}
+            } d-inline-flex align-items-center`}
         >
           <i className="ti ti-point-filled me-1" />
           {record.Status}
@@ -413,14 +423,13 @@ const EmployeeAttendanceKHR = () => {
       dataIndex: "ProductionHours",
       render: (_text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge d-inline-flex align-items-center badge-sm ${
-            parseFloat(record.ProductionHours) < 8
+          className={`badge d-inline-flex align-items-center badge-sm ${parseFloat(record.ProductionHours) < 8
               ? "badge-danger"
               : parseFloat(record.ProductionHours) >= 8 &&
-                  parseFloat(record.ProductionHours) <= 9
+                parseFloat(record.ProductionHours) <= 9
                 ? "badge-success"
                 : "badge-info"
-          }`}
+            }`}
         >
           <i className="ti ti-clock-hour-11 me-1"></i>
           {record.ProductionHours}
@@ -437,21 +446,30 @@ const EmployeeAttendanceKHR = () => {
         if (!record.hasRegularization) {
           return <span className="text-muted">-</span>;
         }
-        
+
         const statusConfig = {
           pending: { class: "badge-warning", text: "Pending" },
           approved: { class: "badge-success", text: "Approved" },
           rejected: { class: "badge-danger", text: "Rejected" },
         };
-        
-        const config = statusConfig[status as keyof typeof statusConfig] || 
-                      { class: "badge-secondary", text: status || "Unknown" };
-        
+
+        const config = statusConfig[status as keyof typeof statusConfig] ||
+          { class: "badge-secondary", text: status || "Unknown" };
+
         return (
-          <span className={`badge ${config.class} d-inline-flex align-items-center`}>
-            <i className="ti ti-point-filled me-1" />
-            {config.text}
-          </span>
+          <div>
+            <span className={`badge ${config.class} d-inline-flex align-items-center`}>
+              <i className="ti ti-point-filled me-1" />
+              {config.text}
+            </span>
+            {status === 'rejected' && record.rejectedReason && (
+              <div className="mt-1">
+                <small className="text-danger">
+                  <strong>Reason:</strong> {record.rejectedReason}
+                </small>
+              </div>
+            )}
+          </div>
         );
       },
     },
@@ -463,7 +481,7 @@ const EmployeeAttendanceKHR = () => {
         const today = new Date().toISOString().split('T')[0];
         const isToday = record.StartDate === today;
         const hasRegularization = record.hasRegularization;
-        
+
         // Don't show button if it's today's attendance or already has regularization
         if (isToday || hasRegularization) {
           return (
@@ -476,7 +494,7 @@ const EmployeeAttendanceKHR = () => {
             </button>
           );
         }
-        
+
         return (
           <button
             className="btn btn-sm btn-outline-primary"
@@ -491,6 +509,9 @@ const EmployeeAttendanceKHR = () => {
       },
     },
   ];
+
+
+
 
   return (
     <>
@@ -630,9 +651,8 @@ const EmployeeAttendanceKHR = () => {
                     </h6>
 
                     <button
-                      className={`btn w-100 ${
-                        isCheckedIn ? "btn-warning" : "btn-success"
-                      }`}
+                      className={`btn w-100 ${isCheckedIn ? "btn-warning" : "btn-success"
+                        }`}
                       onClick={handleAction}
                       disabled={isCheckinCheckoutFetching}
                     >
