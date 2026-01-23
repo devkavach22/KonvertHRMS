@@ -113,7 +113,7 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
       <div className="modal-dialog modal-dialog-centered modal-lg">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">{data ? "Edit Mendetory Days" : "Add Mendetory Days"}</h5>
+            <h5 className="modal-title">{data ? "Edit Mandatory Days" : "Add Mandatory Days"}</h5>
             <button type="button" className="btn-close" data-bs-dismiss="modal" id="close-btn-policy" aria-label="Close"><span aria-hidden="true">×</span></button>
           </div>
           <div className="modal-body">
