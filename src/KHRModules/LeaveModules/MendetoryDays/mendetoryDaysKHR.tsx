@@ -128,11 +128,11 @@ const MendetoryDaysKHR = () => {
         <div className="content">
           <div onClick={() => setSelectedPolicy(null)}>
             <CommonHeader
-              title="Mendetory Days"
+              title="Mandatory Days"
               parentMenu="HR"
               activeMenu="Mendetory Days"
               routes={routes}
-              buttonText="Add Mendetory Days"
+              buttonText="Add Mandatory Days"
               modalTarget="#add_attendance_policy"
             />
           </div>

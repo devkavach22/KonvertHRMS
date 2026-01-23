@@ -5,7 +5,7 @@ FROM node:24-alpine
 WORKDIR /app
 
 # Install dependencies
-COPY package*.json .
+COPY package*.json ./
 
 # Install dependencies
 RUN npm install
@@ -14,7 +14,9 @@ RUN npm install
 COPY . .
 
 # Build the application
-RUN npm run build
+# RUN npm run build
+
+EXPOSE 3000
 
 # Run the app
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "dev"]
