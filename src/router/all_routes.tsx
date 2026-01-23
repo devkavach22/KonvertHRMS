@@ -38,7 +38,7 @@ export const all_routes = {
   leaveRequestKHR: "/KHR-leave-request",
   accuralPlanKHR: "/KHR-accrual-plan",
   publicHolidayKHR: "/KHR-public-holiday",
-  mendetoryDaysKHR: "/KHR-mendetory-days",
+  mendetoryDaysKHR: "/KHR-Mandatory-days",
 
   employeeSalaryKHR: "/KHR-employee-salary",
 

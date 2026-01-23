@@ -156,7 +156,7 @@ const rawSidebarData = [
             roles: [ROLES.ADMIN, ROLES.EMPLOYEE],
           },
           {
-            label: "Mendetory Days",
+            label: "Mandatory Days",
             link: routes.mendetoryDaysKHR,
             roles: [ROLES.ADMIN, ROLES.EMPLOYEE],
           },
