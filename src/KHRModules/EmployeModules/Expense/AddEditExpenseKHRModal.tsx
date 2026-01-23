@@ -20,7 +20,7 @@ const AddEditExpenseKHRModal: React.FC<Props> = ({ onSuccess, data }) => {
   const initialFormState = {
     name: "",
     product_id: "",
-    account_id: "", // Empty initially to force selection
+    // account_id: "", // Empty initially to force selection
     total_amount_currency: "",
     payment_mode: "own_account",
     date: moment().format("YYYY-MM-DD"),
@@ -117,7 +117,7 @@ const AddEditExpenseKHRModal: React.FC<Props> = ({ onSuccess, data }) => {
       const payload = {
         ...formData,
         product_id: Number(formData.product_id),
-        account_id: Number(formData.account_id),
+        // account_id: Number(formData.account_id),
         total_amount_currency: Number(formData.total_amount_currency),
       };
 
