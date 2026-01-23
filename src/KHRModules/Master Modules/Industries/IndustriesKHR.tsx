@@ -12,7 +12,7 @@ const IndustriesKHR = () => {
   const [data, setData] = useState<Industry[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedIndustry, setSelectedIndustry] = useState<Industry | null>(
-    null
+    null,
   );
 
   const fetchData = async () => {
@@ -129,7 +129,11 @@ const IndustriesKHR = () => {
           </div>
         </div>
       </div>
-      <AddEditIndustriesModal onSuccess={fetchData} data={selectedIndustry} />
+      <AddEditIndustriesModal
+        onSuccess={fetchData}
+        data={selectedIndustry}
+        onClose={() => setSelectedIndustry(null)}
+      />
     </div>
   );
 };

@@ -24,17 +24,10 @@ const WorkingSchedules = () => {
     setLoading(true);
     try {
       const result = await getWorkingSchedules();
-      // Ensure result is an array
       const safeResult = Array.isArray(result) ? result : [];
 
       const mappedData: WorkingScheduleType[] = safeResult.map(
         (item: APIWorkingSchedule) => {
-          // Extract the first attendance line for editing logic
-          const firstDetail =
-            item.attendance_ids && item.attendance_ids.length > 0
-              ? item.attendance_ids[0]
-              : null;
-
           return {
             id: String(item.id),
             key: String(item.id),
@@ -42,17 +35,12 @@ const WorkingSchedules = () => {
             flexible_hours: item.flexible_hours || false,
             is_night_shift: item.is_night_shift || false,
             full_time_required_hours: item.full_time_required_hours || 0,
+            hours_per_day: item.hours_per_day || 0, // Mapped
+            total_overtime_hours_allowed:
+              item.total_overtime_hours_allowed || 0, // Mapped
             tz: typeof item.tz === "string" ? item.tz : "-",
-
-            // Map details for the Edit Modal
-            dayofweek: firstDetail ? String(firstDetail.dayofweek) : "0",
-            day_period: firstDetail ? firstDetail.day_period : "morning",
-            hour_from: firstDetail ? firstDetail.hour_from : 8.0,
-            hour_to: firstDetail ? firstDetail.hour_to : 17.0,
-            duration_days: 1.0,
-            work_entry_type_id: 0, // Defaults
           };
-        }
+        },
       );
 
       setData(mappedData);
@@ -189,6 +177,7 @@ const WorkingSchedules = () => {
         <AddEditWorkingSchedulesModal
           onSuccess={fetchData}
           data={selectedSchedule}
+          onClose={() => setSelectedSchedule(null)} // ✅ Pass this prop
         />
       </div>
     </>

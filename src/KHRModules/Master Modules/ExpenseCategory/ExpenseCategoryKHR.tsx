@@ -25,8 +25,8 @@ const ExpenseCategoryKHR = () => {
       const safeResult = Array.isArray(responseBody)
         ? responseBody
         : Array.isArray(responseBody?.data)
-        ? responseBody.data
-        : [];
+          ? responseBody.data
+          : [];
 
       const mappedData = safeResult.map((item: any) => ({
         ...item,
@@ -188,6 +188,7 @@ const ExpenseCategoryKHR = () => {
         <AddEditExpenseCategoryKHRModal
           onSuccess={fetchData}
           data={selectedCategory}
+          onClose={() => setSelectedCategory(null)}
         />
       </div>
     </>

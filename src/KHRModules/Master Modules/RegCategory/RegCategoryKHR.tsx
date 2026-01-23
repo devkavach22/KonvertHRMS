@@ -133,7 +133,11 @@ const RegCategoryKHR = () => {
         </div>
       </div>
 
-      <AddEditRegCategory onSuccess={fetchData} data={selectedCategory} />
+      <AddEditRegCategory
+        onSuccess={fetchData}
+        data={selectedCategory}
+        onClose={() => setSelectedCategory(null)} // <--- ADD THIS LINE
+      />
     </>
   );
 };
