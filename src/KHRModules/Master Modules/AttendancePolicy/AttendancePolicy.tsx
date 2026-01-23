@@ -173,6 +173,7 @@ const AttendancePolicy = () => {
         <AddEditAttendancePolicyModal
           onSuccess={fetchData}
           data={selectedPolicy}
+          onClose={() => setSelectedPolicy(null)} // <--- ADD THIS LINE
         />
       </div>
     </>

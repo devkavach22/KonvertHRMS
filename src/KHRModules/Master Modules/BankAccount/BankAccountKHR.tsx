@@ -16,7 +16,7 @@ const BankAccountKHR = () => {
   const [data, setData] = useState<BankAccount[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedAccount, setSelectedAccount] = useState<BankAccount | null>(
-    null
+    null,
   );
 
   const fetchData = async () => {
@@ -76,15 +76,15 @@ const BankAccountKHR = () => {
   };
 
   const columns = [
-    {
-      title: "Account Holder",
-      dataIndex: "display_partner", // Uses the mapped name
-      render: (text: string) => (
-        <span className="fw-bold text-dark">{text}</span>
-      ),
-      sorter: (a: any, b: any) =>
-        (a.display_partner || "").localeCompare(b.display_partner || ""),
-    },
+    // {
+    //   title: "Account Holder",
+    //   dataIndex: "display_partner", // Uses the mapped name
+    //   render: (text: string) => (
+    //     <span className="fw-bold text-dark">{text}</span>
+    //   ),
+    //   sorter: (a: any, b: any) =>
+    //     (a.display_partner || "").localeCompare(b.display_partner || ""),
+    // },
     {
       title: "Bank Name",
       dataIndex: "display_bank",
@@ -164,7 +164,11 @@ const BankAccountKHR = () => {
           </div>
         </div>
       </div>
-      <AddEditBankAccountModal onSuccess={fetchData} data={selectedAccount} />
+      <AddEditBankAccountModal
+        onSuccess={fetchData}
+        data={selectedAccount}
+        onClose={() => setSelectedAccount(null)}
+      />
     </>
   );
 };

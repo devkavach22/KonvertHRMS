@@ -37,7 +37,7 @@ export const createExpenseCategory = async (data: any) => {
     localStorage.getItem("id");
   return await Instance.post(
     `/employee/create/expense-categroy?user_id=${user_id}`,
-    data
+    data,
   );
 };
 
@@ -45,8 +45,8 @@ export const createExpenseCategory = async (data: any) => {
 export const updateExpenseCategory = async (id: number | string, data: any) => {
   const user_id = localStorage.getItem("user_id");
   return await Instance.put(
-    `/employee/expense-category/${id}?user_id=${user_id}`,
-    data
+    `/employee/update-expense-category/${id}?user_id=${user_id}`,
+    data,
   );
 };
 
@@ -54,7 +54,7 @@ export const updateExpenseCategory = async (id: number | string, data: any) => {
 export const deleteExpenseCategory = async (id: number | string) => {
   const user_id = localStorage.getItem("user_id");
   return await Instance.delete(
-    `/employee/expense-category/${id}?user_id=${user_id}`
+    `/employee/delete-expense-category/${id}?user_id=${user_id}`,
   );
 };
 
@@ -78,7 +78,7 @@ export const getAccountsDropdown = async () => {
     const user_id = localStorage.getItem("user_id");
 
     const response = await Instance.get(
-      `/employee/expense-account?user_id=${user_id}`
+      `/employee/expense-account?user_id=${user_id}`,
     );
     return Array.isArray(response.data) ? response.data : response.data.data;
   } catch (error) {

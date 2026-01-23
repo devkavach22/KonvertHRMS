@@ -20,9 +20,9 @@ export const getApprovalRequests = async (userId?: string | number) => {
  * POST http://localhost:4000/api/admin/approve
  * Body: { regularization_id: 36, user_id: 3145 }
  */
-export const approveRequest = async (regularizationId: string | number) => {
+export const approveRequest = async (id: string | number) => {
   const payload = {
-    approval_request_id: regularizationId,
+    approval_request_id: id, // Passing the main ID (129, 130...)
     user_id: getCurrentUserId(),
   };
   return await Instance.post(`/api/admin/approve`, payload);
@@ -33,12 +33,9 @@ export const approveRequest = async (regularizationId: string | number) => {
  * POST http://localhost:4000/api/admin/reject
  * Body: { regularization_id: 41, user_id: 3145, remarks: "..." }
  */
-export const rejectRequest = async (
-  approval_request_id: string | number,
-  remarks: string
-) => {
+export const rejectRequest = async (id: string | number, remarks: string) => {
   const payload = {
-    approval_request_id: approval_request_id,
+    approval_request_id: id, // Passing the main ID (129, 130...)
     user_id: getCurrentUserId(),
     remarks: remarks,
   };

@@ -1,6 +1,10 @@
 import Instance from "../../../api/axiosInstance";
 
 export interface Bank {
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
   id?: string;
   name: string;
   bic: string;
