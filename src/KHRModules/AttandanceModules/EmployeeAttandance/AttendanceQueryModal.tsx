@@ -17,6 +17,7 @@ interface Props {
   attendance: any;
   employeeId: any;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 interface Option {
@@ -28,6 +29,7 @@ const AttendanceQueryModal: React.FC<Props> = ({
   attendance,
   employeeId,
   onClose,
+  onSuccess,
 }) => {
   const dispatch = useDispatch<AppDispatch>();
   const {
@@ -132,12 +134,13 @@ const AttendanceQueryModal: React.FC<Props> = ({
 
     const result: any = await dispatch(Employeeregularization(payload));
 
-    // Check Redux flag
-    if (isEmployeeRegcategories) {
+    // Check if the request was successful
+    if (result.type === 'Employeeregularization/fulfilled') {
       toast.success("Attendance regularization submitted successfully!", {
         position: "top-right",
         autoClose: 3000,
       });
+      onSuccess?.(); // Trigger refresh
       onClose();
     } else {
       toast.error(
@@ -321,8 +324,8 @@ export default AttendanceQueryModal;
 
 export interface RegularizationPayload {
   employee_id: number;
-  from_date: string;
-  to_date: string;
-  reg_category: string | number | null; // Accepting both string and number to match your UI
+  from_date: string; // Date with check-in time concatenated
+  to_date: string; // Date with check-out time concatenated
+  reg_category: string | number | null;
   reg_reason: string;
 }

@@ -326,6 +326,36 @@ export const Employeeregularization = createAsyncThunk(
   },
 );
 
+// Get Regularization Status
+export const getRegularizationStatus = createAsyncThunk(
+  "getRegularizationStatus",
+  async (userdata, thunkAPI) => {
+    try {
+      let result = await axios({
+        method: "GET",
+        baseURL: CONFIG.BASE_URL_ALL,
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `${localStorage.getItem("authToken")}`,
+        },
+        url: `/api/regularization`,
+        params: { user_id },
+      });
+      if (result.data) {
+        return result.data;
+      } else {
+        return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
+      }
+    } catch (error: any) {
+      console.error(
+        "try catch [ getRegularizationStatus ] error.message >>",
+        error?.message,
+      );
+      return thunkAPI.rejectWithValue({ error: error?.message });
+    }
+  },
+);
+
 export const CheckinCheckout = createAsyncThunk(
   "CheckinCheckout",
   async (userdata: { Latitude: number; Longitude: number }, thunkAPI) => {
@@ -869,6 +899,11 @@ export const TBSlice = createSlice({
     isEmployeeregularizationFetching: false,
     EmployeeregularizationData: [],
 
+    // getRegularizationStatus
+    isGetRegularizationStatus: false,
+    isGetRegularizationStatusFetching: false,
+    getRegularizationStatusData: [],
+
     // getCountries
     isGetCountries: false,
     isGetCountriesFetching: false,
@@ -1005,6 +1040,12 @@ export const TBSlice = createSlice({
         payload.isEmployeeregularization !== undefined
           ? payload.isEmployeeregularization
           : state.isEmployeeregularization;
+
+      // getRegularizationStatus
+      state.isGetRegularizationStatus =
+        payload.isGetRegularizationStatus !== undefined
+          ? payload.isGetRegularizationStatus
+          : state.isGetRegularizationStatus;
       //UpdateAdminAttendanceApi
       state.isUpdateAdminAttendanceApi =
         payload.isUpdateAdminAttendanceApi !== undefined
@@ -1951,6 +1992,48 @@ export const TBSlice = createSlice({
     );
     builder.addCase(AdminAttendanceExportPdf.pending, (state) => {
       state.isAdminAttendanceExportPdfFetching = true;
+    });
+
+    // getRegularizationStatus extraReducers
+    builder.addCase(getRegularizationStatus.fulfilled, (state, { payload }) => {
+      try {
+        state.getRegularizationStatusData = payload;
+        state.isGetRegularizationStatus = true;
+        state.isGetRegularizationStatusFetching = false;
+        state.isSuccess = true;
+        state.successMessage = payload?.message || "";
+        state.isError = false;
+        state.errorMessage = "";
+        return state;
+      } catch (error) {
+        console.error(
+          "Error: getRegularizationStatus.fulfilled try catch error >>",
+          error,
+        );
+      }
+    });
+    builder.addCase(
+      getRegularizationStatus.rejected,
+      (state, { payload }: { payload: any }) => {
+        try {
+          state.isGetRegularizationStatus = false;
+          state.isGetRegularizationStatusFetching = false;
+          state.isError = true;
+          payload
+            ? (state.errorMessage = payload?.error?.message
+                ? "Please try again (There was some network issue)."
+                : "Please try again (There was some network issue).")
+            : (state.errorMessage = "API Response Invalid. Please Check API");
+        } catch (error) {
+          console.error(
+            "Error: [getRegularizationStatus.rejected] try catch error >>",
+            error,
+          );
+        }
+      },
+    );
+    builder.addCase(getRegularizationStatus.pending, (state) => {
+      state.isGetRegularizationStatusFetching = true;
     });
   },
 });
