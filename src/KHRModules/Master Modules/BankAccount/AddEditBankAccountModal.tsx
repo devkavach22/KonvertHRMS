@@ -7,38 +7,61 @@ import { getBanks } from "../BanksKHR/BanksServices";
 interface Props {
   onSuccess: (newId?: string) => void;
   data: any | null;
+  onClose: () => void;
 }
 
-const AddEditBankAccountModal: React.FC<Props> = ({ onSuccess, data }) => {
+const AddEditBankAccountModal: React.FC<Props> = ({
+  onSuccess,
+  data,
+  onClose,
+}) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<any>({});
   const [banks, setBanks] = useState<any[]>([]);
 
-  const [formData, setFormData] = useState<any>({
-    bank_name: "",
+  // Using 'bank_id' directly for reliable binding
+  const initialFormState = {
+    bank_id: "",
     acc_number: "",
     bank_swift_code: "",
     bank_iafc_code: "",
     currency: "INR",
-  });
+  };
 
-  // Load Banks Dropdown
+  const [formData, setFormData] = useState<any>(initialFormState);
+
+  // 1. BOOTSTRAP EVENT LISTENER (Force clear on close)
+  useEffect(() => {
+    const modalElement = document.getElementById("add_bank_account_modal");
+    const handleHidden = () => {
+      resetForm();
+      onClose();
+    };
+    modalElement?.addEventListener("hidden.bs.modal", handleHidden);
+    return () =>
+      modalElement?.removeEventListener("hidden.bs.modal", handleHidden);
+  }, [onClose]);
+
+  // 2. Load Banks Dropdown (Fixed Data Extraction)
   useEffect(() => {
     const loadBanks = async () => {
       try {
         const bankDataRaw = await getBanks();
         const bankResponse = bankDataRaw as any;
+
         const rawBanks =
           bankResponse?.banks ||
+          bankResponse?.data ||
           (Array.isArray(bankResponse) ? bankResponse : []);
 
+        // Map ID as value for reliable matching, STORE SWIFT HERE
         setBanks(
           rawBanks.map((b: any) => ({
-            value: b.name,
+            value: String(b.id),
             label: b.name,
-            swift: b.swift_code,
-          }))
+            swift: b.swift_code, // <--- Key for lookup
+          })),
         );
       } catch (error) {
         console.error("Error loading banks:", error);
@@ -47,37 +70,56 @@ const AddEditBankAccountModal: React.FC<Props> = ({ onSuccess, data }) => {
     loadBanks();
   }, []);
 
-  // Pre-fill form for Edit
+  // 3. Pre-fill form for Edit
+  // ADDED 'banks' to dependency array so we can lookup SWIFT code once banks load
   useEffect(() => {
     if (data) {
+      // Robust extraction of Bank ID
+      let extractedBankId = "";
+      if (Array.isArray(data.bank_id) && data.bank_id.length > 0) {
+        extractedBankId = String(data.bank_id[0]);
+      } else if (data.bank_id && data.bank_id !== false) {
+        extractedBankId = String(data.bank_id);
+      }
+
+      // Robust extraction of Currency
+      let extractedCurrency = "INR";
+      if (Array.isArray(data.currency_id) && data.currency_id.length > 1) {
+        extractedCurrency = data.currency_id[1];
+      } else if (data.currency) {
+        extractedCurrency = data.currency;
+      }
+
+      // --- FIX: LOOKUP SWIFT CODE ---
+      // If data has it, use it. If not, find it in the loaded banks list.
+      let finalSwift = data.bank_swift_code || "";
+      if (!finalSwift && banks.length > 0 && extractedBankId) {
+        const foundBank = banks.find((b) => b.value === extractedBankId);
+        if (foundBank) {
+          finalSwift = foundBank.swift;
+        }
+      }
+
       setFormData({
-        bank_name: Array.isArray(data.bank_id)
-          ? data.bank_id[1]
-          : data.bank_name || "",
+        bank_id: extractedBankId,
         acc_number: data.acc_number || "",
-        bank_swift_code:
-          data.bank_swift_code === false ? "" : data.bank_swift_code || "",
+        bank_swift_code: finalSwift, // <--- Using the looked-up value
         bank_iafc_code:
-          data.bank_iafc_code === false ? "" : data.bank_iafc_code || "",
-        currency: Array.isArray(data.currency_id)
-          ? data.currency_id[1]
-          : data.currency || "INR",
+          data.bank_iafc_code && data.bank_iafc_code !== false
+            ? data.bank_iafc_code
+            : "",
+        currency: extractedCurrency,
       });
     } else {
       resetForm();
     }
-  }, [data]);
+  }, [data, banks]); // <--- Dependency on 'banks' ensures lookup runs after fetch
 
   const resetForm = () => {
-    setFormData({
-      bank_name: "",
-      acc_number: "",
-      bank_swift_code: "",
-      bank_iafc_code: "",
-      currency: "INR",
-    });
+    setFormData(initialFormState);
     setErrors({});
     setIsSubmitted(false);
+    setIsSubmitting(false);
   };
 
   const clearError = (field: string) => {
@@ -104,7 +146,7 @@ const AddEditBankAccountModal: React.FC<Props> = ({ onSuccess, data }) => {
     let tempErrors: any = {};
     const accNumRegex = /^\d+$/;
 
-    if (!formData.bank_name) tempErrors.bank_name = "Bank is required";
+    if (!formData.bank_id) tempErrors.bank_id = "Bank is required";
 
     if (!formData.acc_number?.toString().trim()) {
       tempErrors.acc_number = "Account Number is required";
@@ -130,19 +172,27 @@ const AddEditBankAccountModal: React.FC<Props> = ({ onSuccess, data }) => {
     }
 
     setIsSubmitting(true);
+
+    // Prepare payload
+    const apiPayload = {
+      ...formData,
+      bank_id: Number(formData.bank_id),
+    };
+
     try {
       if (data?.id) {
-        await updateBankAccount(data.id, formData);
+        await updateBankAccount(data.id, apiPayload);
         toast.success("Bank Account Updated");
       } else {
-        const res = await addBankAccount(formData);
+        const res = await addBankAccount(apiPayload);
         toast.success("Bank Account Created");
-        onSuccess(res.data?.id);
+        if (res.data?.id) onSuccess(res.data.id);
       }
       onSuccess();
       document.getElementById("close-bank-acc")?.click();
       resetForm();
     } catch (err: any) {
+      console.error(err);
       toast.error("Process failed. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -191,26 +241,27 @@ const AddEditBankAccountModal: React.FC<Props> = ({ onSuccess, data }) => {
                       <label className="form-label fs-13 fw-bold">
                         Bank Name <span className="text-danger">*</span>
                       </label>
-                      <div className={getSelectWrapperClass("bank_name")}>
+                      <div className={getSelectWrapperClass("bank_id")}>
                         <CommonSelect
+                          key={formData.bank_id}
                           options={banks}
                           placeholder="Select Bank"
                           defaultValue={banks.find(
-                            (b) => b.value === formData.bank_name
+                            (b) => String(b.value) === String(formData.bank_id),
                           )}
                           onChange={(opt) => {
                             setFormData({
                               ...formData,
-                              bank_name: opt?.value || "",
-                              bank_swift_code: opt?.swift || "",
+                              bank_id: opt?.value || "",
+                              bank_swift_code: opt?.swift || "", // Auto-fill on change
                             });
-                            clearError("bank_name");
+                            clearError("bank_id");
                           }}
                         />
                       </div>
-                      {errors.bank_name && (
+                      {errors.bank_id && (
                         <div className="text-danger fs-12 mt-1">
-                          {errors.bank_name}
+                          {errors.bank_id}
                         </div>
                       )}
                     </div>
@@ -298,11 +349,11 @@ const AddEditBankAccountModal: React.FC<Props> = ({ onSuccess, data }) => {
                 <div className="modal-footer border-0 px-0 mt-4 pb-0">
                   <button
                     type="button"
-                    className="btn btn-light px-4 me-2"
+                    className="btn btn-outline-secondary px-4 me-2"
                     data-bs-dismiss="modal"
                     onClick={resetForm}
                   >
-                    Cancel
+                    Discard
                   </button>
                   <button
                     type="submit"

@@ -33,7 +33,7 @@ const WorkLocation = () => {
           name: item.name || "-",
           location_type: item.location_type || "office",
           created_date: item.create_date || "-", // Changed to match common API response field
-        })
+        }),
       );
 
       setData(mappedData);
@@ -140,6 +140,7 @@ const WorkLocation = () => {
         <AddEditWorkLocationModal
           onSuccess={fetchData}
           data={selectedLocation}
+          onClose={() => setSelectedLocation(null)}
         />
       </div>
     </>

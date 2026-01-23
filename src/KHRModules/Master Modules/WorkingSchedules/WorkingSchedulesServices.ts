@@ -7,26 +7,13 @@ export interface WorkingSchedule {
   flexible_hours: boolean;
   is_night_shift: boolean;
   full_time_required_hours: number;
+  hours_per_day: number; // Added
+  total_overtime_hours_allowed: number; // Added
   tz: string;
-  // Bottom fields (Mapped from the first attendance_id for editing)
-  dayofweek?: string;
-  day_period?: string;
-  hour_from?: number;
-  hour_to?: number;
-  duration_days?: number;
-  work_entry_type_id?: number;
   key?: string;
 }
 
-// 2. API Interface (Matches your JSON Response)
-export interface AttendanceID {
-  id: number;
-  dayofweek: string;
-  day_period: string;
-  hour_from: number;
-  hour_to: number;
-}
-
+// 2. API Interface
 export interface APIWorkingSchedule {
   id: number;
   name: string | false;
@@ -34,14 +21,13 @@ export interface APIWorkingSchedule {
   is_night_shift: boolean;
   full_time_required_hours: number;
   hours_per_day?: number;
+  total_overtime_hours_allowed?: number;
   tz: string | false;
-  attendance_ids?: AttendanceID[]; // Added this array
 }
 
 // 3. SERVICE FUNCTIONS
 const getUserId = () => {
   const id = localStorage.getItem("user_id");
-  // Default to 3145 or 219 if not found, to ensure we get data
   return id ? Number(id) : 3145;
 };
 
@@ -52,15 +38,12 @@ export const getWorkingSchedules = async (): Promise<APIWorkingSchedule[]> => {
       params: { user_id: getUserId() },
     });
 
-    // Robust extraction: Check if response.data.data exists and is an array
     if (response.data && Array.isArray(response.data.data)) {
       return response.data.data;
     }
-    // Fallback if the array is directly in response.data
     if (Array.isArray(response.data)) {
       return response.data;
     }
-
     return [];
   } catch (error) {
     console.error("Error fetching schedules:", error);
@@ -79,6 +62,7 @@ export const getTimezones = async (): Promise<string[]> => {
   }
 };
 
+// POST Create
 export const addWorkingSchedule = async (data: any) => {
   const payload = {
     ...data,
@@ -88,11 +72,20 @@ export const addWorkingSchedule = async (data: any) => {
 };
 
 // PUT Update
-export const updateWorkingSchedule = async (id: string, data: any) => {
-  return await Instance.put(`/employee/working-schedule/${id}`, data);
+// URL: /api/update/workingSchedules/85?user_id=3145
+export const updateWorkingSchedule = async (id: string | number, data: any) => {
+  const user_id = getUserId();
+  return await Instance.put(
+    `/api/update/workingSchedules/${id}?user_id=${user_id}`,
+    data,
+  );
 };
 
 // DELETE
-export const deleteWorkingSchedule = async (id: string) => {
-  return await Instance.delete(`/employee/working-schedule/${id}`);
+// URL: /api/delete/workingSchedules/85?user_id=3145
+export const deleteWorkingSchedule = async (id: string | number) => {
+  const user_id = getUserId();
+  return await Instance.delete(
+    `/api/delete/workingSchedules/${id}?user_id=${user_id}`,
+  );
 };

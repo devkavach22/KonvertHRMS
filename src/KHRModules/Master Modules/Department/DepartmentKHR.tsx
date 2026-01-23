@@ -30,8 +30,8 @@ const DepartmentKHR = () => {
       const rawArray = Array.isArray(response)
         ? response
         : response?.data && Array.isArray(response.data)
-        ? response.data
-        : [];
+          ? response.data
+          : [];
 
       const mappedData: Department[] = rawArray.map((item: any) => ({
         id: String(item.id),
@@ -94,7 +94,7 @@ const DepartmentKHR = () => {
             className="me-2"
             data-bs-toggle="modal"
             data-bs-target="#add_department"
-            onClick={() => setSelectedDepartment(record)}
+            onClick={() => setSelectedDepartment({ ...record })}
           >
             <i className="ti ti-edit text-blue" />
           </Link>
@@ -148,7 +148,11 @@ const DepartmentKHR = () => {
       </div>
 
       {/* Modal Component */}
-      <AddDepartmentModal onSuccess={fetchData} data={selectedDepartment} />
+      <AddDepartmentModal
+        onSuccess={fetchData}
+        data={selectedDepartment}
+        onClose={() => setSelectedDepartment(null)}
+      />
     </>
   );
 };

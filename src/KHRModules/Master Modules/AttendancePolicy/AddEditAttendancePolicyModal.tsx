@@ -9,9 +9,14 @@ import { toast } from "react-toastify";
 interface Props {
   onSuccess: () => void;
   data: AttendancePolicy | null;
+  onClose: () => void; // <--- NEW PROP
 }
 
-const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
+const AddEditAttendancePolicyModal: React.FC<Props> = ({
+  onSuccess,
+  data,
+  onClose, // <--- Destructure here
+}) => {
   // Initial state for all fields
   const initialFormState = {
     name: "",
@@ -56,6 +61,7 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
     const modalElement = document.getElementById("add_attendance_policy");
     const handleModalHidden = () => {
       resetForm();
+      onClose(); // <--- CALL PARENT TO RESET STATE
     };
     if (modalElement) {
       modalElement.addEventListener("hidden.bs.modal", handleModalHidden);
@@ -65,7 +71,7 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
         modalElement.removeEventListener("hidden.bs.modal", handleModalHidden);
       }
     };
-  }, []);
+  }, [onClose]); // <--- Added dependency
 
   const resetForm = () => {
     setFormData(initialFormState);
@@ -94,7 +100,7 @@ const AddEditAttendancePolicyModal: React.FC<Props> = ({ onSuccess, data }) => {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({

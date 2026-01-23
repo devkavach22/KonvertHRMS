@@ -117,8 +117,8 @@ const SkillKHR = () => {
                 progress >= 75
                   ? "bg-success"
                   : progress >= 50
-                  ? "bg-info"
-                  : "bg-warning"
+                    ? "bg-info"
+                    : "bg-warning"
               }`}
               style={{ width: `${progress}%` }}
             ></div>
@@ -182,7 +182,11 @@ const SkillKHR = () => {
           </div>
         </div>
       </div>
-      <AddEditSkillModal onSuccess={fetchData} data={selectedSkill} />
+      <AddEditSkillModal
+        onSuccess={fetchData}
+        data={selectedSkill}
+        onClose={() => setSelectedSkill(null)}
+      />
     </div>
   );
 };

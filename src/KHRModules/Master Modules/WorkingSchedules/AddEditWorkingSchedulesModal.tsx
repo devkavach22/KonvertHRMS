@@ -5,56 +5,33 @@ import {
   getTimezones,
   WorkingSchedule,
 } from "./WorkingSchedulesServices";
-import { getWorkEntryTypes } from "../WorkEntryType/WorkEntryTypeServices";
 import { toast } from "react-toastify";
 import CommonSelect from "../../../core/common/commonSelect";
 
 interface Props {
   onSuccess: () => void;
+  onClose: () => void; // Added onClose prop
   data: WorkingSchedule | null;
 }
 
-const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
+const AddEditWorkingSchedulesModal: React.FC<Props> = ({
+  onSuccess,
+  onClose,
+  data,
+}) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<any>({});
-
-  // Dropdown States
   const [timezoneOptions, setTimezoneOptions] = useState<any[]>([]);
-  const [workEntryTypeOptions, setWorkEntryTypeOptions] = useState<any[]>([]);
-
-  // Static Options
-  const daysOfWeek = [
-    { value: "0", label: "Monday" },
-    { value: "1", label: "Tuesday" },
-    { value: "2", label: "Wednesday" },
-    { value: "3", label: "Thursday" },
-    { value: "4", label: "Friday" },
-    { value: "5", label: "Saturday" },
-    { value: "6", label: "Sunday" },
-  ];
-
-  const dayPeriods = [
-    { value: "morning", label: "Morning" },
-    { value: "lunch", label: "Lunch" },
-    { value: "afternoon", label: "Afternoon" },
-  ];
 
   const initialFormState = {
-    // Main
     name: "",
     full_time_required_hours: 40,
+    hours_per_day: 8,
+    total_overtime_hours_allowed: 0,
     tz: "",
     flexible_hours: false,
     is_night_shift: false,
-    // Details (Conditional)
-    line_name: "",
-    dayofweek: "0",
-    day_period: "morning",
-    hour_from: 8.0,
-    hour_to: 17.0,
-    duration_days: 1.0,
-    work_entry_type_id: "",
   };
 
   const [formData, setFormData] = useState<any>(initialFormState);
@@ -63,27 +40,13 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
   useEffect(() => {
     const fetchDropdowns = async () => {
       try {
-        const [tzs, types] = await Promise.all([
-          getTimezones(),
-          getWorkEntryTypes(),
-        ]);
-
-        // Map Timezones (Handle both strings and objects if API changes)
+        const tzs = await getTimezones();
         const mappedTzs = tzs.map((t: any) => {
           const val = typeof t === "object" ? t.value : t;
           const lbl = typeof t === "object" ? t.label : t;
           return { value: val, label: lbl };
         });
         setTimezoneOptions(mappedTzs);
-
-        // Map Work Entry Types
-        const mappedTypes = Array.isArray(types)
-          ? types.map((t: any) => ({
-              value: String(t.id),
-              label: t.name || t.code || `Type ${t.id}`,
-            }))
-          : [];
-        setWorkEntryTypeOptions(mappedTypes);
       } catch (error) {
         console.error("Error loading dropdowns", error);
       }
@@ -97,19 +60,11 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
       setFormData({
         name: data.name || "",
         full_time_required_hours: data.full_time_required_hours || 40,
+        hours_per_day: data.hours_per_day || 8,
+        total_overtime_hours_allowed: data.total_overtime_hours_allowed || 0,
         tz: data.tz || "",
         flexible_hours: data.flexible_hours || false,
         is_night_shift: data.is_night_shift || false,
-        // Details
-        line_name: "", // Usually API doesn't return this for top-level, kept blank or mapped if needed
-        dayofweek: data.dayofweek ? String(data.dayofweek) : "0",
-        day_period: data.day_period || "morning",
-        hour_from: data.hour_from ?? 8.0,
-        hour_to: data.hour_to ?? 17.0,
-        duration_days: data.duration_days ?? 1.0,
-        work_entry_type_id: data.work_entry_type_id
-          ? String(data.work_entry_type_id)
-          : "",
       });
     } else {
       resetForm();
@@ -124,13 +79,19 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
     setIsSubmitting(false);
   };
 
+  // Listen for Bootstrap Modal close event
   useEffect(() => {
     const modalElement = document.getElementById("add_working_schedule");
-    const handleHidden = () => resetForm();
+
+    const handleHidden = () => {
+      resetForm();
+      onClose(); // ✅ Tell parent to clear selected data
+    };
+
     modalElement?.addEventListener("hidden.bs.modal", handleHidden);
     return () =>
       modalElement?.removeEventListener("hidden.bs.modal", handleHidden);
-  }, []);
+  }, [onClose]); // Add onClose dependency
 
   // --- 4. Validation ---
   const validate = () => {
@@ -144,18 +105,6 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
     if (!formData.tz) {
       tempErrors.tz = "Timezone is required";
       isValid = false;
-    }
-
-    // Conditional Validation for Flexible Hours
-    if (formData.flexible_hours) {
-      if (!formData.line_name?.trim()) {
-        tempErrors.line_name = "Detail Name is required";
-        isValid = false;
-      }
-      if (!formData.work_entry_type_id) {
-        tempErrors.work_entry_type_id = "Work Entry Type is required";
-        isValid = false;
-      }
     }
 
     setErrors(tempErrors);
@@ -177,20 +126,12 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
         flexible_hours: formData.flexible_hours,
         is_night_shift: formData.is_night_shift,
         full_time_required_hours: Number(formData.full_time_required_hours),
+        hours_per_day: Number(formData.hours_per_day),
         tz: formData.tz,
+        total_overtime_hours_allowed: Number(
+          formData.total_overtime_hours_allowed,
+        ),
       };
-
-      if (formData.flexible_hours) {
-        Object.assign(payload, {
-          line_name: formData.line_name,
-          dayofweek: formData.dayofweek,
-          day_period: formData.day_period,
-          hour_from: Number(formData.hour_from),
-          hour_to: Number(formData.hour_to),
-          duration_days: Number(formData.duration_days),
-          work_entry_type_id: Number(formData.work_entry_type_id),
-        });
-      }
 
       if (data && data.id) {
         await updateWorkingSchedule(data.id, payload);
@@ -211,7 +152,7 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value, type } = e.target;
     const val =
@@ -244,8 +185,8 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
 
           <div className="modal-body p-4">
             <form onSubmit={handleSubmit} noValidate>
-              {/* --- Core Info --- */}
-              <div className="row g-3 mb-4">
+              <div className="row g-3">
+                {/* Name */}
                 <div className="col-md-12">
                   <label className="form-label fs-13 fw-bold">
                     Schedule Name <span className="text-danger">*</span>
@@ -267,12 +208,29 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
                   )}
                 </div>
 
+                {/* Hours Per Day */}
                 <div className="col-md-6">
                   <label className="form-label fs-13 fw-bold">
-                    Full Time Hours
+                    Hours Per Day
                   </label>
                   <input
                     type="number"
+                    step="0.5"
+                    name="hours_per_day"
+                    className="form-control"
+                    value={formData.hours_per_day}
+                    onChange={handleInputChange}
+                  />
+                </div>
+
+                {/* Full Time Hours */}
+                <div className="col-md-6">
+                  <label className="form-label fs-13 fw-bold">
+                    Full Time Hours (Weekly)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.5"
                     name="full_time_required_hours"
                     className="form-control"
                     value={formData.full_time_required_hours}
@@ -280,6 +238,22 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
                   />
                 </div>
 
+                {/* Overtime Allowed */}
+                <div className="col-md-6">
+                  <label className="form-label fs-13 fw-bold">
+                    Total Overtime Allowed
+                  </label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    name="total_overtime_hours_allowed"
+                    className="form-control"
+                    value={formData.total_overtime_hours_allowed}
+                    onChange={handleInputChange}
+                  />
+                </div>
+
+                {/* Timezone */}
                 <div className="col-md-6">
                   <label className="form-label fs-13 fw-bold">
                     Timezone <span className="text-danger">*</span>
@@ -295,7 +269,7 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
                       options={timezoneOptions}
                       placeholder="Select Timezone"
                       defaultValue={timezoneOptions.find(
-                        (t) => t.value === formData.tz
+                        (t) => t.value === formData.tz,
                       )}
                       onChange={(opt) =>
                         setFormData({ ...formData, tz: opt?.value || "" })
@@ -311,7 +285,7 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
 
                 {/* Toggles */}
                 <div className="col-md-6">
-                  <div className="form-check form-switch mt-3 p-3 border rounded bg-light">
+                  <div className="form-check form-switch mt-2 p-3 border rounded bg-light">
                     <input
                       className="form-check-input"
                       type="checkbox"
@@ -330,7 +304,7 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
                 </div>
 
                 <div className="col-md-6">
-                  <div className="form-check form-switch mt-3 p-3 border rounded bg-light">
+                  <div className="form-check form-switch mt-2 p-3 border rounded bg-light">
                     <input
                       className="form-check-input"
                       type="checkbox"
@@ -348,140 +322,6 @@ const AddEditWorkingSchedulesModal: React.FC<Props> = ({ onSuccess, data }) => {
                   </div>
                 </div>
               </div>
-
-              {/* --- Conditional Details --- */}
-              {formData.flexible_hours && (
-                <div className="bg-soft-secondary p-3 rounded border border-dashed animate__animated animate__fadeIn">
-                  <h6 className="text-primary fw-bold mb-3 fs-14 border-bottom pb-2">
-                    Schedule Details
-                  </h6>
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <label className="form-label fs-13">
-                        Detail Name <span className="text-danger">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="line_name"
-                        className={`form-control ${
-                          isSubmitted && errors.line_name ? "is-invalid" : ""
-                        }`}
-                        value={formData.line_name}
-                        onChange={handleInputChange}
-                        placeholder="e.g. Morning Shift"
-                      />
-                      {isSubmitted && errors.line_name && (
-                        <div className="text-danger fs-11 mt-1">
-                          {errors.line_name}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="col-md-6">
-                      <label className="form-label fs-13">Day of Week</label>
-                      <select
-                        name="dayofweek"
-                        className="form-select"
-                        value={formData.dayofweek}
-                        onChange={handleInputChange}
-                      >
-                        {daysOfWeek.map((d) => (
-                          <option key={d.value} value={d.value}>
-                            {d.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="col-md-6">
-                      <label className="form-label fs-13">Day Period</label>
-                      <select
-                        name="day_period"
-                        className="form-select"
-                        value={formData.day_period}
-                        onChange={handleInputChange}
-                      >
-                        {dayPeriods.map((p) => (
-                          <option key={p.value} value={p.value}>
-                            {p.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="col-md-3">
-                      <label className="form-label fs-13">Hour From</label>
-                      <input
-                        type="number"
-                        step="0.1"
-                        name="hour_from"
-                        className="form-control"
-                        value={formData.hour_from}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-
-                    <div className="col-md-3">
-                      <label className="form-label fs-13">Hour To</label>
-                      <input
-                        type="number"
-                        step="0.1"
-                        name="hour_to"
-                        className="form-control"
-                        value={formData.hour_to}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-
-                    <div className="col-md-6">
-                      <label className="form-label fs-13">
-                        Duration (Days)
-                      </label>
-                      <input
-                        type="number"
-                        step="0.1"
-                        name="duration_days"
-                        className="form-control"
-                        value={formData.duration_days}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-
-                    <div className="col-md-6">
-                      <label className="form-label fs-13">
-                        Work Entry Type <span className="text-danger">*</span>
-                      </label>
-                      <div
-                        className={
-                          isSubmitted && errors.work_entry_type_id
-                            ? "border border-danger rounded"
-                            : ""
-                        }
-                      >
-                        <CommonSelect
-                          options={workEntryTypeOptions}
-                          placeholder="Select Type"
-                          defaultValue={workEntryTypeOptions.find(
-                            (t) =>
-                              t.value === String(formData.work_entry_type_id)
-                          )}
-                          onChange={(opt) =>
-                            setFormData({
-                              ...formData,
-                              work_entry_type_id: opt?.value || "",
-                            })
-                          }
-                        />
-                      </div>
-                      {isSubmitted && errors.work_entry_type_id && (
-                        <div className="text-danger fs-11 mt-1">
-                          {errors.work_entry_type_id}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {/* Footer */}
               <div className="modal-footer border-0 px-0 mt-4 pb-0">
