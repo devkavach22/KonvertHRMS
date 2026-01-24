@@ -356,6 +356,38 @@ export const getRegularizationStatus = createAsyncThunk(
   },
 );
 
+export const getCurrentAttendanceStatus = createAsyncThunk(
+  "getCurrentAttendanceStatus",
+  async (_, thunkAPI) => {
+    try {
+      const { user_id, email } = Service.getAuthDetails();
+      
+      let result = await axios({
+        method: "GET",
+        baseURL: CONFIG.BASE_URL_ALL,
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `${localStorage.getItem("authToken")}`,
+        },
+        url: `/api/checkin_checkout_status`,
+        params: { user_id, email },
+      });
+      
+      if (result.data) {
+        return result.data;
+      } else {
+        return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
+      }
+    } catch (error: any) {
+      console.error(
+        "try catch [ getCurrentAttendanceStatus ] error.message >>",
+        error?.message,
+      );
+      return thunkAPI.rejectWithValue({ error: error?.message });
+    }
+  },
+);
+
 export const CheckinCheckout = createAsyncThunk(
   "CheckinCheckout",
   async (userdata: { Latitude: number; Longitude: number }, thunkAPI) => {
@@ -938,6 +970,11 @@ export const TBSlice = createSlice({
     isCheckinCheckout: false,
     isCheckinCheckoutFetching: false,
     CheckinCheckoutData: [],
+
+    // getCurrentAttendanceStatus
+    isGetCurrentAttendanceStatus: false,
+    isGetCurrentAttendanceStatusFetching: false,
+    getCurrentAttendanceStatusData: {},
 
     //UpdateAdminAttendanceApi
     isUpdateAdminAttendanceApi: false,
@@ -1561,6 +1598,49 @@ export const TBSlice = createSlice({
     );
     builder.addCase(CheckinCheckout.pending, (state) => {
       state.isCheckinCheckoutFetching = true;
+    });
+
+    // getCurrentAttendanceStatus reducers
+    builder.addCase(getCurrentAttendanceStatus.fulfilled, (state, { payload }) => {
+      try {
+        state.getCurrentAttendanceStatusData = payload;
+        state.isGetCurrentAttendanceStatus = true;
+        state.isGetCurrentAttendanceStatusFetching = false;
+        
+        // Update CheckinCheckoutData with current status to maintain consistency
+        if (payload) {
+          state.CheckinCheckoutData = payload;
+        }
+        
+        return state;
+      } catch (error) {
+        console.error(
+          "Error: getCurrentAttendanceStatus.fulfilled try catch error >>",
+          error,
+        );
+      }
+    });
+    
+    builder.addCase(getCurrentAttendanceStatus.rejected, (state, { payload }: { payload: any }) => {
+      try {
+        state.isGetCurrentAttendanceStatus = false;
+        state.isGetCurrentAttendanceStatusFetching = false;
+        state.isError = true;
+        payload
+          ? (state.errorMessage = payload?.error
+              ? payload?.error
+              : "Please try again (There was some network issue).")
+          : (state.errorMessage = "API Response Invalid. Please Check API");
+      } catch (error) {
+        console.error(
+          "Error: [getCurrentAttendanceStatus.rejected] try catch error >>",
+          error,
+        );
+      }
+    });
+    
+    builder.addCase(getCurrentAttendanceStatus.pending, (state) => {
+      state.isGetCurrentAttendanceStatusFetching = true;
     });
 
     builder.addCase(GetStructureTypes.fulfilled, (state, { payload }) => {

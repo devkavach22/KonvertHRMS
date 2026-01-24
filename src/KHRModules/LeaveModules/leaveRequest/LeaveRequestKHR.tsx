@@ -23,14 +23,17 @@ const LeaveRequestKHR = () => {
         ? result.data?.data
         : [];
 
+        console.log(safeResult,"safeResult");
+        
+
       const mappedData = safeResult.map((item: any) => ({
         id: item.id,
         employee_name: item.employee_name || item.employee_id,
         company_name: item.company_name || item.company_id,
         department_name: item.department_name || item.department_id,
         leave_type: item.leave_type_name,
-        from_date: item.from_date,
-        to_date: item.to_date,
+        from_date: item.from,
+        to_date: item.to,
         status: item.status,
       }));
 
@@ -62,12 +65,12 @@ const LeaveRequestKHR = () => {
 
   // --- Columns Definition ---
   const columns: any[] = [
-    {
-      title: "ID",
-      dataIndex: "id",
-      render: (val: any) => <span>{val || "-"}</span>,
-      sorter: (a: any, b: any) => (a.id || 0) - (b.id || 0),
-    },
+    // {
+    //   title: "ID",
+    //   dataIndex: "id",
+    //   render: (val: any) => <span>{val || "-"}</span>,
+    //   sorter: (a: any, b: any) => (a.id || 0) - (b.id || 0),
+    // },
     {
       title: "Employee Name",
       dataIndex: "employee_name",
@@ -104,20 +107,20 @@ const LeaveRequestKHR = () => {
     },
     {
       title: "From Date",
-      dataIndex: ["validity", "from"],
+      dataIndex: "from_date",
       render: (val: string) =>
         val ? moment(val, "YYYY-MM-DD HH:mm:ss").format("YYYY-MM-DD") : "-",
       sorter: (a: any, b: any) =>
-        moment(a.validity?.from).valueOf() - moment(b.validity?.from).valueOf(),
+        moment(a.from_date).valueOf() - moment(b.from_date).valueOf(),
     },
 
     {
       title: "To Date",
-      dataIndex: ["validity", "to"],
+      dataIndex: "to_date",
       render: (val: string) =>
         val ? moment(val, "YYYY-MM-DD HH:mm:ss").format("YYYY-MM-DD") : "-",
       sorter: (a: any, b: any) =>
-        moment(a.validity?.to).valueOf() - moment(b.validity?.to).valueOf(),
+        moment(a.to_date).valueOf() - moment(b.to_date).valueOf(),
     },
     {
       title: "Status",
