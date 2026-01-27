@@ -27,7 +27,7 @@ const rawSidebarData = [
     roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only Section
     submenuItems: [
       {
-        label: "Settings",
+        label: "Master",
         link: "index",
         submenu: true,
         showSubRoute: false,
