@@ -5,7 +5,6 @@ import { all_routes } from "@/router/all_routes";
 import DatatableKHR from "@/CommonComponent/DataTableKHR/DatatableKHR";
 import CommonHeader from "@/CommonComponent/HeaderKHR/HeaderKHR";
 
-import AddStructureTypeModal from "./AddStructureType";
 import {
   GetStructureTypes,
   TBSelector,
@@ -111,7 +110,7 @@ const StructureTypeKHR = () => {
             default_schedule_pay: item.default_schedule_pay || "-",
 
             default_working_hours: Array.isArray(
-              item.default_resource_calendar_id
+              item.default_resource_calendar_id,
             )
               ? item.default_resource_calendar_id[1]
               : "-",
@@ -121,12 +120,12 @@ const StructureTypeKHR = () => {
               : "-",
 
             default_work_entry_type: Array.isArray(
-              item.default_work_entry_type_id
+              item.default_work_entry_type_id,
             )
               ? item.default_work_entry_type_id[1]
               : "-",
           };
-        }
+        },
       );
       setData(mappedData);
       dispatch(updateState({ isGetStructureTypes: false }));

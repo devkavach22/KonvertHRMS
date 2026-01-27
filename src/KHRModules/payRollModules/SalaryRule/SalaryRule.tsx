@@ -68,7 +68,7 @@ const SalaryRuleKHR = () => {
               ? `₹ ${item.amount_fix}`
               : item.amount_select,
           active: item.active,
-        })
+        }),
       );
       setData(mappedData);
 

@@ -989,25 +989,30 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     fetchCountries();
   }, []);
 
+  // FIX: Updated Banking Data Loader to handle 'bank_name'
   useEffect(() => {
     const loadBankingData = async () => {
-      const bankList = await getBanks();
+      try {
+        const bankList = await getBanks();
 
-      // Transform API response to { value, label }
-      const formattedBanks = bankList.map((b: any) => ({
-        value: String(b.id),
-        // Combines Account Number and Bank Name for a unique label
-        label: `${b.acc_number} - ${
-          Array.isArray(b.bank_id) ? b.bank_id[1] : "Unknown Bank"
-        }`,
-      }));
+        // Transform API response to { value, label }
+        const formattedBanks = bankList.map((b: any) => ({
+          value: String(b.id),
+          // FIX: Check 'b.bank_name' first, then fall back to array check
+          label: `${b.acc_number} - ${
+            b.bank_name ||
+            (Array.isArray(b.bank_id) ? b.bank_id[1] : "Unknown Bank")
+          }`,
+        }));
 
-      setBanks(formattedBanks);
+        setBanks(formattedBanks);
+      } catch (error) {
+        console.error("Error loading banks:", error);
+      }
     };
 
     loadBankingData();
   }, []);
-
   useEffect(() => {
     const fetchEmploymentData = async () => {
       try {

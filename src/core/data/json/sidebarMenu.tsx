@@ -181,7 +181,10 @@ const rawSidebarData = [
         materialicons: "start",
         dot: false,
         submenuItems: [
-          { label: "Structure Types", link: routes.employeeSalaryKHR },
+          {
+            label: "Salary Structure Types",
+            link: routes.salaryStructureTypeKHR,
+          },
           { label: "Salary Rules", link: routes.SalaryRuleKHR },
         ],
       },
