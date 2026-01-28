@@ -120,11 +120,11 @@ const SalaryStructureType = () => {
       ),
       sorter: (a: any, b: any) => a.name.localeCompare(b.name),
     },
-    {
-      title: "Country",
-      dataIndex: "country_name", // Using the new flattened field
-      render: (text: string) => text || "-",
-    },
+    // {
+    //   title: "Country",
+    //   dataIndex: "country_name", // Using the new flattened field
+    //   render: (text: string) => text || "-",
+    // },
     {
       title: "Wage Type",
       dataIndex: "wage_type",

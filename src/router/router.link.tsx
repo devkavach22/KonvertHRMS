@@ -316,6 +316,7 @@ import {
   AccruralPlanKHR,
   SalaryRuleCategoryKHR,
   SalaryStructureType,
+  SalaryStructureKHR,
   // BanksAccountKHR,
 } from "./lazyRoutes";
 
@@ -324,7 +325,6 @@ import { Pagination, Progress, Typography } from "antd";
 import { Offcanvas, Spinner } from "react-bootstrap";
 import { Video } from "react-feather";
 import EmployeeContractKHR from "@/KHRModules/EmployeeContract/EmployeeContractKHR";
-import StructureTypeKHR from "@/KHRModules/payRollModules/StructureTypes/StructureTypes";
 import SalaryRuleKHR from "@/KHRModules/payRollModules/SalaryRule/SalaryRule";
 
 const routes = all_routes;
@@ -1705,6 +1705,11 @@ export const publicRoutes = [
   {
     path: routes.salaryStructureTypeKHR,
     element: <SalaryStructureType />,
+    route: Route,
+  },
+  {
+    path: routes.salaryStructureKHR,
+    element: <SalaryStructureKHR />,
     route: Route,
   },
   {

@@ -20,6 +20,10 @@ const getAuthDetails = () => {
     user_id: user_id ? Number(user_id) : null,
   };
 };
+const getUserId = () => {
+  const id = localStorage.getItem("user_id");
+  return id ? Number(id) : null; // Default fallback
+};
 
 // --- Main API Calls ---
 
@@ -67,15 +71,16 @@ export const updateSalaryStructureType = async (
   id: string,
   formData: Partial<SalaryStructureType>,
 ) => {
-  const { user_id } = getAuthDetails();
-  const payload = { ...formData, user_id };
-  return await Instance.put(`/api/structure-type/update/${id}`, payload);
+  return await Instance.put(
+    `/api/structure-type/${id}?user_id=${getUserId()}`,
+    formData,
+  );
 };
 
 // DELETE - Delete Structure Type (Placeholder)
 export const deleteSalaryStructureType = async (id: string) => {
   const { user_id } = getAuthDetails();
-  return await Instance.delete(`/api/structure-type/delete/${id}`, {
+  return await Instance.delete(`/api/structure-type/${id}`, {
     params: { user_id },
   });
 };
