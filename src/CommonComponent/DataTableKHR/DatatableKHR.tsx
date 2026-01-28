@@ -47,17 +47,17 @@ const DatatableKHR = <T extends object>({
         filtered.sort(
           (a, b) =>
             new Date(String(b[dateKey])).getTime() -
-            new Date(String(a[dateKey])).getTime()
+            new Date(String(a[dateKey])).getTime(),
         );
       } else if (sortOption === "Ascending" && textKey) {
         // Sort A-Z
         filtered.sort((a, b) =>
-          String(a[textKey]).localeCompare(String(b[textKey]))
+          String(a[textKey]).localeCompare(String(b[textKey])),
         );
       } else if (sortOption === "Descending" && textKey) {
         // Sort Z-A
         filtered.sort((a, b) =>
-          String(b[textKey]).localeCompare(String(a[textKey]))
+          String(b[textKey]).localeCompare(String(a[textKey])),
         );
       }
     }

@@ -41,8 +41,8 @@ export const all_routes = {
   mendetoryDaysKHR: "/KHR-Mandatory-days",
   SalaryRuleCategoryKHR: "/KHR-salary-rule-category",
 
+  salaryStructureKHR: "/KHR-salary-structure",
   salaryStructureTypeKHR: "/KHR-salary-structure-types",
-
   // Approvals
   approvalKHR: "KHR-approval",
 
