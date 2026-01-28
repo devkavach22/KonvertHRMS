@@ -39,6 +39,7 @@ export const all_routes = {
   accuralPlanKHR: "/KHR-accrual-plan",
   publicHolidayKHR: "/KHR-public-holiday",
   mendetoryDaysKHR: "/KHR-Mandatory-days",
+  SalaryRuleCategoryKHR: "/KHR-salary-rule-category",
 
   salaryStructureTypeKHR: "/KHR-salary-structure-types",
 

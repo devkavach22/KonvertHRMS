@@ -22,6 +22,7 @@
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
     "@hello-pangea/dnd": "^18.0.1",
     "@jridgewell/sourcemap-codec": "^1.5.4",
+    "@monaco-editor/react": "^4.7.0",
     "axios": "^1.13.2",
     "dayjs": "^1.11.19",
     "lucide-react": "^0.555.0",

@@ -28,8 +28,10 @@ const Header = React.memo(() => {
     (state: RootState) => state.themeSetting.dataLayout
   );
   const Location = useLocation();
-  const userName = localStorage.getItem("full_name") || "John Doe";
+  const userName = localStorage.getItem("full_name");
   const userEmail = localStorage.getItem("user_email") || "Admin";
+  console.log(userName,"userName");
+  
 
   const avatarSrc = `https://ui-avatars.com/api/?name=${encodeURIComponent(
     userName
