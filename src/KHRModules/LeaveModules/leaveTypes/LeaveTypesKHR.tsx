@@ -85,9 +85,7 @@ const LeaveAdminKHR = () => {
             className="me-2"
             data-bs-toggle="modal"
             data-bs-target="#add_leave_type_modal"
-            onClick={() => {
-              setSelectedPolicy(record);
-            }}
+            onClick={() => setSelectedPolicy(record) }
           >
             <i className="ti ti-edit text-blue" />
           </Link>
@@ -119,7 +117,11 @@ const LeaveAdminKHR = () => {
           </div>
         </div>
 
-        <AddEditLeaveTypesModal onSuccess={fetchData} data={selectedPolicy} />
+        <AddEditLeaveTypesModal
+          onSuccess={fetchData}
+          onClose={() => setSelectedPolicy(null)}
+          data={selectedPolicy}
+        />
       </div>
     </>
   );

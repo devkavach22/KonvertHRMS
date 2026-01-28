@@ -8,6 +8,7 @@ import {
 } from "./PublicHolidayServices";
 import { DatePicker, Radio, Checkbox } from "antd";
 import dayjs from "dayjs";
+import CommonSelect from "../../../core/common/commonSelect";
 
 interface Props {
   onSuccess: () => void;
@@ -35,8 +36,8 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
     if (data) {
       setFormData({
         name: (data as any).name ?? "",
-        start_date: (data as any).date_from ?? "",
-        end_date: (data as any).date_to ?? "",
+        start_date: (data as any).date_from ? dayjs((data as any).date_from).format("YYYY-MM-DD") : "",
+        end_date: (data as any).date_to ? dayjs((data as any).date_to).format("YYYY-MM-DD") : "",
         calendar: (data as any).calendar_id[0] ?? "",
         work_entry_type: (data as any).work_entry_type_id[0] ?? "",
       });
@@ -99,11 +100,12 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
 
     const payload = {
       name: formData.name,
-      date_from: formData.start_date + " 00:00:00",
-      date_to: formData.end_date + " 23:55:09",
-      work_entry_type_id: parseInt(formData.work_entry_type),
-      calendar_id: parseInt(formData.calendar)
+      date_from: formData.start_date ? `${formData.start_date} 00:00:00` : null,
+      date_to: formData.end_date ? `${formData.end_date} 23:55:09` : null,
+      work_entry_type_id: formData.work_entry_type ? parseInt(formData.work_entry_type) : null,
+      calendar_id: formData.calendar ? parseInt(formData.calendar) : null
     };
+
 
     try {
       if (data && data.id) {
@@ -124,9 +126,10 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
   return (
     <div className="modal custom-modal fade" id="add_attendance_policy" role="dialog">
       <div className="modal-dialog modal-dialog-centered modal-lg">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">{data ? "Edit Public Holiday" : "Add Public Holiday"}</h5>
+        <div className="modal-content border-0 shadow-lg">
+          <div className="modal-header border-bottom bg-light py-2">
+            <i className="ti ti-calendar-plus me-2 text-primary fs-20"></i>
+            <h5 className="modal-title fw-bold text-dark fs-16">{data ? "Edit Public Holiday" : "Add Public Holiday"}</h5>
             <button type="button" className="btn-close" data-bs-dismiss="modal" id="close-btn-policy" aria-label="Close"><span aria-hidden="true">×</span></button>
           </div>
           <div className="modal-body">
@@ -136,71 +139,116 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
                   <label className="form-label">Name</label>
                   <input type="text" name="name" className="form-control" value={formData.name ?? ""} onChange={handleChange} required />
                   {validated && !(formData.name) && (
-                    <span className="text-danger small">Required</span>
+                    <span className="text-danger small">Name is Required</span>
                   )}
                 </div>
 
                 <div className="col-md-6 mb-3">
                   <label className="form-label">Start Date</label>
-                  <DatePicker
-                    className={`form-control w-100 ${
-                      validated && !formData.start_date ? "is-invalid" : ""
-                    }`}
-                    value={formData.start_date ? dayjs(formData.start_date) : null}
-                    onChange={(_, dateStr) =>
-                      setFormData({
-                        ...formData,
-                        start_date: dateStr,
-                      })
-                    }
-                  />
-                  {validated && !(formData.start_date) && (
-                    <span className="text-danger small">Required</span>
+                  <div className="input-icon position-relative w-100">
+                    <span className="input-icon-addon">
+                      <i className="ti ti-calendar" />
+                    </span>
+                    <DatePicker
+                      className={`form-control datetimepicker ${
+                        validated && !formData.start_date ? "is-invalid" : ""
+                      }`}
+                      format="DD-MM-YYYY"
+                      placeholder="DD-MM-YYYY"
+                      value={formData.start_date ? dayjs(formData.start_date, "YYYY-MM-DD") : null}
+                      onChange={(date) =>
+                        setFormData({
+                          ...formData,
+                          start_date: date ? date.format("YYYY-MM-DD") : "",
+                        })
+                      }
+                    />
+                  </div>
+                  {validated && !formData.start_date && (
+                    <span className="text-danger small">Start Date is Required</span>
+                  )}
+                </div>
+
+                  {/* new start date */}
+                                <div className="col-md-6 mb-3">
+                  <label className="form-label">Start Date</label>
+                  <div className="input-icon position-relative w-100">
+                    <span className="input-icon-addon">
+                      <i className="ti ti-calendar" />
+                    </span>
+                    <DatePicker
+                      className={`form-control datetimepicker ${
+                        validated && !formData.start_date ? "is-invalid" : ""
+                      }`}
+                      format="DD-MM-YYYY"
+                      placeholder="DD-MM-YYYY"
+                      value={formData.start_date ? dayjs(formData.start_date, "YYYY-MM-DD") : null}
+                      onChange={(date) =>
+                        setFormData({
+                          ...formData,
+                          start_date: date ? date.format("YYYY-MM-DD") : "",
+                        })
+                      }
+                    />
+                  </div>
+                  {validated && !formData.start_date && (
+                    <span className="text-danger small">Start Date is Required</span>
                   )}
                 </div>
 
                 <div className="col-md-6 mb-3">
                   <label className="form-label">End Date</label>
-                  <DatePicker
-                    className={`form-control w-100 ${
-                      validated && !formData.end_date ? "is-invalid" : ""
-                    }`}
-                    value={formData.end_date ? dayjs(formData.end_date) : null}
-                    onChange={(_, dateStr) =>
-                      setFormData({
-                        ...formData,
-                        end_date: dateStr,
-                      })
-                    }
-                  />
+                  <div className="input-icon position-relative w-100">
+                    <span className="input-icon-addon">
+                      <i className="ti ti-calendar" />
+                    </span>
+                    <DatePicker
+                      className={`form-control datetimepicker ${
+                        validated && !formData.end_date ? "is-invalid" : ""
+                      }`}
+                      format="DD-MM-YYYY"
+                      placeholder="DD-MM-YYYY"
+                      value={formData.end_date ? dayjs(formData.end_date, "YYYY-MM-DD") : null}
+                      onChange={(date) =>
+                        setFormData({
+                          ...formData,
+                          end_date: date ? date.format("YYYY-MM-DD") : "",
+                        })
+                      }
+                    />
+                  </div>
                   {validated && !(formData.end_date) && (
-                    <span className="text-danger small">Required</span>
+                    <span className="text-danger small">End Date is Required</span>
                   )}
                 </div>
 
                 <div className="col-md-6 mb-3">
                   <label className="form-label">Working Hours</label>
-                  <select name="calendar" className="form-select" value={formData.calendar ?? ""} onChange={handleChange} required>
-                    <option value="">Select Working Hours</option>
-                    {calendarOptions.map((opt: any) => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
+                  <div>
+                    <CommonSelect
+                      options={calendarOptions}
+                      value={calendarOptions.find(opt => opt.value === formData.calendar)}
+                      onChange={(opt: any) => setFormData((prev: any) => ({ ...prev, calendar: opt?.value }))}
+                      placeholder="Select Working Hours"
+                    />
+                  </div>
                   {validated && !(formData.calendar) && (
-                    <span className="text-danger small">Required</span>
+                    <span className="text-danger small">Working Hours is Required</span>
                   )}
                 </div>
 
                 <div className="col-md-6 mb-3">
                   <label className="form-label">Work Entry Type</label>
-                  <select name="work_entry_type" className="form-select" value={formData.work_entry_type ?? ""} onChange={handleChange} required>
-                    <option value="">Select Work Entry Type</option>
-                    {workEntryOptions.map((opt: any) => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
+                  <div>
+                    <CommonSelect
+                      options={workEntryOptions}
+                      value={workEntryOptions.find(opt => opt.value === formData.work_entry_type)}
+                      onChange={(opt: any) => setFormData((prev: any) => ({ ...prev, work_entry_type: opt?.value }))}
+                      placeholder="Select Work Entry Type"
+                    />
+                  </div>
                   {validated && !(formData.work_entry_type) && (
-                    <span className="text-danger small">Required</span>
+                    <span className="text-danger small">Work Entry Type is Required</span>
                   )}
                 </div>
               </div>
