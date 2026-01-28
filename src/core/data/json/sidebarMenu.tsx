@@ -185,6 +185,7 @@ const rawSidebarData = [
             label: "Salary Structure Types",
             link: routes.salaryStructureTypeKHR,
           },
+          { label: "Salary Structure", link: routes.salaryStructureKHR },
           { label: "Salary Rules", link: routes.SalaryRuleKHR },
         ],
       },

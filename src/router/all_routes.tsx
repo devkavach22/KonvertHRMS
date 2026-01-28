@@ -40,8 +40,8 @@ export const all_routes = {
   publicHolidayKHR: "/KHR-public-holiday",
   mendetoryDaysKHR: "/KHR-Mandatory-days",
 
+  salaryStructureKHR: "/KHR-salary-structure",
   salaryStructureTypeKHR: "/KHR-salary-structure-types",
-
   // Approvals
   approvalKHR: "KHR-approval",
 
