@@ -609,11 +609,11 @@ const EmployeeAttendanceKHR = () => {
                         ? formatTime(datass.check_in_time)
                         : "--:--"}
                     </h4>
-                    <small>
+                    {/* <small>
                       {datass?.check_in_time
                         ? formatDate(datass.check_in_time)
                         : "Not Checked In Yet"}
-                    </small>
+                    </small> */}
                   </div>
 
                   <div
