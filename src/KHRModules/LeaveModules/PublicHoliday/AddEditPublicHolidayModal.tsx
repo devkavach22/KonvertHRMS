@@ -4,11 +4,12 @@ import {
   createHoliday,
   updateHoliday,
   getCalenderId,
-  getWorkEntryType
+  getWorkEntryType,
 } from "./PublicHolidayServices";
-import { DatePicker, Radio, Checkbox } from "antd";
+import { DatePicker } from "antd";
 import dayjs from "dayjs";
 import CommonSelect from "../../../core/common/commonSelect";
+import { toast } from "react-toastify";
 
 interface Props {
   onSuccess: () => void;
@@ -18,52 +19,37 @@ interface Props {
 const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
   const initialFormState = {
     name: "",
-    start_date: "",
-    end_date: "",
+    start_date: null as string | null,
+    end_date: null as string | null,
     calendar: "",
     work_entry_type: "",
   };
 
-  const [formData, setFormData] = useState<any>(initialFormState);
-  const [validated, setValidated] = useState(false);
+  const [formData, setFormData] = useState(initialFormState);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<any>({});
   const [calendarOptions, setCalendarOptions] = useState<any[]>([]);
   const [workEntryOptions, setWorkEntryOptions] = useState<any[]>([]);
 
-
-  useEffect(() => {
-    if (data) {
-      setFormData({
-        name: (data as any).name ?? "",
-        start_date: (data as any).date_from ? dayjs((data as any).date_from).format("YYYY-MM-DD") : "",
-        end_date: (data as any).date_to ? dayjs((data as any).date_to).format("YYYY-MM-DD") : "",
-        calendar: (data as any).calendar_id[0] ?? "",
-        work_entry_type: (data as any).work_entry_type_id[0] ?? "",
-      });
-    } else {
-      setFormData(initialFormState);
-    }
-  }, [data]);
-
+  // 1. Fetch Dropdown Data
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [calendarResponse, workEntryResponse] = await Promise.all([
           getCalenderId(),
-          getWorkEntryType()
+          getWorkEntryType(),
         ]);
-        const calendars = calendarResponse.data.data;
-        setCalendarOptions(calendars.map((c: any) => ({ value: c.id, label: c.name })));
-        const workEntries = workEntryResponse.data.data;
-        setWorkEntryOptions(workEntries.map((w: any) => ({ value: w.id, label: w.name })));
-        // Set defaults if not set
-        if (!formData.calendar && calendars.length > 0) {
-          setFormData((prev: any) => ({ ...prev, calendar: calendars[0].id }));
-        }
-        if (!formData.work_entry_type && workEntries.length > 0) {
-          setFormData((prev: any) => ({ ...prev, work_entry_type: workEntries[0].id }));
-        }
+
+        const calendars = calendarResponse?.data?.data || [];
+        setCalendarOptions(
+          calendars.map((c: any) => ({ value: String(c.id), label: c.name })),
+        );
+
+        const workEntries = workEntryResponse?.data?.data || [];
+        setWorkEntryOptions(
+          workEntries.map((w: any) => ({ value: String(w.id), label: w.name })),
+        );
       } catch (err) {
         console.error("Error fetching data:", err);
       }
@@ -71,197 +57,325 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
     fetchData();
   }, []);
 
+  // 2. Populate Form on Edit
+  useEffect(() => {
+    if (data) {
+      setFormData({
+        name: (data as any).name ?? "",
+        start_date: (data as any).date_from
+          ? dayjs((data as any).date_from).format("YYYY-MM-DD")
+          : null,
+        end_date: (data as any).date_to
+          ? dayjs((data as any).date_to).format("YYYY-MM-DD")
+          : null,
+        calendar: (data as any).calendar_id
+          ? String((data as any).calendar_id[0])
+          : "",
+        work_entry_type: (data as any).work_entry_type_id
+          ? String((data as any).work_entry_type_id[0])
+          : "",
+      });
+    } else {
+      resetForm();
+    }
+  }, [data]);
 
-
-  // reset on modal close
+  // 3. Reset on Close
   useEffect(() => {
     const modalElement = document.getElementById("add_attendance_policy");
     const handleModalClose = () => {
-      setValidated(false);
-      setFormData(initialFormState);
+      resetForm();
     };
-    if (modalElement) modalElement.addEventListener("hidden.bs.modal", handleModalClose);
-    return () => { if (modalElement) modalElement.removeEventListener("hidden.bs.modal", handleModalClose); };
+    modalElement?.addEventListener("hidden.bs.modal", handleModalClose);
+    return () => {
+      modalElement?.removeEventListener("hidden.bs.modal", handleModalClose);
+    };
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const target = e.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
-    const name = target.name;
-    const value = (target as HTMLInputElement).value;
-    setFormData((prev: any) => ({ ...prev, [name]: value }));
+  const resetForm = () => {
+    setFormData(initialFormState);
+    setErrors({});
+    setIsSubmitted(false);
+    setIsSubmitting(false);
+  };
+
+  // --- VALIDATION HELPERS ---
+  const clearError = (fieldName: string) => {
+    setErrors((prev: any) => {
+      const newErrors = { ...prev };
+      delete newErrors[fieldName];
+      return newErrors;
+    });
+  };
+
+  const getInputClass = (fieldName: keyof typeof formData) => {
+    if (errors[fieldName]) return "form-control is-invalid";
+    if (isSubmitted && formData[fieldName] && !errors[fieldName])
+      return "form-control is-valid";
+    return "form-control";
+  };
+
+  // Only used for optional fields now, or if you add logic back
+  const getSelectWrapperClass = (fieldName: string) => {
+    if (errors[fieldName]) return "border border-danger rounded";
+    // Optional fields don't turn green or red usually, but if you want consistency:
+    if (isSubmitted && (formData as any)[fieldName] && !errors[fieldName])
+      return "border border-success rounded";
+    return "";
+  };
+
+  const validate = () => {
+    let tempErrors: any = {};
+
+    // Only Name, Start Date, and End Date are mandatory
+    if (!formData.name.trim()) tempErrors.name = "Name is required";
+    if (!formData.start_date) tempErrors.start_date = "Start Date is required";
+    if (!formData.end_date) tempErrors.end_date = "End Date is required";
+
+    setErrors(tempErrors);
+    return Object.keys(tempErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    e.stopPropagation();
-    setValidated(true);
-    const form = e.currentTarget;
-    if (form.checkValidity() === false) return;
+    setIsSubmitted(true);
+    if (!validate()) return;
+
+    setIsSubmitting(true);
 
     const payload = {
       name: formData.name,
+      // Append specific times
       date_from: formData.start_date ? `${formData.start_date} 00:00:00` : null,
       date_to: formData.end_date ? `${formData.end_date} 23:55:09` : null,
-      work_entry_type_id: formData.work_entry_type ? parseInt(formData.work_entry_type) : null,
-      calendar_id: formData.calendar ? parseInt(formData.calendar) : null
+      work_entry_type_id: formData.work_entry_type
+        ? parseInt(formData.work_entry_type)
+        : null,
+      calendar_id: formData.calendar ? parseInt(formData.calendar) : null,
     };
-
 
     try {
       if (data && data.id) {
         await updateHoliday(Number(data.id), payload);
+        toast.success("Public Holiday Updated Successfully");
       } else {
         await createHoliday(payload);
-        console.log("done here")
+        toast.success("Public Holiday Created Successfully");
       }
+      onSuccess();
       const closeBtn = document.getElementById("close-btn-policy");
       closeBtn?.click();
-      onSuccess();
     } catch (err) {
       console.error(err);
-      alert("Error saving data.");
+      toast.error("Error saving data");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="modal custom-modal fade" id="add_attendance_policy" role="dialog">
-      <div className="modal-dialog modal-dialog-centered modal-lg">
-        <div className="modal-content border-0 shadow-lg">
-          <div className="modal-header border-bottom bg-light py-2">
-            <i className="ti ti-calendar-plus me-2 text-primary fs-20"></i>
-            <h5 className="modal-title fw-bold text-dark fs-16">{data ? "Edit Public Holiday" : "Add Public Holiday"}</h5>
-            <button type="button" className="btn-close" data-bs-dismiss="modal" id="close-btn-policy" aria-label="Close"><span aria-hidden="true">×</span></button>
-          </div>
-          <div className="modal-body">
-            <form className={`needs-validation ${validated ? "was-validated" : ""}`} noValidate onSubmit={handleSubmit}>
-              <div className="row">
-                <div className="col-md-12 mb-3">
-                  <label className="form-label">Name</label>
-                  <input type="text" name="name" className="form-control" value={formData.name ?? ""} onChange={handleChange} required />
-                  {validated && !(formData.name) && (
-                    <span className="text-danger small">Name is Required</span>
-                  )}
-                </div>
-
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Start Date</label>
-                  <div className="input-icon position-relative w-100">
-                    <span className="input-icon-addon">
-                      <i className="ti ti-calendar" />
-                    </span>
-                    <DatePicker
-                      className={`form-control datetimepicker ${
-                        validated && !formData.start_date ? "is-invalid" : ""
-                      }`}
-                      format="DD-MM-YYYY"
-                      placeholder="DD-MM-YYYY"
-                      value={formData.start_date ? dayjs(formData.start_date, "YYYY-MM-DD") : null}
-                      onChange={(date) =>
-                        setFormData({
-                          ...formData,
-                          start_date: date ? date.format("YYYY-MM-DD") : "",
-                        })
-                      }
+    <>
+      <style>
+        {`
+          .is-invalid + .invalid-feedback { display: block; }
+          .ant-picker.ant-picker-status-error { border-color: #dc3545 !important; }
+          .is-valid-picker { border-color: #198754 !important; }
+          /* Ensure modal z-index is correct */
+          #add_attendance_policy { z-index: 1055 !important; }
+        `}
+      </style>
+      <div
+        className="modal custom-modal fade"
+        id="add_attendance_policy"
+        role="dialog"
+      >
+        <div className="modal-dialog modal-dialog-centered modal-lg">
+          <div className="modal-content border-0 shadow-lg">
+            <div className="modal-header border-bottom bg-light py-2">
+              <h5 className="modal-title fw-bold text-dark fs-16">
+                <i className="ti ti-calendar-plus me-2 text-primary fs-20"></i>
+                {data ? "Edit Public Holiday" : "Add Public Holiday"}
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                id="close-btn-policy"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div className="modal-body p-4">
+              <form onSubmit={handleSubmit} noValidate>
+                <div className="row g-3">
+                  {/* Name */}
+                  <div className="col-md-12">
+                    <label className="form-label fs-13 fw-bold">
+                      Name <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      className={getInputClass("name")}
+                      value={formData.name}
+                      onChange={(e) => {
+                        setFormData({ ...formData, name: e.target.value });
+                        clearError("name");
+                      }}
+                      placeholder="e.g. Republic Day"
                     />
+                    {errors.name && (
+                      <div className="invalid-feedback">{errors.name}</div>
+                    )}
                   </div>
-                  {validated && !formData.start_date && (
-                    <span className="text-danger small">Start Date is Required</span>
-                  )}
+
+                  {/* Start Date */}
+                  <div className="col-md-6">
+                    <label className="form-label fs-13 fw-bold">
+                      Start Date <span className="text-danger">*</span>
+                    </label>
+                    {/* REMOVED: Wrapper with error border to fix double box issue */}
+                    <div>
+                      <DatePicker
+                        getPopupContainer={(trigger) => trigger.parentElement!}
+                        className={`form-control w-100 ${
+                          isSubmitted &&
+                          formData.start_date &&
+                          !errors.start_date
+                            ? "is-valid-picker"
+                            : ""
+                        }`}
+                        format="YYYY-MM-DD"
+                        placeholder="YYYY-MM-DD"
+                        value={
+                          formData.start_date
+                            ? dayjs(formData.start_date, "YYYY-MM-DD")
+                            : null
+                        }
+                        onChange={(_, dateStr) => {
+                          setFormData({
+                            ...formData,
+                            start_date: dateStr as string,
+                          });
+                          clearError("start_date");
+                        }}
+                        status={errors.start_date ? "error" : ""}
+                      />
+                    </div>
+                    {errors.start_date && (
+                      <div className="text-danger fs-11 mt-1">
+                        {errors.start_date}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* End Date */}
+                  <div className="col-md-6">
+                    <label className="form-label fs-13 fw-bold">
+                      End Date <span className="text-danger">*</span>
+                    </label>
+                    {/* REMOVED: Wrapper with error border to fix double box issue */}
+                    <div>
+                      <DatePicker
+                        getPopupContainer={(trigger) => trigger.parentElement!}
+                        className={`form-control w-100 ${
+                          isSubmitted && formData.end_date && !errors.end_date
+                            ? "is-valid-picker"
+                            : ""
+                        }`}
+                        format="YYYY-MM-DD"
+                        placeholder="YYYY-MM-DD"
+                        value={
+                          formData.end_date
+                            ? dayjs(formData.end_date, "YYYY-MM-DD")
+                            : null
+                        }
+                        onChange={(_, dateStr) => {
+                          setFormData({
+                            ...formData,
+                            end_date: dateStr as string,
+                          });
+                          clearError("end_date");
+                        }}
+                        status={errors.end_date ? "error" : ""}
+                      />
+                    </div>
+                    {errors.end_date && (
+                      <div className="text-danger fs-11 mt-1">
+                        {errors.end_date}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Working Hours (Optional) */}
+                  <div className="col-md-6">
+                    <label className="form-label fs-13 fw-bold">
+                      Working Hours
+                    </label>
+                    <div>
+                      <CommonSelect
+                        key={`calendar-${calendarOptions.length}`}
+                        options={calendarOptions}
+                        value={calendarOptions.find(
+                          (opt) => opt.value === formData.calendar,
+                        )}
+                        onChange={(opt: any) => {
+                          setFormData((prev: any) => ({
+                            ...prev,
+                            calendar: opt?.value || "",
+                          }));
+                        }}
+                        placeholder="Select Working Hours"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Work Entry Type (Optional) */}
+                  <div className="col-md-6">
+                    <label className="form-label fs-13 fw-bold">
+                      Work Entry Type
+                    </label>
+                    <div>
+                      <CommonSelect
+                        key={`work-entry-${workEntryOptions.length}`}
+                        options={workEntryOptions}
+                        value={workEntryOptions.find(
+                          (opt) => opt.value === formData.work_entry_type,
+                        )}
+                        onChange={(opt: any) => {
+                          setFormData((prev: any) => ({
+                            ...prev,
+                            work_entry_type: opt?.value || "",
+                          }));
+                        }}
+                        placeholder="Select Work Entry Type"
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                  {/* new start date */}
-                                <div className="col-md-6 mb-3">
-                  <label className="form-label">Start Date</label>
-                  <div className="input-icon position-relative w-100">
-                    <span className="input-icon-addon">
-                      <i className="ti ti-calendar" />
-                    </span>
-                    <DatePicker
-                      className={`form-control datetimepicker ${
-                        validated && !formData.start_date ? "is-invalid" : ""
-                      }`}
-                      format="DD-MM-YYYY"
-                      placeholder="DD-MM-YYYY"
-                      value={formData.start_date ? dayjs(formData.start_date, "YYYY-MM-DD") : null}
-                      onChange={(date) =>
-                        setFormData({
-                          ...formData,
-                          start_date: date ? date.format("YYYY-MM-DD") : "",
-                        })
-                      }
-                    />
-                  </div>
-                  {validated && !formData.start_date && (
-                    <span className="text-danger small">Start Date is Required</span>
-                  )}
+                <div className="modal-footer border-0 px-0 mt-4 pb-0">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary px-4 me-2"
+                    data-bs-dismiss="modal"
+                    onClick={resetForm}
+                  >
+                    Discard
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary px-5 shadow-sm"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Saving..." : data ? "Update" : "Save"}
+                  </button>
                 </div>
-
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">End Date</label>
-                  <div className="input-icon position-relative w-100">
-                    <span className="input-icon-addon">
-                      <i className="ti ti-calendar" />
-                    </span>
-                    <DatePicker
-                      className={`form-control datetimepicker ${
-                        validated && !formData.end_date ? "is-invalid" : ""
-                      }`}
-                      format="DD-MM-YYYY"
-                      placeholder="DD-MM-YYYY"
-                      value={formData.end_date ? dayjs(formData.end_date, "YYYY-MM-DD") : null}
-                      onChange={(date) =>
-                        setFormData({
-                          ...formData,
-                          end_date: date ? date.format("YYYY-MM-DD") : "",
-                        })
-                      }
-                    />
-                  </div>
-                  {validated && !(formData.end_date) && (
-                    <span className="text-danger small">End Date is Required</span>
-                  )}
-                </div>
-
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Working Hours</label>
-                  <div>
-                    <CommonSelect
-                      options={calendarOptions}
-                      value={calendarOptions.find(opt => opt.value === formData.calendar)}
-                      onChange={(opt: any) => setFormData((prev: any) => ({ ...prev, calendar: opt?.value }))}
-                      placeholder="Select Working Hours"
-                    />
-                  </div>
-                  {validated && !(formData.calendar) && (
-                    <span className="text-danger small">Working Hours is Required</span>
-                  )}
-                </div>
-
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Work Entry Type</label>
-                  <div>
-                    <CommonSelect
-                      options={workEntryOptions}
-                      value={workEntryOptions.find(opt => opt.value === formData.work_entry_type)}
-                      onChange={(opt: any) => setFormData((prev: any) => ({ ...prev, work_entry_type: opt?.value }))}
-                      placeholder="Select Work Entry Type"
-                    />
-                  </div>
-                  {validated && !(formData.work_entry_type) && (
-                    <span className="text-danger small">Work Entry Type is Required</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="modal-footer">
-                <button type="button" className="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" className="btn btn-primary">{data ? "Update" : "Save"}</button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
