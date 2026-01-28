@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { all_routes } from "../../../router/all_routes";
 import DatatableKHR from "../../../CommonComponent/DataTableKHR/DatatableKHR";
 import CommonHeader from "../../../CommonComponent/HeaderKHR/HeaderKHR";
-import AddEditAttendancePolicyModal from "./AddEditmendetoryDaysModal";
+import AddEditMandatoryDaysModal from "./AddEditmendetoryDaysModal";
 import moment from "moment";
 import { Link } from "react-router-dom";
 
@@ -69,13 +69,13 @@ const MendetoryDaysKHR = () => {
                 to="#"
                 className="me-2"
                 data-bs-toggle="modal"
-                data-bs-target="#add_attendance_policy"
+                data-bs-target="#add_mandatory_days"
   onClick={() => {
               setSelectedPolicy(record);
               const jq = (window as any).jQuery || (window as any).$;
-              if (jq && typeof jq === "function" && jq("#add_attendance_policy").modal) {
+              if (jq && typeof jq === "function" && jq("#add_mandatory_days").modal) {
                 try {
-                  jq("#add_attendance_policy").modal("show");
+                  jq("#add_mandatory_days").modal("show");
                 } catch (e) {
                   // ignore if modal call fails
                 }
@@ -133,7 +133,7 @@ const MendetoryDaysKHR = () => {
               activeMenu="Mendetory Days"
               routes={routes}
               buttonText="Add Mandatory Days"
-              modalTarget="#add_attendance_policy"
+              modalTarget="#add_mandatory_days"
             />
           </div>
 
@@ -148,7 +148,7 @@ const MendetoryDaysKHR = () => {
         </div>
       </div>
 
-      <AddEditAttendancePolicyModal onSuccess={fetchData} data={selectedPolicy} />
+      <AddEditMandatoryDaysModal onSuccess={fetchData} data={selectedPolicy} />
     </div>
   );
 };
