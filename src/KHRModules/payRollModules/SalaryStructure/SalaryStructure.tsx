@@ -1,271 +1,172 @@
-import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { useAppDispatch } from "@/Store/hooks";
-
-import { all_routes } from "@/router/all_routes";
-import DatatableKHR from "@/CommonComponent/DataTableKHR/DatatableKHR";
-import CommonHeader from "@/CommonComponent/HeaderKHR/HeaderKHR";
-
-import AddStructureTypeModal from "./AddSalaryStructure";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { all_routes } from "../../../router/all_routes";
+import DatatableKHR from "../../../CommonComponent/DataTableKHR/DatatableKHR";
+import CommonHeader from "../../../CommonComponent/HeaderKHR/HeaderKHR";
 import {
-  getSalaryStructure,
-  TBSelector,
-  updateState,
-} from "@/Store/Reducers/TBSlice";
-
-/* ================= TYPES ================= */
-
-interface StructureType {
-  name: string;
-  typeName: string;
-  countryName: string | null;
-  schedulePay: string;
-  reportName: string;
-}
-
-/* ================= COMPONENT ================= */
+  getSalaryStructures,
+  deleteSalaryStructure,
+} from "./SalaryStructureService";
+import type { SalaryStructure } from "./SalaryStructureService";
+import { toast } from "react-toastify";
+import AddEditSalaryStructureModal from "./AddEditSalaryStructureModal";
 
 const SalaryStructure = () => {
   const routes = all_routes;
+  const [data, setData] = useState<SalaryStructure[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [selectedItem, setSelectedItem] = useState<SalaryStructure | null>(
+    null,
+  );
 
-  const [data, setData] = useState<StructureType[]>([]);
-  // const [loading, setLoading] = useState<boolean>(true); // Unused state
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // API now returns the clean list directly via the Service
+      const result = await getSalaryStructures();
 
-  // FIX: Use the typed dispatch hook
-  const dispatch = useAppDispatch();
+      // Add 'key' for the table (required by AntD/Table logic)
+      const tableData = result.map((item) => ({
+        ...item,
+        key: String(item.id),
+      }));
 
-  const {
-    isgetSalaryStructure,
-    isgetSalaryStructureFetching,
-    getSalaryStructureData,
-  } = useSelector(TBSelector);
-
-  const [selectedStructure, setSelectedStructure] =
-    useState<StructureType | null>(null);
-
-  useEffect(() => {
-    dispatch(getSalaryStructure());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Added lint disable if you want to keep the dependency array empty intentionally
-
-  // console.log(getSalaryStructureData, "getSalaryStructureData");
-
-  useEffect(() => {
-    if (isgetSalaryStructure) {
-      const mappedData: StructureType[] =
-        getSalaryStructureData?.data?.map((item: any) => ({
-          name: item.name,
-          typeName: item.typeName,
-          countryName: item.countryName,
-          schedulePay: item.schedulePay,
-          reportName: item.reportName,
-        })) || [];
-
-      setData(mappedData);
-      dispatch(updateState({ isgetSalaryStructure: false }));
+      setData(tableData);
+    } catch (error) {
+      console.error("Fetch error:", error);
+      toast.error("Failed to load salary structures");
+    } finally {
+      setLoading(false);
     }
-  }, [isgetSalaryStructure, getSalaryStructureData, dispatch]);
+  };
 
-  /* ================= TABLE COLUMNS ================= */
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this structure?")) {
+      try {
+        await deleteSalaryStructure(id);
+        toast.success("Structure deleted successfully");
+        fetchData();
+      } catch (error) {
+        toast.error("Failed to delete structure");
+      }
+    }
+  };
+
   const columns = [
     {
       title: "Name",
       dataIndex: "name",
+      render: (text: string) => (
+        <span className="fw-bold text-dark">{text}</span>
+      ),
+      sorter: (a: SalaryStructure, b: SalaryStructure) =>
+        a.name.localeCompare(b.name),
     },
     {
       title: "Type",
       dataIndex: "typeName",
       render: (text: string) => (
-        <span className="badge badge-info-transparent">{text}</span>
+        <span className="badge bg-soft-primary text-primary">
+          {text || "-"}
+        </span>
       ),
+    },
+    {
+      title: "Schedule Pay",
+      dataIndex: "schedulePay",
+      render: (text: string) => <span className="text-capitalize">{text}</span>,
     },
     {
       title: "Country",
       dataIndex: "countryName",
-      render: (text: string | null) => text ?? "-",
+      render: (text: string) => text || "-",
     },
     {
-      title: "Scheduled Pay",
-      dataIndex: "schedulePay",
-      render: (text: string) => (
-        <span className="badge badge-warning-transparent">{text}</span>
+      title: "Config",
+      render: (_: any, record: SalaryStructure) => (
+        <div className="d-flex gap-2">
+          {record.useWorkedDayLines && (
+            <span
+              className="badge bg-light text-muted border"
+              title="Worked Days"
+            >
+              WD
+            </span>
+          )}
+          {record.ytdComputation && (
+            <span className="badge bg-light text-muted border" title="YTD Comp">
+              YTD
+            </span>
+          )}
+        </div>
       ),
     },
     {
-      title: "Report",
-      dataIndex: "reportName",
+      title: "Actions",
+      dataIndex: "id",
+      render: (_: any, record: SalaryStructure) => (
+        <div className="action-icon d-inline-flex">
+          <Link
+            to="#"
+            className="me-2"
+            data-bs-toggle="modal"
+            data-bs-target="#add_salary_structure_modal"
+            onClick={() => setSelectedItem(record)}
+          >
+            <i className="ti ti-edit text-blue" />
+          </Link>
+          <Link to="#" onClick={() => handleDelete(String(record.id))}>
+            <i className="ti ti-trash text-danger" />
+          </Link>
+        </div>
+      ),
     },
   ];
-
-  /* ================= UI ================= */
 
   return (
     <>
       <div className="page-wrapper">
         <div className="content">
-          <CommonHeader
-            title="Salary Structure"
-            parentMenu="Payroll"
-            activeMenu="Salary Structure"
-            routes={routes}
-            buttonText="Add Salary Structure"
-            modalTarget="#add_salary_structure"
-          />
+          <div onClick={() => setSelectedItem(null)}>
+            <CommonHeader
+              title="Salary Structure"
+              parentMenu="Payroll"
+              activeMenu="Salary Structure"
+              routes={routes}
+              buttonText="Add Structure"
+              modalTarget="#add_salary_structure_modal"
+            />
+          </div>
 
           <div className="card">
             <div className="card-body p-0">
-              {isgetSalaryStructureFetching ? (
+              {loading ? (
                 <div className="text-center p-5">
-                  <div className="spinner-border text-primary" />
-                  <div className="mt-2">Loading Structure Types...</div>
+                  <div
+                    className="spinner-border text-primary"
+                    role="status"
+                  ></div>
+                  <div className="mt-2">Fetching Records...</div>
                 </div>
               ) : (
-                <DatatableKHR data={data} columns={columns} selection={false} />
+                <DatatableKHR data={data} columns={columns} selection={true} />
               )}
             </div>
           </div>
         </div>
       </div>
 
-      <AddStructureTypeModal
-        onSubmit={() => {
-          setSelectedStructure(null);
-        }}
+      <AddEditSalaryStructureModal
+        onSuccess={fetchData}
+        data={selectedItem}
+        onClose={() => setSelectedItem(null)}
       />
     </>
   );
 };
 
 export default SalaryStructure;
-
-// import { useEffect, useState } from "react";
-// import { toast } from "react-toastify";
-
-// import { all_routes } from "@/router/all_routes";
-// import DatatableKHR from "@/CommonComponent/DataTableKHR/DatatableKHR";
-// import CommonHeader from "@/CommonComponent/HeaderKHR/HeaderKHR";
-
-// import AddStructureTypeModal from "./AddSalaryStructure";
-// import { getSalaryStructure, TBSelector, updateState } from "@/Store/Reducers/TBSlice";
-// import { useDispatch, useSelector } from "react-redux";
-
-// /* ================= TYPES ================= */
-
-// interface StructureType {
-//   name: string;
-//   typeName: string;
-//   countryName: string | null;
-//   schedulePay: string;
-//   reportName: string;
-// }
-
-// /* ================= COMPONENT ================= */
-
-// const SalaryStructure = () => {
-//   const routes = all_routes;
-
-//   const [data, setData] = useState<StructureType[]>([]);
-//   const [loading, setLoading] = useState<boolean>(true);
-//   const dispatch = useDispatch();
-
-//   const {
-//     isgetSalaryStructure,
-//     isgetSalaryStructureFetching,
-//     getSalaryStructureData,
-//   } = useSelector(TBSelector);
-
-//   const [selectedStructure, setSelectedStructure] =
-//     useState<StructureType | null>(null);
-
-//   useEffect(() => {
-//     dispatch(getSalaryStructure());
-//   }, []);
-//   console.log(getSalaryStructureData, "getSalaryStructureData");
-
-//   useEffect(() => {
-//     if (isgetSalaryStructure) {
-//       const mappedData: StructureType[] =
-//         getSalaryStructureData?.data?.map((item: any) => ({
-//           name: item.name,
-//           typeName: item.typeName,
-//           countryName: item.countryName,
-//           schedulePay: item.schedulePay,
-//           reportName: item.reportName,
-//         })) || [];
-
-//       setData(mappedData);
-//       dispatch(updateState({ isgetSalaryStructure: false }));
-//     }
-//   }, [isgetSalaryStructure]);
-
-//   /* ================= TABLE COLUMNS ================= */
-//   const columns = [
-//     {
-//       title: "Name",
-//       dataIndex: "name",
-//     },
-//     {
-//       title: "Type",
-//       dataIndex: "typeName",
-//       render: (text: string) => (
-//         <span className="badge badge-info-transparent">{text}</span>
-//       ),
-//     },
-//     {
-//       title: "Country",
-//       dataIndex: "countryName",
-//       render: (text: string | null) => text ?? "-",
-//     },
-//     {
-//       title: "Scheduled Pay",
-//       dataIndex: "schedulePay",
-//       render: (text: string) => (
-//         <span className="badge badge-warning-transparent">{text}</span>
-//       ),
-//     },
-//     {
-//       title: "Report",
-//       dataIndex: "reportName",
-//     },
-//   ];
-
-//   /* ================= UI ================= */
-
-//   return (
-//     <>
-//       <div className="page-wrapper">
-//         <div className="content">
-//           <CommonHeader
-//             title="Salary Structure"
-//             parentMenu="Payroll"
-//             activeMenu="Salary Structure"
-//             routes={routes}
-//             buttonText="Add Salary Structure"
-//             modalTarget="#add_salary_structure"
-//           />
-
-//           <div className="card">
-//             <div className="card-body p-0">
-//               {isgetSalaryStructureFetching ? (
-//                 <div className="text-center p-5">
-//                   <div className="spinner-border text-primary" />
-//                   <div className="mt-2">Loading Structure Types...</div>
-//                 </div>
-//               ) : (
-//                 <DatatableKHR data={data} columns={columns} selection={false} />
-//               )}
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-
-//       <AddStructureTypeModal
-//         onSubmit={() => {
-//           setSelectedStructure(null);
-//         }}
-//       />
-//     </>
-//   );
-// };
-
-// export default SalaryStructure;

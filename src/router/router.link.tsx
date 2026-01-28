@@ -314,6 +314,9 @@ import {
   EmployeeCalendarsKHR,
   AllApprovalKHR,
   AccruralPlanKHR,
+  SalaryRuleCategoryKHR,
+  SalaryStructureType,
+  SalaryStructureKHR,
   // BanksAccountKHR,
 } from "./lazyRoutes";
 
@@ -322,9 +325,7 @@ import { Pagination, Progress, Typography } from "antd";
 import { Offcanvas, Spinner } from "react-bootstrap";
 import { Video } from "react-feather";
 import EmployeeContractKHR from "@/KHRModules/EmployeeContract/EmployeeContractKHR";
-import StructureTypeKHR from "@/KHRModules/payRollModules/structureTypes/StructureTypes";
 import SalaryRuleKHR from "@/KHRModules/payRollModules/SalaryRule/SalaryRule";
-import SalaryStructure from "@/KHRModules/payRollModules/SalaryStructure/SalaryStructure";
 
 const routes = all_routes;
 
@@ -1702,8 +1703,13 @@ export const publicRoutes = [
     route: Route,
   },
   {
-    path: routes.employeeSalaryKHR,
-    element: <StructureTypeKHR />,
+    path: routes.salaryStructureTypeKHR,
+    element: <SalaryStructureType />,
+    route: Route,
+  },
+  {
+    path: routes.salaryStructureKHR,
+    element: <SalaryStructureKHR />,
     route: Route,
   },
   {
@@ -1711,11 +1717,11 @@ export const publicRoutes = [
     element: <SalaryRuleKHR />,
     route: Route,
   },
-  {
-    path: routes.SalaryStructure,
-    element: <SalaryStructure />,
-    route: Route,
-  },
+  // {
+  //   path: routes.SalaryStructure,
+  //   element: <SalaryStructureType />,
+  //   route: Route,
+  // },
   {
     path: routes.leaveEmployeeKHR,
     element: <LeaveEmployeeKHR />,
@@ -1749,6 +1755,11 @@ export const publicRoutes = [
   {
     path: routes.mendetoryDaysKHR,
     element: <MendetoryDaysKHR />,
+    route: Route,
+  },
+   {
+    path: routes.SalaryRuleCategoryKHR,
+    element: <SalaryRuleCategoryKHR />,
     route: Route,
   },
   {

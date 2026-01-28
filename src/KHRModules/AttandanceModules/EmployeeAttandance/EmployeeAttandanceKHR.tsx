@@ -16,6 +16,7 @@ import {
   EmployeeAttendanceApi,
   EmployeeAttendanceExportExcel,
   EmployeeAttendanceExportPdf,
+  getCurrentAttendanceStatus,
   getRegularizationStatus,
   TBSelector,
   updateState,
@@ -171,7 +172,9 @@ const EmployeeAttendanceKHR = () => {
   }, [dispatch, isApiAuth]);
   useEffect(() => {
     dispatch(ApiAuth() as any);
-  }, []);
+    // Load current attendance status on page load
+    dispatch(getCurrentAttendanceStatus() as any);
+  }, [dispatch]);
   useEffect(() => {
     // dispatch(AdminWorkingHours());
   }, []);

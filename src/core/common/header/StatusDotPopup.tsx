@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
-import { CheckinCheckout, TBSelector } from "@/Store/Reducers/TBSlice";
+import { CheckinCheckout, getCurrentAttendanceStatus, TBSelector } from "@/Store/Reducers/TBSlice";
 
 const StatusCheckInPopup: React.FC = () => {
   const dispatch = useDispatch();
@@ -13,12 +13,21 @@ const StatusCheckInPopup: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [checkInTime, setCheckInTime] = useState<Date | null>(null);
   const [totalMinutes, setTotalMinutes] = useState(0);
+  const [isUserAction, setIsUserAction] = useState(false);
 
   /* =====================
      DERIVED STATE
   ===================== */
   const isCheckedIn = CheckinCheckoutData?.status === "CheckedIn";
   console.log(CheckinCheckoutData, "lplp");
+
+  /* =====================
+     LOAD CURRENT STATUS ON MOUNT
+  ===================== */
+  useEffect(() => {
+    // Load current attendance status when component mounts
+    dispatch(getCurrentAttendanceStatus() as any);
+  }, [dispatch]);
 
   /* =====================
      CLOSE ON OUTSIDE CLICK
@@ -45,16 +54,26 @@ const StatusCheckInPopup: React.FC = () => {
     if (status === "CheckedIn") {
       setCheckInTime(new Date(data?.check_in_time));
       setOpen(true);
-      toast.success("Checked in successfully");
+      
+      // Only show toast if this was triggered by user action
+      if (isUserAction) {
+        toast.success("Checked in successfully");
+        setIsUserAction(false); // Reset the flag
+      }
     }
 
     if (status === "CheckedOut") {
       setCheckInTime(null);
       setTotalMinutes(0);
       setOpen(true);
-      toast.success("Checked out successfully");
+      
+      // Only show toast if this was triggered by user action
+      if (isUserAction) {
+        toast.success("Checked out successfully");
+        setIsUserAction(false); // Reset the flag
+      }
     }
-  }, [CheckinCheckoutData]);
+  }, [CheckinCheckoutData, isUserAction]);
 
   /* =====================
      WORK TIMER
@@ -81,6 +100,9 @@ const StatusCheckInPopup: React.FC = () => {
       return;
     }
 
+    // Set flag to indicate this is a user-initiated action
+    setIsUserAction(true);
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
@@ -94,12 +116,16 @@ const StatusCheckInPopup: React.FC = () => {
       (error) => {
         console.error(error);
         toast.error("Unable to get your location");
+        setIsUserAction(false); // Reset flag on error
       },
       { enableHighAccuracy: true }
     );
   };
 
   // const handleAction = () => {
+  //   // Set flag to indicate this is a user-initiated action
+  //   setIsUserAction(true);
+  //   
   //   dispatch(
   //     CheckinCheckout({
   //       Latitude: 23.0894095,
