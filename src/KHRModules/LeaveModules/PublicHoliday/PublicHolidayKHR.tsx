@@ -66,7 +66,7 @@ const PublicHolidayKHR = () => {
                 data-bs-toggle="modal"
                 data-bs-target="#add_attendance_policy"
   onClick={() => {
-              setSelectedPolicy(record);
+              setSelectedPolicy({ ...record });
               const jq = (window as any).jQuery || (window as any).$;
               if (jq && typeof jq === "function" && jq("#add_attendance_policy").modal) {
                 try {

@@ -10,7 +10,7 @@ interface Props {
   data: any;
 }
 
-const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
+const AddEditMandatoryDaysModal: React.FC<Props> = ({ onSuccess, data }) => {
   const initialFormState = {
   name: "",
   start_date: "",
@@ -48,8 +48,8 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
     if (data) {
       setFormData({
         name: (data as any).name ?? "",
-        start_date: (data as any).start_date ?? "",
-        end_date: (data as any).end_date ?? "",
+        start_date: (data as any).start_date ? dayjs((data as any).start_date).format("YYYY-MM-DD") : "",
+        end_date: (data as any).end_date ? dayjs((data as any).end_date).format("YYYY-MM-DD") : "",
         color: (data as any).color ?? "",
         company: (data as any).company_id ?? 12,
       });
@@ -62,7 +62,7 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
 
   // reset on modal close
   useEffect(() => {
-    const modalElement = document.getElementById("add_attendance_policy");
+    const modalElement = document.getElementById("add_mandatory_days");
     const handleModalClose = () => {
       setValidated(false);
       setFormData(initialFormState);
@@ -86,12 +86,11 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
     if (form.checkValidity() === false) return;
 
     const payload = {
-  name: formData.name,
-  start_date: formData.start_date,
-  end_date: formData.end_date,
-  color: Number(formData.color),
-  company_id: 12,
-};
+      name: formData.name,
+      start_date: formData.start_date,
+      end_date: formData.end_date,
+      color: Number(formData.color),
+    };
 
     try {
       if (data) {
@@ -99,7 +98,7 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
       } else {
         await createMandatoryDays(payload);
       }
-      const closeBtn = document.getElementById("close-btn-policy");
+      const closeBtn = document.getElementById("close-btn-mandatory");
       closeBtn?.click();
       onSuccess();
     } catch (err) {
@@ -109,12 +108,12 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
   };
 
   return (
-    <div className="modal custom-modal fade" id="add_attendance_policy" role="dialog">
+    <div className="modal custom-modal fade" id="add_mandatory_days" role="dialog">
       <div className="modal-dialog modal-dialog-centered modal-lg">
         <div className="modal-content">
           <div className="modal-header">
             <h5 className="modal-title">{data ? "Edit Mandatory Days" : "Add Mandatory Days"}</h5>
-            <button type="button" className="btn-close" data-bs-dismiss="modal" id="close-btn-policy" aria-label="Close"><span aria-hidden="true">×</span></button>
+            <button type="button" className="btn-close" data-bs-dismiss="modal" id="close-btn-mandatory" aria-label="Close"><span aria-hidden="true">×</span></button>
           </div>
           <div className="modal-body">
             <form className={`needs-validation ${validated ? "was-validated" : ""}`} noValidate onSubmit={handleSubmit}>
@@ -153,8 +152,21 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
                   <label className="form-label">Start Date</label>
                   <DatePicker
                     className={`form-control w-100 ${validated && !formData.start_date ? "is-invalid" : ""}`}
-                    value={formData.start_date ? dayjs(formData.start_date) : null}
-                    onChange={(_, dateStr) => setFormData({ ...formData, start_date: dateStr })}
+                    value={formData.start_date ? dayjs(formData.start_date, "YYYY-MM-DD") : null}
+                    onChange={(date) => setFormData({ ...formData, start_date: date ? date.format("YYYY-MM-DD") : "" })}
+                  />
+                  {validated && !(formData.start_date) && (
+                    <span className="text-danger small">Required</span>
+                  )}
+                </div>
+
+                
+                <div className="col-md-6 mb-3">
+                  <label className="form-label">Start Date</label>
+                  <DatePicker
+                    className={`form-control w-100 ${validated && !formData.start_date ? "is-invalid" : ""}`}
+                    value={formData.start_date ? dayjs(formData.start_date, "YYYY-MM-DD") : null}
+                    onChange={(date) => setFormData({ ...formData, start_date: date ? date.format("YYYY-MM-DD") : "" })}
                   />
                   {validated && !(formData.start_date) && (
                     <span className="text-danger small">Required</span>
@@ -165,8 +177,8 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
                   <label className="form-label">End Date</label>
                   <DatePicker
                     className={`form-control w-100 ${validated && !formData.end_date ? "is-invalid" : ""}`}
-                    value={formData.end_date ? dayjs(formData.end_date) : null}
-                    onChange={(_, dateStr) => setFormData({ ...formData, end_date: dateStr })}
+                    value={formData.end_date ? dayjs(formData.end_date, "YYYY-MM-DD") : null}
+                    onChange={(date) => setFormData({ ...formData, end_date: date ? date.format("YYYY-MM-DD") : "" })}
                   />
                   {validated && !(formData.end_date) && (
                     <span className="text-danger small">Required</span>
@@ -228,4 +240,4 @@ const AddEditPublicHolidayModal: React.FC<Props> = ({ onSuccess, data }) => {
   );
 };
 
-export default AddEditPublicHolidayModal;
+export default AddEditMandatoryDaysModal;
