@@ -148,7 +148,11 @@ const AccruralPlanKHR = () => {
         </div>
       </div>
 
-      <AddEditAccruralPlanModal onSuccess={fetchData} data={selectedPlan} />
+      <AddEditAccruralPlanModal
+        onSuccess={fetchData}
+        data={selectedPlan}
+        onClose={() => setSelectedPlan(null)}
+      />
     </>
   );
 };

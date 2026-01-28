@@ -5,9 +5,10 @@ import { toast } from "react-toastify";
 interface Props {
   onSuccess: () => void;
   data: Skill | null;
+  onClose: () => void; // <--- NEW PROP
 }
 
-const AddEditSkillModal: React.FC<Props> = ({ onSuccess, data }) => {
+const AddEditSkillModal: React.FC<Props> = ({ onSuccess, data, onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<any>({});
@@ -45,11 +46,14 @@ const AddEditSkillModal: React.FC<Props> = ({ onSuccess, data }) => {
   // --- 2. Modal Close Listener ---
   useEffect(() => {
     const modalElement = document.getElementById("add_skill_modal");
-    const handleHidden = () => resetForm();
+    const handleHidden = () => {
+      resetForm();
+      onClose(); // <--- CALL PARENT TO RESET STATE
+    };
     modalElement?.addEventListener("hidden.bs.modal", handleHidden);
     return () =>
       modalElement?.removeEventListener("hidden.bs.modal", handleHidden);
-  }, []);
+  }, [onClose]);
 
   // --- 3. Tag Handling ---
   const addSkillTag = () => {

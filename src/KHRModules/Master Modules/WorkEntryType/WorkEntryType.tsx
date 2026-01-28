@@ -17,7 +17,7 @@ const WorkEntryType = () => {
   const [data, setData] = useState<WorkEntryTypeType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedItem, setSelectedItem] = useState<WorkEntryTypeType | null>(
-    null
+    null,
   );
 
   const fetchData = async () => {
@@ -41,7 +41,7 @@ const WorkEntryType = () => {
           round_days: (typeof item.round_days === "string"
             ? item.round_days
             : "NO") as "NO" | "HALF" | "FULL",
-        })
+        }),
       );
 
       setData(mappedData);
@@ -132,7 +132,7 @@ const WorkEntryType = () => {
                 parentMenu="HR"
                 activeMenu="Work Entries"
                 routes={routes}
-                buttonText="Add Entry Type"
+                buttonText="Add Work Entry Type"
                 modalTarget="#add_work_entry_type"
               />
             </div>
@@ -152,7 +152,11 @@ const WorkEntryType = () => {
             </div>
           </div>
         </div>
-        <AddEditWorkEntryTypeModal onSuccess={fetchData} data={selectedItem} />
+        <AddEditWorkEntryTypeModal
+          onSuccess={fetchData}
+          data={selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
       </div>
     </>
   );

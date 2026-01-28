@@ -44,7 +44,7 @@ class LazyErrorBoundary extends React.Component<
 const createLazyComponent = (
   importFunc: () => Promise<{ default: React.ComponentType<object> }>,
   fallback?: React.ReactNode,
-  preload?: boolean
+  preload?: boolean,
 ) => {
   const LazyComponent = lazy(importFunc);
 
@@ -64,7 +64,7 @@ const createLazyComponent = (
 
 // Preload function for critical components
 export const preloadComponent = (
-  importFunc: () => Promise<{ default: React.ComponentType<object> }>
+  importFunc: () => Promise<{ default: React.ComponentType<object> }>,
 ) => {
   return () => {
     importFunc();
@@ -75,19 +75,19 @@ export const preloadComponent = (
 export const Login = createLazyComponent(
   () => import("../feature-module/auth/login/login"),
   <LoadingSpinner text="Loading login..." />,
-  true
+  true,
 );
 
 export const GeoKHR = createLazyComponent(
-  () => import("../KHRModules/AttandanceModules/GeoConfig/GeoKHR")
+  () => import("../KHRModules/AttandanceModules/GeoConfig/GeoKHR"),
 );
 export const EmployeeContractKHR = createLazyComponent(
   () => import("../KHRModules/EmployeeContract/EmployeeContractKHR"),
-  <LoadingSpinner text="Loading employee contract..." />
+  <LoadingSpinner text="Loading employee contract..." />,
 );
 export const employeeSalaryKHR = createLazyComponent(
-  () => import("../KHRModules/payRollModules/structureTypes/StructureTypes"),
-  <LoadingSpinner text="Loading employee salary..." />
+  () => import("../KHRModules/payRollModules/StructureTypes/StructureTypes"),
+  <LoadingSpinner text="Loading employee salary..." />,
 );
 export const SalaryRuleCategoryKHR = createLazyComponent(
   () => import("../KHRModules/Master Modules/SalaryRuleCategory/SalaryRuleCategoryKHR"),
@@ -96,1177 +96,1166 @@ export const SalaryRuleCategoryKHR = createLazyComponent(
 export const SecurityKeyLogin = createLazyComponent(
   () => import("../feature-module/auth/login/SecretKeyLogin"),
   <LoadingSpinner text="Loading login..." />,
-  true
+  true,
 );
 export const Login2 = createLazyComponent(
   () => import("../feature-module/auth/login/login-2"),
-  <LoadingSpinner text="Loading login..." />
+  <LoadingSpinner text="Loading login..." />,
 );
 export const Login3 = createLazyComponent(
   () => import("../feature-module/auth/login/login-3"),
-  <LoadingSpinner text="Loading login..." />
+  <LoadingSpinner text="Loading login..." />,
 );
 export const Register = createLazyComponent(
   () => import("../feature-module/auth/register/register"),
-  <LoadingSpinner text="Loading registration..." />
+  <LoadingSpinner text="Loading registration..." />,
 );
 export const Register2 = createLazyComponent(
   () => import("../feature-module/auth/register/register-2"),
-  <LoadingSpinner text="Loading registration..." />
+  <LoadingSpinner text="Loading registration..." />,
 );
 export const Register3 = createLazyComponent(
   () => import("../feature-module/auth/register/register-3"),
-  <LoadingSpinner text="Loading registration..." />
+  <LoadingSpinner text="Loading registration..." />,
 );
 export const TwoStepVerification = createLazyComponent(
   () =>
     import("../feature-module/auth/twoStepVerification/twoStepVerification"),
-  <LoadingSpinner text="Loading verification..." />
+  <LoadingSpinner text="Loading verification..." />,
 );
 export const TwoStepVerification2 = createLazyComponent(
   () =>
     import("../feature-module/auth/twoStepVerification/twoStepVerification-2"),
-  <LoadingSpinner text="Loading verification..." />
+  <LoadingSpinner text="Loading verification..." />,
 );
 export const TwoStepVerification3 = createLazyComponent(
   () =>
     import("../feature-module/auth/twoStepVerification/twoStepVerification-3"),
-  <LoadingSpinner text="Loading verification..." />
+  <LoadingSpinner text="Loading verification..." />,
 );
 export const EmailVerification = createLazyComponent(
   () => import("../feature-module/auth/emailVerification/emailVerification"),
-  <LoadingSpinner text="Loading email verification..." />
+  <LoadingSpinner text="Loading email verification..." />,
 );
 export const EmailVerification2 = createLazyComponent(
   () => import("../feature-module/auth/emailVerification/emailVerification-2"),
-  <LoadingSpinner text="Loading email verification..." />
+  <LoadingSpinner text="Loading email verification..." />,
 );
 export const EmailVerification3 = createLazyComponent(
   () => import("../feature-module/auth/emailVerification/emailVerification-3"),
-  <LoadingSpinner text="Loading email verification..." />
+  <LoadingSpinner text="Loading email verification..." />,
 );
 export const ResetPassword = createLazyComponent(
   () => import("../feature-module/auth/resetPassword/resetPassword"),
-  <LoadingSpinner text="Loading password reset..." />
+  <LoadingSpinner text="Loading password reset..." />,
 );
 export const ResetPassword2 = createLazyComponent(
   () => import("../feature-module/auth/resetPassword/resetPassword-2"),
-  <LoadingSpinner text="Loading password reset..." />
+  <LoadingSpinner text="Loading password reset..." />,
 );
 export const ResetPassword3 = createLazyComponent(
   () => import("../feature-module/auth/resetPassword/resetPassword-3"),
-  <LoadingSpinner text="Loading password reset..." />
+  <LoadingSpinner text="Loading password reset..." />,
 );
 export const ForgotPassword = createLazyComponent(
   () => import("../feature-module/auth/forgotPassword/forgotPassword"),
-  <LoadingSpinner text="Loading forgot password..." />
+  <LoadingSpinner text="Loading forgot password..." />,
 );
 export const ForgotPassword2 = createLazyComponent(
   () => import("../feature-module/auth/forgotPassword/forgotPassword-2"),
-  <LoadingSpinner text="Loading forgot password..." />
+  <LoadingSpinner text="Loading forgot password..." />,
 );
 export const ForgotPassword3 = createLazyComponent(
   () => import("../feature-module/auth/forgotPassword/forgotPassword-3"),
-  <LoadingSpinner text="Loading forgot password..." />
+  <LoadingSpinner text="Loading forgot password..." />,
 );
 export const ResetPasswordSuccess = createLazyComponent(
   () =>
     import("../feature-module/auth/resetPasswordSuccess/resetPasswordSuccess"),
-  <LoadingSpinner text="Loading success page..." />
+  <LoadingSpinner text="Loading success page..." />,
 );
 export const ResetPasswordSuccess2 = createLazyComponent(
   () =>
-    import(
-      "../feature-module/auth/resetPasswordSuccess/resetPasswordSuccess-2"
-    ),
-  <LoadingSpinner text="Loading success page..." />
+    import("../feature-module/auth/resetPasswordSuccess/resetPasswordSuccess-2"),
+  <LoadingSpinner text="Loading success page..." />,
 );
 export const ResetPasswordSuccess3 = createLazyComponent(
   () =>
-    import(
-      "../feature-module/auth/resetPasswordSuccess/resetPasswordSuccess-3"
-    ),
-  <LoadingSpinner text="Loading success page..." />
+    import("../feature-module/auth/resetPasswordSuccess/resetPasswordSuccess-3"),
+  <LoadingSpinner text="Loading success page..." />,
 );
 export const LockScreen = createLazyComponent(
   () => import("../feature-module/auth/lockScreen"),
-  <LoadingSpinner text="Loading lock screen..." />
+  <LoadingSpinner text="Loading lock screen..." />,
 );
 
 // Error Pages - Lazy Loaded
 export const Error404 = createLazyComponent(
   () => import("../feature-module/pages/error/error-404"),
-  <LoadingSpinner text="Loading error page..." />
+  <LoadingSpinner text="Loading error page..." />,
 );
 export const Error500 = createLazyComponent(
   () => import("../feature-module/pages/error/error-500"),
-  <LoadingSpinner text="Loading error page..." />
+  <LoadingSpinner text="Loading error page..." />,
 );
 export const UnderMaintenance = createLazyComponent(
   () => import("../feature-module/pages/underMaintenance"),
-  <LoadingSpinner text="Loading maintenance page..." />
+  <LoadingSpinner text="Loading maintenance page..." />,
 );
 export const UnderConstruction = createLazyComponent(
   () => import("../feature-module/pages/underConstruction"),
-  <LoadingSpinner text="Loading construction page..." />
+  <LoadingSpinner text="Loading construction page..." />,
 );
 
 // Dashboard Components - Lazy Loaded (Critical - Preload enabled)
 export const AdminDashboard = createLazyComponent(
   () => import("../feature-module/mainMenu/adminDashboard"),
   <LoadingSpinner text="Loading dashboard..." />,
-  true
+  true,
 );
 export const EmployeeDashboard = createLazyComponent(
   () =>
     import("../feature-module/mainMenu/employeeDashboard/employee-dashboard"),
-  <LoadingSpinner text="Loading employee dashboard..." />
+  <LoadingSpinner text="Loading employee dashboard..." />,
 );
 
 export const LeadsDasboard = createLazyComponent(
   () => import("../feature-module/mainMenu/leadsDashboard"),
-  <LoadingSpinner text="Loading leads dashboard..." />
+  <LoadingSpinner text="Loading leads dashboard..." />,
 );
 export const DealsDashboard = createLazyComponent(
   () => import("../feature-module/mainMenu/dealsDashboard"),
-  <LoadingSpinner text="Loading deals dashboard..." />
+  <LoadingSpinner text="Loading deals dashboard..." />,
 );
 export const SuperAdminDashboard = createLazyComponent(
   () => import("../feature-module/super-admin/dashboard"),
-  <LoadingSpinner text="Loading super admin dashboard..." />
+  <LoadingSpinner text="Loading super admin dashboard..." />,
 );
 export const LayoutDemo = createLazyComponent(
   () => import("../feature-module/mainMenu/layout-dashoard"),
-  <LoadingSpinner text="Loading layout demo..." />
+  <LoadingSpinner text="Loading layout demo..." />,
 );
 
 // Application Components - Lazy Loaded
 export const Chat = createLazyComponent(
   () => import("../feature-module/application/chat"),
-  <LoadingSpinner text="Loading chat..." />
+  <LoadingSpinner text="Loading chat..." />,
 );
 export const VoiceCall = createLazyComponent(
   () => import("../feature-module/application/call/voiceCall"),
-  <LoadingSpinner text="Loading voice call..." />
+  <LoadingSpinner text="Loading voice call..." />,
 );
 export const Videocallss = createLazyComponent(
   () => import("../feature-module/application/call/videocalls"),
-  <LoadingSpinner text="Loading video call..." />
+  <LoadingSpinner text="Loading video call..." />,
 );
 export const OutgoingCall = createLazyComponent(
   () => import("../feature-module/application/call/outgingcalls"),
-  <LoadingSpinner text="Loading outgoing call..." />
+  <LoadingSpinner text="Loading outgoing call..." />,
 );
 export const IncomingCall = createLazyComponent(
   () => import("../feature-module/application/call/incomingcall"),
-  <LoadingSpinner text="Loading incoming call..." />
+  <LoadingSpinner text="Loading incoming call..." />,
 );
 export const CallHistory = createLazyComponent(
   () => import("../feature-module/application/call/callHistory"),
-  <LoadingSpinner text="Loading call history..." />
+  <LoadingSpinner text="Loading call history..." />,
 );
 export const Calendars = createLazyComponent(
   () => import("../feature-module/mainMenu/apps/calendar"),
-  <LoadingSpinner text="Loading calendar..." />
+  <LoadingSpinner text="Loading calendar..." />,
 );
 export const Email = createLazyComponent(
   () => import("../feature-module/application/email"),
-  <LoadingSpinner text="Loading email..." />
+  <LoadingSpinner text="Loading email..." />,
 );
 export const EmailReply = createLazyComponent(
   () => import("../feature-module/application/emailReply"),
-  <LoadingSpinner text="Loading email reply..." />
+  <LoadingSpinner text="Loading email reply..." />,
 );
 export const Todo = createLazyComponent(
   () => import("../feature-module/application/todo/todo"),
-  <LoadingSpinner text="Loading todo..." />
+  <LoadingSpinner text="Loading todo..." />,
 );
 export const TodoList = createLazyComponent(
   () => import("../feature-module/application/todo/todolist"),
-  <LoadingSpinner text="Loading todo list..." />
+  <LoadingSpinner text="Loading todo list..." />,
 );
 export const Notes = createLazyComponent(
   () => import("../feature-module/application/notes"),
-  <LoadingSpinner text="Loading notes..." />
+  <LoadingSpinner text="Loading notes..." />,
 );
 export const SocialFeed = createLazyComponent(
   () => import("../feature-module/application/socialfeed"),
-  <LoadingSpinner text="Loading social feed..." />
+  <LoadingSpinner text="Loading social feed..." />,
 );
 export const FileManager = createLazyComponent(
   () => import("../feature-module/application/fileManager"),
-  <LoadingSpinner text="Loading file manager..." />
+  <LoadingSpinner text="Loading file manager..." />,
 );
 export const KanbanView = createLazyComponent(
   () => import("../feature-module/application/kanbanView"),
-  <LoadingSpinner text="Loading kanban view..." />
+  <LoadingSpinner text="Loading kanban view..." />,
 );
 
 // CRM Components - Lazy Loaded
 export const ContactList = createLazyComponent(
   () => import("../feature-module/crm/contacts/contactList"),
-  <LoadingSpinner text="Loading contacts..." />
+  <LoadingSpinner text="Loading contacts..." />,
 );
 export const ContactGrid = createLazyComponent(
   () => import("../feature-module/crm/contacts/contactGrid"),
-  <LoadingSpinner text="Loading contact grid..." />
+  <LoadingSpinner text="Loading contact grid..." />,
 );
 export const ContactDetails = createLazyComponent(
   () => import("../feature-module/crm/contacts/contactDetails"),
-  <LoadingSpinner text="Loading contact details..." />
+  <LoadingSpinner text="Loading contact details..." />,
 );
 export const CompaniesGrid = createLazyComponent(
   () => import("../feature-module/crm/companies/companiesGrid"),
-  <LoadingSpinner text="Loading companies grid..." />
+  <LoadingSpinner text="Loading companies grid..." />,
 );
 export const CompaniesList = createLazyComponent(
   () => import("../feature-module/crm/companies/companiesList"),
-  <LoadingSpinner text="Loading companies list..." />
+  <LoadingSpinner text="Loading companies list..." />,
 );
 export const CompaniesDetails = createLazyComponent(
   () => import("../feature-module/crm/companies/companiesDetails"),
-  <LoadingSpinner text="Loading company details..." />
+  <LoadingSpinner text="Loading company details..." />,
 );
 export const LeadsGrid = createLazyComponent(
   () => import("../feature-module/crm/leads/leadsGrid"),
-  <LoadingSpinner text="Loading leads grid..." />
+  <LoadingSpinner text="Loading leads grid..." />,
 );
 export const LeadsList = createLazyComponent(
   () => import("../feature-module/crm/leads/leadsList"),
-  <LoadingSpinner text="Loading leads list..." />
+  <LoadingSpinner text="Loading leads list..." />,
 );
 export const LeadsDetails = createLazyComponent(
   () => import("../feature-module/crm/leads/leadsDetails"),
-  <LoadingSpinner text="Loading lead details..." />
+  <LoadingSpinner text="Loading lead details..." />,
 );
 export const DealsGrid = createLazyComponent(
-  () => import("../feature-module/crm/deals/dealsGrid")
+  () => import("../feature-module/crm/deals/dealsGrid"),
 );
 export const DealsDetails = createLazyComponent(
-  () => import("../feature-module/crm/deals/dealsDetails")
+  () => import("../feature-module/crm/deals/dealsDetails"),
 );
 export const DealsList = createLazyComponent(
-  () => import("../feature-module/crm/deals/dealsList")
+  () => import("../feature-module/crm/deals/dealsList"),
 );
 export const Pipeline = createLazyComponent(
-  () => import("../feature-module/crm/pipeline/pipeline")
+  () => import("../feature-module/crm/pipeline/pipeline"),
 );
 export const Analytics = createLazyComponent(
-  () => import("../feature-module/crm/analytics/analytics")
+  () => import("../feature-module/crm/analytics/analytics"),
 );
 
 // HRM Components - Lazy Loaded
 export const EmployeeList = createLazyComponent(
-  () => import("../feature-module/hrm/employees/employeesList")
+  () => import("../feature-module/hrm/employees/employeesList"),
 );
 export const EmployeesGrid = createLazyComponent(
-  () => import("../feature-module/hrm/employees/employeesGrid")
+  () => import("../feature-module/hrm/employees/employeesGrid"),
 );
 export const Department = createLazyComponent(
-  () => import("../feature-module/hrm/employees/deparment")
+  () => import("../feature-module/hrm/employees/deparment"),
 );
 
 export const DepartmentKHR = createLazyComponent(
-  () => import("../KHRModules/Master Modules/Department/DepartmentKHR")
+  () => import("../KHRModules/Master Modules/Department/DepartmentKHR"),
 );
 
 export const RegCategoryKHR = createLazyComponent(
-  () => import("../KHRModules/Master Modules/RegCategory/RegCategoryKHR")
+  () => import("../KHRModules/Master Modules/RegCategory/RegCategoryKHR"),
 );
 
 export const BuisnessLocationKHR = createLazyComponent(
-  () => import("../KHRModules/Master Modules/BusinessLocation/BusinessLocation")
+  () =>
+    import("../KHRModules/Master Modules/BusinessLocation/BusinessLocation"),
 );
 export const BuisnessTypeKHR = createLazyComponent(
-  () => import("../KHRModules/Master Modules/BusinessType/BusinessType")
+  () => import("../KHRModules/Master Modules/BusinessType/BusinessType"),
 );
 export const AttendancePolicyKHR = createLazyComponent(
-  () => import("../KHRModules/Master Modules/AttendancePolicy/AttendancePolicy")
+  () =>
+    import("../KHRModules/Master Modules/AttendancePolicy/AttendancePolicy"),
 );
 
 export const WorkLocationKHR = createLazyComponent(
-  () => import("../KHRModules/Master Modules/WorkLocation/WorkLocation")
+  () => import("../KHRModules/Master Modules/WorkLocation/WorkLocation"),
 );
 
 export const WorkingSchedulesKHR = createLazyComponent(
-  () => import("../KHRModules/Master Modules/WorkingSchedules/WorkingSchedules")
+  () =>
+    import("../KHRModules/Master Modules/WorkingSchedules/WorkingSchedules"),
 );
 
 export const WorkEntryTypeKHR = createLazyComponent(
-  () => import("../KHRModules/Master Modules/WorkEntryType/WorkEntryType")
+  () => import("../KHRModules/Master Modules/WorkEntryType/WorkEntryType"),
 );
 
 export const AccruralPlanKHR = createLazyComponent(
-  () => import("../KHRModules/Master Modules/AccruralPlan/AccruralPlanKHR")
+  () => import("../KHRModules/Master Modules/AccruralPlan/AccruralPlanKHR"),
 );
 
 export const JobPositionKHR = createLazyComponent(
-  () => import("../KHRModules/Master Modules/JobPosition/JobPosition")
+  () => import("../KHRModules/Master Modules/JobPosition/JobPosition"),
 );
 
 export const SkillsKHR = createLazyComponent(
-  () => import("../KHRModules/Master Modules/Skills/SkillKHR")
+  () => import("../KHRModules/Master Modules/Skills/SkillKHR"),
 );
 
 export const HrContractTypeKHR = createLazyComponent(
-  () => import("../KHRModules/Master Modules/HRContractType/HRContractTypeKHR")
+  () => import("../KHRModules/Master Modules/HRContractType/HRContractTypeKHR"),
 );
 
 export const SalaryRuleKHR = createLazyComponent(
-  () => import("../KHRModules/payRollModules/SalaryRule/SalaryRule")
+  () => import("../KHRModules/payRollModules/SalaryRule/SalaryRule"),
 );
 
 export const IndustriesKHR = createLazyComponent(
-  () => import("../KHRModules/Master Modules/Industries/IndustriesKHR")
+  () => import("../KHRModules/Master Modules/Industries/IndustriesKHR"),
 );
 
 export const EmployeeKHR = createLazyComponent(
-  () => import("../KHRModules/EmployeModules/Employee/EmployeeKHR")
+  () => import("../KHRModules/EmployeModules/Employee/EmployeeKHR"),
 );
 
 export const AllApprovalKHR = createLazyComponent(
-  () => import("../KHRModules/ApprovalModule/AllApproval")
+  () => import("../KHRModules/ApprovalModule/AllApproval"),
 );
 
 export const ExpenseKHR = createLazyComponent(
-  () => import("../KHRModules/EmployeModules/Expense/ExpenseKHR")
+  () => import("../KHRModules/EmployeModules/Expense/ExpenseKHR"),
 );
 
 export const EmployeeCalendarsKHR = createLazyComponent(
   () =>
-    import("../KHRModules/EmployeModules/EmployeeCalander/EmployeeCalendarsKHR")
+    import("../KHRModules/EmployeModules/EmployeeCalander/EmployeeCalendarsKHR"),
 );
 export const AdminAttandanceKHR = createLazyComponent(
   () =>
-    import("../KHRModules/AttandanceModules/AdminAttandance/AdminAttandanceKHR")
+    import("../KHRModules/AttandanceModules/AdminAttandance/AdminAttandanceKHR"),
 );
 
 export const ExpenseCategoryKHR = createLazyComponent(
   () =>
-    import("../KHRModules/Master Modules/ExpenseCategory/ExpenseCategoryKHR")
+    import("../KHRModules/Master Modules/ExpenseCategory/ExpenseCategoryKHR"),
 );
 export const EmployeeAttandanceKHR = createLazyComponent(
   () =>
-    import(
-      "../KHRModules/AttandanceModules/EmployeeAttandance/EmployeeAttandanceKHR"
-    )
+    import("../KHRModules/AttandanceModules/EmployeeAttandance/EmployeeAttandanceKHR"),
 );
 
-export const SalaryStructure = createLazyComponent(
-  () => import("../KHRModules/payRollModules/SalaryStructure/SalaryStructure")
+export const SalaryStructureType = createLazyComponent(
+  () =>
+    import("../KHRModules/payRollModules/SalaryStructureType/SalaryStructureType"),
 );
 export const BanksKHR = createLazyComponent(
-  () => import("../KHRModules/Master Modules/BanksKHR/BanksKHR")
+  () => import("../KHRModules/Master Modules/BanksKHR/BanksKHR"),
 );
 
 export const BanksAccountKHR = createLazyComponent(
-  () => import("../KHRModules/Master Modules/BankAccount/BankAccountKHR")
+  () => import("../KHRModules/Master Modules/BankAccount/BankAccountKHR"),
 );
 
 export const ShiftModulesKHR = createLazyComponent(
-  () => import("../KHRModules/AttandanceModules/ShiftModules/ShiftModulesKHR")
+  () => import("../KHRModules/AttandanceModules/ShiftModules/ShiftModulesKHR"),
 );
 
 export const LeaveAdminKHR = createLazyComponent(
-  () => import("../KHRModules/LeaveModules/LeaveAdmin/LeaveAdminKHR")
+  () => import("../KHRModules/LeaveModules/LeaveAdmin/LeaveAdminKHR"),
 );
 
 export const LeaveEmployeeKHR = createLazyComponent(
-  () => import("../KHRModules/LeaveModules/LeavesEmployee/LeaveEmployeeKHR")
+  () => import("../KHRModules/LeaveModules/LeavesEmployee/LeaveEmployeeKHR"),
 );
 
 export const LeaveSettingsKHR = createLazyComponent(
-  () => import("../KHRModules/LeaveModules/LeaveSettings/LeaveSettingKHR")
+  () => import("../KHRModules/LeaveModules/LeaveSettings/LeaveSettingKHR"),
 );
 export const LeaveTypesKHR = createLazyComponent(
-  () => import("../KHRModules/LeaveModules/leaveTypes/LeaveTypesKHR")
+  () => import("../KHRModules/LeaveModules/leaveTypes/LeaveTypesKHR"),
 );
 
 export const LeaveAllocationKHR = createLazyComponent(
-  () => import("../KHRModules/LeaveModules/leaveAllocation/LeaveAllocationKHR")
+  () => import("../KHRModules/LeaveModules/leaveAllocation/LeaveAllocationKHR"),
 );
 
 export const LeaveRequestKHR = createLazyComponent(
-  () => import("../KHRModules/LeaveModules/leaveRequest/LeaveRequestKHR")
+  () => import("../KHRModules/LeaveModules/leaveRequest/LeaveRequestKHR"),
 );
 
 export const PublicHolidayKHR = createLazyComponent(
-  () => import("../KHRModules/LeaveModules/PublicHoliday/PublicHolidayKHR")
+  () => import("../KHRModules/LeaveModules/PublicHoliday/PublicHolidayKHR"),
 );
 
 export const MendetoryDaysKHR = createLazyComponent(
-  () => import("../KHRModules/LeaveModules/MendetoryDays/mendetoryDaysKHR")
+  () => import("../KHRModules/LeaveModules/MendetoryDays/mendetoryDaysKHR"),
 );
 
 export const Designations = createLazyComponent(
-  () => import("../feature-module/hrm/employees/designations")
+  () => import("../feature-module/hrm/employees/designations"),
 );
 export const Policy = createLazyComponent(
-  () => import("../feature-module/hrm/employees/policy")
+  () => import("../feature-module/hrm/employees/policy"),
 );
 export const EmployeeDetails = createLazyComponent(
-  () => import("../feature-module/hrm/employees/employeedetails")
+  () => import("../feature-module/hrm/employees/employeedetails"),
 );
 export const LeaveAdmin = createLazyComponent(
-  () => import("../feature-module/hrm/attendance/leaves/leaveAdmin")
+  () => import("../feature-module/hrm/attendance/leaves/leaveAdmin"),
 );
 export const LeaveEmployee = createLazyComponent(
-  () => import("../feature-module/hrm/attendance/leaves/leaveEmployee")
+  () => import("../feature-module/hrm/attendance/leaves/leaveEmployee"),
 );
 export const LeaveSettings = createLazyComponent(
-  () => import("../feature-module/hrm/attendance/leaves/leavesettings")
+  () => import("../feature-module/hrm/attendance/leaves/leavesettings"),
 );
+
 export const AttendanceAdmin = createLazyComponent(
-  () => import("../feature-module/hrm/attendance/attendanceadmin")
+  () => import("../feature-module/hrm/attendance/attendanceadmin"),
 );
 export const AttendanceEmployee = createLazyComponent(
-  () => import("../feature-module/hrm/attendance/attendance_employee")
+  () => import("../feature-module/hrm/attendance/attendance_employee"),
 );
 export const TimeSheet = createLazyComponent(
-  () => import("../feature-module/hrm/attendance/timesheet")
+  () => import("../feature-module/hrm/attendance/timesheet"),
 );
 export const ScheduleTiming = createLazyComponent(
-  () => import("../feature-module/hrm/attendance/scheduletiming")
+  () => import("../feature-module/hrm/attendance/scheduletiming"),
 );
 export const OverTime = createLazyComponent(
-  () => import("../feature-module/hrm/attendance/overtime")
+  () => import("../feature-module/hrm/attendance/overtime"),
 );
 export const Holidays = createLazyComponent(
-  () => import("../feature-module/hrm/holidays")
+  () => import("../feature-module/hrm/holidays"),
 );
 export const Termination = createLazyComponent(
-  () => import("../feature-module/hrm/termination")
+  () => import("../feature-module/hrm/termination"),
 );
 export const Resignation = createLazyComponent(
-  () => import("../feature-module/hrm/resignation")
+  () => import("../feature-module/hrm/resignation"),
 );
 export const Promotion = createLazyComponent(
-  () => import("../feature-module/hrm/promotion")
+  () => import("../feature-module/hrm/promotion"),
 );
 
 // Project Components - Lazy Loaded
 export const ClienttGrid = createLazyComponent(
-  () => import("../feature-module/projects/clinet/clienttgrid")
+  () => import("../feature-module/projects/clinet/clienttgrid"),
 );
 export const ClientList = createLazyComponent(
-  () => import("../feature-module/projects/clinet/clientlist")
+  () => import("../feature-module/projects/clinet/clientlist"),
 );
 export const ClientDetails = createLazyComponent(
-  () => import("../feature-module/projects/clinet/clientdetails")
+  () => import("../feature-module/projects/clinet/clientdetails"),
 );
 export const Project = createLazyComponent(
-  () => import("../feature-module/projects/project/project")
+  () => import("../feature-module/projects/project/project"),
 );
 export const ProjectDetails = createLazyComponent(
-  () => import("../feature-module/projects/project/projectdetails")
+  () => import("../feature-module/projects/project/projectdetails"),
 );
 export const ProjectList = createLazyComponent(
-  () => import("../feature-module/projects/project/projectlist")
+  () => import("../feature-module/projects/project/projectlist"),
 );
 export const Task = createLazyComponent(
-  () => import("../feature-module/projects/task/task")
+  () => import("../feature-module/projects/task/task"),
 );
 export const TaskDetails = createLazyComponent(
-  () => import("../feature-module/projects/task/taskdetails")
+  () => import("../feature-module/projects/task/taskdetails"),
 );
 export const TaskBoard = createLazyComponent(
-  () => import("../feature-module/projects/task/task-board")
+  () => import("../feature-module/projects/task/task-board"),
 );
 
 // Finance Components - Lazy Loaded
 export const Invoices = createLazyComponent(
-  () => import("../feature-module/finance-accounts/sales/invoices")
+  () => import("../feature-module/finance-accounts/sales/invoices"),
 );
 export const AddInvoice = createLazyComponent(
-  () => import("../feature-module/finance-accounts/sales/add_invoices")
+  () => import("../feature-module/finance-accounts/sales/add_invoices"),
 );
 export const InvoiceDetails = createLazyComponent(
-  () => import("../feature-module/sales/invoiceDetails")
+  () => import("../feature-module/sales/invoiceDetails"),
 );
 export const Payments = createLazyComponent(
-  () => import("../feature-module/finance-accounts/sales/payment")
+  () => import("../feature-module/finance-accounts/sales/payment"),
 );
 export const Expenses = createLazyComponent(
-  () => import("../feature-module/finance-accounts/sales/expenses")
+  () => import("../feature-module/finance-accounts/sales/expenses"),
 );
 export const ProvidentFund = createLazyComponent(
-  () => import("../feature-module/finance-accounts/sales/provident_fund")
+  () => import("../feature-module/finance-accounts/sales/provident_fund"),
 );
 export const Taxes = createLazyComponent(
-  () => import("../feature-module/finance-accounts/sales/taxes")
+  () => import("../feature-module/finance-accounts/sales/taxes"),
 );
 export const Estimates = createLazyComponent(
-  () => import("../feature-module/finance-accounts/sales/estimates")
+  () => import("../feature-module/finance-accounts/sales/estimates"),
 );
 export const EmployeeSalary = createLazyComponent(
-  () => import("../feature-module/finance-accounts/payrool/employee_salary")
+  () => import("../feature-module/finance-accounts/payrool/employee_salary"),
 );
 export const PaySlip = createLazyComponent(
-  () => import("../feature-module/finance-accounts/payrool/payslip")
+  () => import("../feature-module/finance-accounts/payrool/payslip"),
 );
 export const PayRoll = createLazyComponent(
-  () => import("../feature-module/finance-accounts/payrool/payroll")
+  () => import("../feature-module/finance-accounts/payrool/payroll"),
 );
 export const PayRollOvertime = createLazyComponent(
-  () => import("../feature-module/finance-accounts/payrool/payrollOvertime")
+  () => import("../feature-module/finance-accounts/payrool/payrollOvertime"),
 );
 export const PayRollDeduction = createLazyComponent(
-  () => import("../feature-module/finance-accounts/payrool/payrollDedution")
+  () => import("../feature-module/finance-accounts/payrool/payrollDedution"),
 );
 
 // Performance Components - Lazy Loaded
 export const PerformanceIndicator = createLazyComponent(
-  () => import("../feature-module/performance/performanceIndicator")
+  () => import("../feature-module/performance/performanceIndicator"),
 );
 export const PerformanceReview = createLazyComponent(
-  () => import("../feature-module/performance/performanceReview")
+  () => import("../feature-module/performance/performanceReview"),
 );
 export const PerformanceAppraisal = createLazyComponent(
-  () => import("../feature-module/performance/performanceAppraisal")
+  () => import("../feature-module/performance/performanceAppraisal"),
 );
 export const GoalTracking = createLazyComponent(
-  () => import("../feature-module/performance/goalTracking")
+  () => import("../feature-module/performance/goalTracking"),
 );
 export const GoalType = createLazyComponent(
-  () => import("../feature-module/performance/goalType")
+  () => import("../feature-module/performance/goalType"),
 );
 
 // Training Components - Lazy Loaded
 export const TrainingList = createLazyComponent(
-  () => import("../feature-module/training/trainingList")
+  () => import("../feature-module/training/trainingList"),
 );
 export const Trainers = createLazyComponent(
-  () => import("../feature-module/training/trainers")
+  () => import("../feature-module/training/trainers"),
 );
 export const TrainingType = createLazyComponent(
-  () => import("../feature-module/training/trainingType")
+  () => import("../feature-module/training/trainingType"),
 );
 
 // Settings Components - Lazy Loaded
 export const Profilesettings = createLazyComponent(
-  () => import("../feature-module/settings/generalSettings/profile-settings")
+  () => import("../feature-module/settings/generalSettings/profile-settings"),
 );
 export const Securitysettings = createLazyComponent(
-  () => import("../feature-module/settings/generalSettings/security-settings")
+  () => import("../feature-module/settings/generalSettings/security-settings"),
 );
 export const Notificationssettings = createLazyComponent(
   () =>
-    import("../feature-module/settings/generalSettings/notifications-settings")
+    import("../feature-module/settings/generalSettings/notifications-settings"),
 );
 export const ConnectedApps = createLazyComponent(
-  () => import("../feature-module/settings/generalSettings/connected-apps")
+  () => import("../feature-module/settings/generalSettings/connected-apps"),
 );
 export const Bussinesssettings = createLazyComponent(
-  () => import("../feature-module/settings/websiteSettings/bussiness-settings")
+  () => import("../feature-module/settings/websiteSettings/bussiness-settings"),
 );
 export const Seosettings = createLazyComponent(
-  () => import("../feature-module/settings/websiteSettings/seo-settings")
+  () => import("../feature-module/settings/websiteSettings/seo-settings"),
 );
 export const CompanySettings = createLazyComponent(
-  () => import("../feature-module/settings/websiteSettings/companySettings")
+  () => import("../feature-module/settings/websiteSettings/companySettings"),
 );
 export const Localizationsettings = createLazyComponent(
   () =>
-    import("../feature-module/settings/websiteSettings/localization-settings")
+    import("../feature-module/settings/websiteSettings/localization-settings"),
 );
 export const Prefixes = createLazyComponent(
-  () => import("../feature-module/settings/websiteSettings/prefixes")
+  () => import("../feature-module/settings/websiteSettings/prefixes"),
 );
 export const Preference = createLazyComponent(
-  () => import("../feature-module/settings/websiteSettings/preferences")
+  () => import("../feature-module/settings/websiteSettings/preferences"),
 );
 export const Authenticationsettings = createLazyComponent(
   () =>
-    import("../feature-module/settings/websiteSettings/authentication-settings")
+    import("../feature-module/settings/websiteSettings/authentication-settings"),
 );
 export const Aisettings = createLazyComponent(
-  () => import("../feature-module/settings/websiteSettings/ai-settings")
+  () => import("../feature-module/settings/websiteSettings/ai-settings"),
 );
 export const Salarysettings = createLazyComponent(
-  () => import("../feature-module/settings/appSettings/salary-settings")
+  () => import("../feature-module/settings/appSettings/salary-settings"),
 );
 export const Approvalsettings = createLazyComponent(
-  () => import("../feature-module/settings/appSettings/approval-settings")
+  () => import("../feature-module/settings/appSettings/approval-settings"),
 );
 export const Appearance = createLazyComponent(
-  () => import("../feature-module/settings/websiteSettings/appearance")
+  () => import("../feature-module/settings/websiteSettings/appearance"),
 );
 export const Languageweb = createLazyComponent(
-  () => import("../feature-module/settings/websiteSettings/language-web")
+  () => import("../feature-module/settings/websiteSettings/language-web"),
 );
 export const Addlanguage = createLazyComponent(
-  () => import("../feature-module/settings/websiteSettings/add-language")
+  () => import("../feature-module/settings/websiteSettings/add-language"),
 );
 export const InvoiceSettings = createLazyComponent(
-  () => import("../feature-module/settings/appSettings/invoiceSettings")
+  () => import("../feature-module/settings/appSettings/invoiceSettings"),
 );
 export const CustomFields = createLazyComponent(
-  () => import("../feature-module/settings/appSettings/customFields")
+  () => import("../feature-module/settings/appSettings/customFields"),
 );
 export const LeaveType = createLazyComponent(
-  () => import("../feature-module/settings/appSettings/leave-type")
+  () => import("../feature-module/settings/appSettings/leave-type"),
 );
 export const EmailSettings = createLazyComponent(
-  () => import("../feature-module/settings/systemSettings/emailSettings")
+  () => import("../feature-module/settings/systemSettings/emailSettings"),
 );
 export const Emailtemplates = createLazyComponent(
-  () => import("../feature-module/settings/systemSettings/email-templates")
+  () => import("../feature-module/settings/systemSettings/email-templates"),
 );
 export const SmsSettings = createLazyComponent(
-  () => import("../feature-module/settings/systemSettings/smsSettings")
+  () => import("../feature-module/settings/systemSettings/smsSettings"),
 );
 export const SmsTemplate = createLazyComponent(
-  () => import("../feature-module/settings/systemSettings/sms-template")
+  () => import("../feature-module/settings/systemSettings/sms-template"),
 );
 export const OtpSettings = createLazyComponent(
-  () => import("../feature-module/settings/systemSettings/otp-settings")
+  () => import("../feature-module/settings/systemSettings/otp-settings"),
 );
 export const GdprCookies = createLazyComponent(
-  () => import("../feature-module/settings/systemSettings/gdprCookies")
+  () => import("../feature-module/settings/systemSettings/gdprCookies"),
 );
 export const Maintenancemode = createLazyComponent(
-  () => import("../feature-module/settings/systemSettings/maintenance-mode")
+  () => import("../feature-module/settings/systemSettings/maintenance-mode"),
 );
 export const PaymentGateways = createLazyComponent(
-  () => import("../feature-module/settings/financialSettings/paymentGateways")
+  () => import("../feature-module/settings/financialSettings/paymentGateways"),
 );
 export const TaxRates = createLazyComponent(
-  () => import("../feature-module/settings/financialSettings/taxRates")
+  () => import("../feature-module/settings/financialSettings/taxRates"),
 );
 export const Currencies = createLazyComponent(
-  () => import("../feature-module/settings/financialSettings/currencies")
+  () => import("../feature-module/settings/financialSettings/currencies"),
 );
 export const Backup = createLazyComponent(
-  () => import("../feature-module/settings/otherSettings/backup")
+  () => import("../feature-module/settings/otherSettings/backup"),
 );
 export const Clearcache = createLazyComponent(
-  () => import("../feature-module/settings/otherSettings/clearCache")
+  () => import("../feature-module/settings/otherSettings/clearCache"),
 );
 export const Customcss = createLazyComponent(
-  () => import("../feature-module/settings/otherSettings/custom-css")
+  () => import("../feature-module/settings/otherSettings/custom-css"),
 );
 export const Customjs = createLazyComponent(
-  () => import("../feature-module/settings/otherSettings/custom-js")
+  () => import("../feature-module/settings/otherSettings/custom-js"),
 );
 export const Cronjob = createLazyComponent(
-  () => import("../feature-module/settings/otherSettings/cronjob")
+  () => import("../feature-module/settings/otherSettings/cronjob"),
 );
 export const Cronjobschedule = createLazyComponent(
-  () => import("../feature-module/settings/otherSettings/cronjobSchedule")
+  () => import("../feature-module/settings/otherSettings/cronjobSchedule"),
 );
 export const Storage = createLazyComponent(
-  () => import("../feature-module/settings/otherSettings/storage")
+  () => import("../feature-module/settings/otherSettings/storage"),
 );
 
 // User Management Components - Lazy Loaded
 export const RolesPermissions = createLazyComponent(
-  () => import("../feature-module/userManagement/rolesPermissions")
+  () => import("../feature-module/userManagement/rolesPermissions"),
 );
 export const PermissionPage = createLazyComponent(
   () =>
-    import("../feature-module/administration/user-management/permissionpage")
+    import("../feature-module/administration/user-management/permissionpage"),
 );
 export const Manageusers = createLazyComponent(
-  () => import("../feature-module/userManagement/manageusers")
+  () => import("../feature-module/userManagement/manageusers"),
 );
 export const Permission = createLazyComponent(
-  () => import("../feature-module/userManagement/permission")
+  () => import("../feature-module/userManagement/permission"),
 );
 
 // Reports Components - Lazy Loaded
 export const ExpensesReport = createLazyComponent(
-  () => import("../feature-module/administration/reports/expensereport")
+  () => import("../feature-module/administration/reports/expensereport"),
 );
 export const InvoiceReport = createLazyComponent(
-  () => import("../feature-module/administration/reports/invoicereport")
+  () => import("../feature-module/administration/reports/invoicereport"),
 );
 export const PaymentReport = createLazyComponent(
-  () => import("../feature-module/administration/reports/paymentreport")
+  () => import("../feature-module/administration/reports/paymentreport"),
 );
 export const ProjectReport = createLazyComponent(
-  () => import("../feature-module/administration/reports/projectreport")
+  () => import("../feature-module/administration/reports/projectreport"),
 );
 export const TaskReport = createLazyComponent(
-  () => import("../feature-module/administration/reports/taskreport")
+  () => import("../feature-module/administration/reports/taskreport"),
 );
 export const UserReports = createLazyComponent(
-  () => import("../feature-module/administration/reports/userreports")
+  () => import("../feature-module/administration/reports/userreports"),
 );
 export const EmployeeReports = createLazyComponent(
-  () => import("../feature-module/administration/reports/employeereports")
+  () => import("../feature-module/administration/reports/employeereports"),
 );
 export const PayslipReport = createLazyComponent(
-  () => import("../feature-module/administration/reports/payslipreport")
+  () => import("../feature-module/administration/reports/payslipreport"),
 );
 export const AttendanceReport = createLazyComponent(
-  () => import("../feature-module/administration/reports/attendencereport")
+  () => import("../feature-module/administration/reports/attendencereport"),
 );
 export const LeaveReport = createLazyComponent(
-  () => import("../feature-module/administration/reports/leavereport")
+  () => import("../feature-module/administration/reports/leavereport"),
 );
 export const DailyReport = createLazyComponent(
-  () => import("../feature-module/administration/reports/dailyreport")
+  () => import("../feature-module/administration/reports/dailyreport"),
 );
 
 // Content Components - Lazy Loaded
 export const Blogs = createLazyComponent(
-  () => import("../feature-module/content/blog/blogs")
+  () => import("../feature-module/content/blog/blogs"),
 );
 export const BlogCategories = createLazyComponent(
-  () => import("../feature-module/content/blog/blogCategories")
+  () => import("../feature-module/content/blog/blogCategories"),
 );
 export const BlogComments = createLazyComponent(
-  () => import("../feature-module/content/blog/blogComments")
+  () => import("../feature-module/content/blog/blogComments"),
 );
 export const BlogTags = createLazyComponent(
-  () => import("../feature-module/content/blog/blogTags")
+  () => import("../feature-module/content/blog/blogTags"),
 );
 
 // Pages Components - Lazy Loaded
 export const Profile = createLazyComponent(
-  () => import("../feature-module/pages/profile")
+  () => import("../feature-module/pages/profile"),
 );
 export const Gallery = createLazyComponent(
-  () => import("../feature-module/pages/gallery")
+  () => import("../feature-module/pages/gallery"),
 );
 export const SearchResult = createLazyComponent(
-  () => import("../feature-module/pages/search-result")
+  () => import("../feature-module/pages/search-result"),
 );
 export const TimeLines = createLazyComponent(
-  () => import("../feature-module/pages/timeline")
+  () => import("../feature-module/pages/timeline"),
 );
 export const Pricing = createLazyComponent(
-  () => import("../feature-module/pages/pricing")
+  () => import("../feature-module/pages/pricing"),
 );
 export const ApiKeys = createLazyComponent(
-  () => import("../feature-module/pages/api-keys")
+  () => import("../feature-module/pages/api-keys"),
 );
 export const PrivacyPolicy = createLazyComponent(
-  () => import("../feature-module/pages/privacy-policy")
+  () => import("../feature-module/pages/privacy-policy"),
 );
 export const TermsCondition = createLazyComponent(
-  () => import("../feature-module/pages/terms-condition")
+  () => import("../feature-module/pages/terms-condition"),
 );
 
 // Administration Components - Lazy Loaded
 export const Assets = createLazyComponent(
-  () => import("../feature-module/administration/asset")
+  () => import("../feature-module/administration/asset"),
 );
 export const AssetsCategory = createLazyComponent(
-  () => import("../feature-module/administration/asset-category")
+  () => import("../feature-module/administration/asset-category"),
 );
 export const Knowledgebase = createLazyComponent(
-  () => import("../feature-module/administration/help-support/knowledgebase")
+  () => import("../feature-module/administration/help-support/knowledgebase"),
 );
 export const Users = createLazyComponent(
-  () => import("../feature-module/administration/user-management/users")
+  () => import("../feature-module/administration/user-management/users"),
 );
 export const RolesPermission = createLazyComponent(
   () =>
-    import("../feature-module/administration/user-management/rolePermission")
+    import("../feature-module/administration/user-management/rolePermission"),
 );
 export const Activity = createLazyComponent(
-  () => import("../feature-module/administration/help-support/activity")
+  () => import("../feature-module/administration/help-support/activity"),
 );
 
 // Recruitment Components - Lazy Loaded
 export const JobGrid = createLazyComponent(
-  () => import("../feature-module/recruitment/jobs/jobgrid")
+  () => import("../feature-module/recruitment/jobs/jobgrid"),
 );
 export const JobList = createLazyComponent(
-  () => import("../feature-module/recruitment/joblist/joblist")
+  () => import("../feature-module/recruitment/joblist/joblist"),
 );
 export const CandidateGrid = createLazyComponent(
-  () => import("../feature-module/recruitment/candidates/candidategrid")
+  () => import("../feature-module/recruitment/candidates/candidategrid"),
 );
 export const CandidatesList = createLazyComponent(
-  () => import("../feature-module/recruitment/candidates/candidatelist")
+  () => import("../feature-module/recruitment/candidates/candidatelist"),
 );
 export const CandidateKanban = createLazyComponent(
-  () => import("../feature-module/recruitment/candidates/candidatekanban")
+  () => import("../feature-module/recruitment/candidates/candidatekanban"),
 );
 export const RefferalList = createLazyComponent(
-  () => import("../feature-module/recruitment/refferal/refferallist")
+  () => import("../feature-module/recruitment/refferal/refferallist"),
 );
 
 // Super Admin Components - Lazy Loaded
 export const Companies = createLazyComponent(
-  () => import("../feature-module/super-admin/companies")
+  () => import("../feature-module/super-admin/companies"),
 );
 export const Subscription = createLazyComponent(
-  () => import("../feature-module/super-admin/subscription")
+  () => import("../feature-module/super-admin/subscription"),
 );
 export const Packages = createLazyComponent(
-  () => import("../feature-module/super-admin/packages/packagelist")
+  () => import("../feature-module/super-admin/packages/packagelist"),
 );
 export const PackagesGrid = createLazyComponent(
-  () => import("../feature-module/super-admin/packages/packagegrid")
+  () => import("../feature-module/super-admin/packages/packagegrid"),
 );
 export const Domain = createLazyComponent(
-  () => import("../feature-module/super-admin/domin")
+  () => import("../feature-module/super-admin/domin"),
 );
 export const PurchaseTransaction = createLazyComponent(
-  () => import("../feature-module/super-admin/purchase-transaction")
+  () => import("../feature-module/super-admin/purchase-transaction"),
 );
 
 // Tickets Components - Lazy Loaded
 export const Tickets = createLazyComponent(
-  () => import("../feature-module/tickets/tickets")
+  () => import("../feature-module/tickets/tickets"),
 );
 export const TicketGrid = createLazyComponent(
-  () => import("../feature-module/tickets/tickets-grid")
+  () => import("../feature-module/tickets/tickets-grid"),
 );
 export const TicketDetails = createLazyComponent(
-  () => import("../feature-module/tickets/ticket-details")
+  () => import("../feature-module/tickets/ticket-details"),
 );
 
 // Coming Soon Component - Lazy Loaded
 export const ComingSoon = createLazyComponent(
-  () => import("../feature-module/pages/coming-soon")
+  () => import("../feature-module/pages/coming-soon"),
 );
 
 // Additional Components - Lazy Loaded
 export const Countries = createLazyComponent(
   () => import("../feature-module/content/location/countries"),
-  <LoadingSpinner text="Loading countries..." />
+  <LoadingSpinner text="Loading countries..." />,
 );
 export const StarterPage = createLazyComponent(
   () => import("../feature-module/pages/starter"),
-  <LoadingSpinner text="Loading starter page..." />
+  <LoadingSpinner text="Loading starter page..." />,
 );
 export const Membershipplan = createLazyComponent(
   () => import("../feature-module/membership/membershipplan"),
-  <LoadingSpinner text="Loading membership plan..." />
+  <LoadingSpinner text="Loading membership plan..." />,
 );
 export const MembershipAddon = createLazyComponent(
   () => import("../feature-module/membership/membershipaddon"),
-  <LoadingSpinner text="Loading membership addon..." />
+  <LoadingSpinner text="Loading membership addon..." />,
 );
 export const MembershipTransaction = createLazyComponent(
   () => import("../feature-module/membership/membershiptrasaction"),
-  <LoadingSpinner text="Loading membership transaction..." />
+  <LoadingSpinner text="Loading membership transaction..." />,
 );
 export const DataTable = createLazyComponent(
   () => import("../feature-module/tables/dataTable"),
-  <LoadingSpinner text="Loading data table..." />
+  <LoadingSpinner text="Loading data table..." />,
 );
 export const BasicTable = createLazyComponent(
   () => import("../feature-module/tables/basicTable"),
-  <LoadingSpinner text="Loading basic table..." />
+  <LoadingSpinner text="Loading basic table..." />,
 );
 export const DeleteRequest = createLazyComponent(
   () => import("../feature-module/userManagement/deleteRequest"),
-  <LoadingSpinner text="Loading delete request..." />
+  <LoadingSpinner text="Loading delete request..." />,
 );
 export const Cities = createLazyComponent(
   () => import("../feature-module/content/location/cities"),
-  <LoadingSpinner text="Loading cities..." />
+  <LoadingSpinner text="Loading cities..." />,
 );
 
 // UI Interface Components - Lazy Loaded
 export const Accordion = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/accordion"),
-  <LoadingSpinner text="Loading accordion..." />
+  <LoadingSpinner text="Loading accordion..." />,
 );
 export const Avatar = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/avatar"),
-  <LoadingSpinner text="Loading avatar..." />
+  <LoadingSpinner text="Loading avatar..." />,
 );
 export const Badges = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/badges"),
-  <LoadingSpinner text="Loading badges..." />
+  <LoadingSpinner text="Loading badges..." />,
 );
 export const Borders = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/borders"),
-  <LoadingSpinner text="Loading borders..." />
+  <LoadingSpinner text="Loading borders..." />,
 );
 export const Breadcrumb = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/breadcrumb"),
-  <LoadingSpinner text="Loading breadcrumb..." />
+  <LoadingSpinner text="Loading breadcrumb..." />,
 );
 export const Buttons = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/buttons"),
-  <LoadingSpinner text="Loading buttons..." />
+  <LoadingSpinner text="Loading buttons..." />,
 );
 export const ButtonsGroup = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/buttonsgroup"),
-  <LoadingSpinner text="Loading button group..." />
+  <LoadingSpinner text="Loading button group..." />,
 );
 export const Cards = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/cards"),
-  <LoadingSpinner text="Loading cards..." />
+  <LoadingSpinner text="Loading cards..." />,
 );
 export const Carousel = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/carousel"),
-  <LoadingSpinner text="Loading carousel..." />
+  <LoadingSpinner text="Loading carousel..." />,
 );
 export const Colors = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/colors"),
-  <LoadingSpinner text="Loading colors..." />
+  <LoadingSpinner text="Loading colors..." />,
 );
 export const Dropdowns = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/dropdowns"),
-  <LoadingSpinner text="Loading dropdowns..." />
+  <LoadingSpinner text="Loading dropdowns..." />,
 );
 export const Grid = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/grid"),
-  <LoadingSpinner text="Loading grid..." />
+  <LoadingSpinner text="Loading grid..." />,
 );
 export const Images = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/images"),
-  <LoadingSpinner text="Loading images..." />
+  <LoadingSpinner text="Loading images..." />,
 );
 export const Lightboxes = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/lightbox"),
-  <LoadingSpinner text="Loading lightbox..." />
+  <LoadingSpinner text="Loading lightbox..." />,
 );
 export const BanIpAddress = createLazyComponent(
   () => import("../feature-module/settings/otherSettings/banIpaddress"),
-  <LoadingSpinner text="Loading IP ban settings..." />
+  <LoadingSpinner text="Loading IP ban settings..." />,
 );
 export const RangeSlides = createLazyComponent(
   () => import("../feature-module/uiInterface/advanced-ui/rangeslider"),
-  <LoadingSpinner text="Loading range slider..." />
+  <LoadingSpinner text="Loading range slider..." />,
 );
 export const Media = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/media"),
-  <LoadingSpinner text="Loading media..." />
+  <LoadingSpinner text="Loading media..." />,
 );
 export const Modals = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/modals"),
-  <LoadingSpinner text="Loading modals..." />
+  <LoadingSpinner text="Loading modals..." />,
 );
 export const NavTabs = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/navtabs"),
-  <LoadingSpinner text="Loading navigation tabs..." />
+  <LoadingSpinner text="Loading navigation tabs..." />,
 );
 export const Popovers = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/popover"),
-  <LoadingSpinner text="Loading popovers..." />
+  <LoadingSpinner text="Loading popovers..." />,
 );
 export const Swiperjs = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/swiperjs"),
-  <LoadingSpinner text="Loading swiper..." />
+  <LoadingSpinner text="Loading swiper..." />,
 );
 export const Toasts = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/toasts"),
-  <LoadingSpinner text="Loading toasts..." />
+  <LoadingSpinner text="Loading toasts..." />,
 );
 export const Sortable = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/ui-sortable"),
-  <LoadingSpinner text="Loading sortable..." />
+  <LoadingSpinner text="Loading sortable..." />,
 );
 export const BootstrapIcons = createLazyComponent(
   () => import("../feature-module/uiInterface/icons/bootstrapicons"),
-  <LoadingSpinner text="Loading bootstrap icons..." />
+  <LoadingSpinner text="Loading bootstrap icons..." />,
 );
 export const FlagIcons = createLazyComponent(
   () => import("../feature-module/uiInterface/icons/flagicon"),
-  <LoadingSpinner text="Loading flag icons..." />
+  <LoadingSpinner text="Loading flag icons..." />,
 );
 export const RemixIcons = createLazyComponent(
   () => import("../feature-module/uiInterface/icons/remixIcons"),
-  <LoadingSpinner text="Loading remix icons..." />
+  <LoadingSpinner text="Loading remix icons..." />,
 );
 export const Leaflet = createLazyComponent(
   () => import("../feature-module/uiInterface/map/leaflet"),
-  <LoadingSpinner text="Loading map..." />
+  <LoadingSpinner text="Loading map..." />,
 );
 export const Page = createLazyComponent(
   () => import("../feature-module/content/page"),
-  <LoadingSpinner text="Loading page..." />
+  <LoadingSpinner text="Loading page..." />,
 );
 export const Faq = createLazyComponent(
   () => import("../feature-module/content/faq"),
-  <LoadingSpinner text="Loading FAQ..." />
+  <LoadingSpinner text="Loading FAQ..." />,
 );
 export const States = createLazyComponent(
   () => import("../feature-module/content/location/states"),
-  <LoadingSpinner text="Loading states..." />
+  <LoadingSpinner text="Loading states..." />,
 );
 export const Testimonials = createLazyComponent(
   () => import("../feature-module/content/testimonials"),
-  <LoadingSpinner text="Loading testimonials..." />
+  <LoadingSpinner text="Loading testimonials..." />,
 );
 export const ClipBoard = createLazyComponent(
   () => import("../feature-module/uiInterface/advanced-ui/clipboard"),
-  <LoadingSpinner text="Loading clipboard..." />
+  <LoadingSpinner text="Loading clipboard..." />,
 );
 export const Counter = createLazyComponent(
   () => import("../feature-module/uiInterface/advanced-ui/counter"),
-  <LoadingSpinner text="Loading counter..." />
+  <LoadingSpinner text="Loading counter..." />,
 );
 export const DragAndDrop = createLazyComponent(
   () => import("../feature-module/uiInterface/advanced-ui/dragdrop"),
-  <LoadingSpinner text="Loading drag and drop..." />
+  <LoadingSpinner text="Loading drag and drop..." />,
 );
 export const Rating = createLazyComponent(
   () => import("../feature-module/uiInterface/advanced-ui/rating"),
-  <LoadingSpinner text="Loading rating..." />
+  <LoadingSpinner text="Loading rating..." />,
 );
 export const TextEditor = createLazyComponent(
   () => import("../feature-module/uiInterface/advanced-ui/texteditor"),
-  <LoadingSpinner text="Loading text editor..." />
+  <LoadingSpinner text="Loading text editor..." />,
 );
 export const Timeline = createLazyComponent(
   () => import("../feature-module/uiInterface/advanced-ui/timeline"),
-  <LoadingSpinner text="Loading timeline..." />
+  <LoadingSpinner text="Loading timeline..." />,
 );
 export const Scrollbar = createLazyComponent(
   () => import("../feature-module/uiInterface/advanced-ui/uiscrollbar"),
-  <LoadingSpinner text="Loading scrollbar..." />
+  <LoadingSpinner text="Loading scrollbar..." />,
 );
 export const Apexchart = createLazyComponent(
   () => import("../feature-module/uiInterface/charts/apexcharts"),
-  <LoadingSpinner text="Loading apex charts..." />
+  <LoadingSpinner text="Loading apex charts..." />,
 );
 export const PrimeReactChart = createLazyComponent(
   () => import("../feature-module/uiInterface/charts/prime-react-chart"),
-  <LoadingSpinner text="Loading prime react charts..." />
+  <LoadingSpinner text="Loading prime react charts..." />,
 );
 export const ChartJSExample = createLazyComponent(
   () => import("../feature-module/uiInterface/charts/chartjs"),
-  <LoadingSpinner text="Loading chart.js..." />
+  <LoadingSpinner text="Loading chart.js..." />,
 );
 export const FontawesomeIcons = createLazyComponent(
   () => import("../feature-module/uiInterface/icons/fontawesome"),
-  <LoadingSpinner text="Loading fontawesome icons..." />
+  <LoadingSpinner text="Loading fontawesome icons..." />,
 );
 export const MaterialIcons = createLazyComponent(
   () => import("../feature-module/uiInterface/icons/materialicon"),
-  <LoadingSpinner text="Loading material icons..." />
+  <LoadingSpinner text="Loading material icons..." />,
 );
 export const PE7Icons = createLazyComponent(
   () => import("../feature-module/uiInterface/icons/pe7icons"),
-  <LoadingSpinner text="Loading PE7 icons..." />
+  <LoadingSpinner text="Loading PE7 icons..." />,
 );
 export const ThemifyIcons = createLazyComponent(
   () => import("../feature-module/uiInterface/icons/themify"),
-  <LoadingSpinner text="Loading themify icons..." />
+  <LoadingSpinner text="Loading themify icons..." />,
 );
 export const TypiconIcons = createLazyComponent(
   () => import("../feature-module/uiInterface/icons/typicons"),
-  <LoadingSpinner text="Loading typicon icons..." />
+  <LoadingSpinner text="Loading typicon icons..." />,
 );
 export const BasicInputs = createLazyComponent(
   () => import("../feature-module/uiInterface/forms/formelements/basic-inputs"),
-  <LoadingSpinner text="Loading basic inputs..." />
+  <LoadingSpinner text="Loading basic inputs..." />,
 );
 export const WeatherIcons = createLazyComponent(
   () => import("../feature-module/uiInterface/icons/weathericons"),
-  <LoadingSpinner text="Loading weather icons..." />
+  <LoadingSpinner text="Loading weather icons..." />,
 );
 export const CheckboxRadios = createLazyComponent(
   () =>
     import("../feature-module/uiInterface/forms/formelements/checkbox-radios"),
-  <LoadingSpinner text="Loading checkbox and radios..." />
+  <LoadingSpinner text="Loading checkbox and radios..." />,
 );
 export const InputGroup = createLazyComponent(
   () => import("../feature-module/uiInterface/forms/formelements/input-group"),
-  <LoadingSpinner text="Loading input group..." />
+  <LoadingSpinner text="Loading input group..." />,
 );
 export const GridGutters = createLazyComponent(
   () => import("../feature-module/uiInterface/forms/formelements/grid-gutters"),
-  <LoadingSpinner text="Loading grid gutters..." />
+  <LoadingSpinner text="Loading grid gutters..." />,
 );
 export const FormSelect = createLazyComponent(
   () => import("../feature-module/uiInterface/forms/formelements/form-select"),
-  <LoadingSpinner text="Loading form select..." />
+  <LoadingSpinner text="Loading form select..." />,
 );
 export const FormMask = createLazyComponent(
   () => import("../feature-module/uiInterface/forms/formelements/form-mask"),
-  <LoadingSpinner text="Loading form mask..." />
+  <LoadingSpinner text="Loading form mask..." />,
 );
 export const FileUpload = createLazyComponent(
   () => import("../feature-module/uiInterface/forms/formelements/fileupload"),
-  <LoadingSpinner text="Loading file upload..." />
+  <LoadingSpinner text="Loading file upload..." />,
 );
 export const FormHorizontal = createLazyComponent(
   () =>
-    import(
-      "../feature-module/uiInterface/forms/formelements/layouts/form-horizontal"
-    ),
-  <LoadingSpinner text="Loading horizontal form..." />
+    import("../feature-module/uiInterface/forms/formelements/layouts/form-horizontal"),
+  <LoadingSpinner text="Loading horizontal form..." />,
 );
 export const FormVertical = createLazyComponent(
   () =>
-    import(
-      "../feature-module/uiInterface/forms/formelements/layouts/form-vertical"
-    ),
-  <LoadingSpinner text="Loading vertical form..." />
+    import("../feature-module/uiInterface/forms/formelements/layouts/form-vertical"),
+  <LoadingSpinner text="Loading vertical form..." />,
 );
 export const FloatingLabel = createLazyComponent(
   () =>
-    import(
-      "../feature-module/uiInterface/forms/formelements/layouts/floating-label"
-    ),
-  <LoadingSpinner text="Loading floating label..." />
+    import("../feature-module/uiInterface/forms/formelements/layouts/floating-label"),
+  <LoadingSpinner text="Loading floating label..." />,
 );
 export const FormValidation = createLazyComponent(
   () =>
-    import(
-      "../feature-module/uiInterface/forms/formelements/layouts/form-validation"
-    ),
-  <LoadingSpinner text="Loading form validation..." />
+    import("../feature-module/uiInterface/forms/formelements/layouts/form-validation"),
+  <LoadingSpinner text="Loading form validation..." />,
 );
 export const FormSelect2 = createLazyComponent(
   () =>
-    import(
-      "../feature-module/uiInterface/forms/formelements/layouts/form-select2"
-    ),
-  <LoadingSpinner text="Loading form select2..." />
+    import("../feature-module/uiInterface/forms/formelements/layouts/form-select2"),
+  <LoadingSpinner text="Loading form select2..." />,
 );
 export const FormWizard = createLazyComponent(
   () => import("../feature-module/uiInterface/forms/formelements/form-wizard"),
-  <LoadingSpinner text="Loading form wizard..." />
+  <LoadingSpinner text="Loading form wizard..." />,
 );
 export const FormPikers = createLazyComponent(
   () => import("../feature-module/uiInterface/forms/formelements/formpickers"),
-  <LoadingSpinner text="Loading form pickers..." />
+  <LoadingSpinner text="Loading form pickers..." />,
 );
 export const DataTables = createLazyComponent(
   () => import("../feature-module/uiInterface/table/data-tables"),
-  <LoadingSpinner text="Loading data tables..." />
+  <LoadingSpinner text="Loading data tables..." />,
 );
 export const TablesBasic = createLazyComponent(
   () => import("../feature-module/uiInterface/table/tables-basic"),
-  <LoadingSpinner text="Loading basic tables..." />
+  <LoadingSpinner text="Loading basic tables..." />,
 );
 export const IonicIcons = createLazyComponent(
   () => import("../feature-module/uiInterface/icons/ionicicons"),
-  <LoadingSpinner text="Loading ionic icons..." />
+  <LoadingSpinner text="Loading ionic icons..." />,
 );
 export const Placeholder = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/placeholder"),
-  <LoadingSpinner text="Loading placeholder..." />
+  <LoadingSpinner text="Loading placeholder..." />,
 );
 export const AlertUi = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/alert-ui"),
-  <LoadingSpinner text="Loading alerts..." />
+  <LoadingSpinner text="Loading alerts..." />,
 );
 export const Tooltips = createLazyComponent(
   () => import("../feature-module/uiInterface/base-ui/tooltips"),
-  <LoadingSpinner text="Loading tooltips..." />
+  <LoadingSpinner text="Loading tooltips..." />,
 );
 export const Ribbon = createLazyComponent(
   () => import("../feature-module/uiInterface/advanced-ui/ribbon"),
-  <LoadingSpinner text="Loading ribbon..." />
+  <LoadingSpinner text="Loading ribbon..." />,
 );
 
 // Accounting Components - Lazy Loaded
 export const Categories = createLazyComponent(
   () => import("../feature-module/accounting/categories"),
-  <LoadingSpinner text="Loading categories..." />
+  <LoadingSpinner text="Loading categories..." />,
 );
 export const Budgets = createLazyComponent(
   () => import("../feature-module/accounting/budgets"),
-  <LoadingSpinner text="Loading budgets..." />
+  <LoadingSpinner text="Loading budgets..." />,
 );
 export const BudgetExpenses = createLazyComponent(
   () => import("../feature-module/accounting/budget-expenses"),
-  <LoadingSpinner text="Loading budget expenses..." />
+  <LoadingSpinner text="Loading budget expenses..." />,
 );
 export const BudgetRevenues = createLazyComponent(
   () => import("../feature-module/accounting/budget-revenues"),
-  <LoadingSpinner text="Loading budget revenues..." />
+  <LoadingSpinner text="Loading budget revenues..." />,
 );

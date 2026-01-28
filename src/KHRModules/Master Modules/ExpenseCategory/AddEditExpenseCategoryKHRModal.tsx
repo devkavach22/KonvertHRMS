@@ -14,6 +14,7 @@ import {
 interface Props {
   onSuccess: () => void;
   data: any | null;
+  onClose: () => void; // <--- NEW PROP
 }
 
 // Initial state matching your JSON
@@ -32,6 +33,7 @@ const initialFormState = {
 const AddEditExpenseCategoryKHRModal: React.FC<Props> = ({
   onSuccess,
   data,
+  onClose, // <--- Destructure here
 }) => {
   const [formData, setFormData] = useState<any>(initialFormState);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -99,6 +101,7 @@ const AddEditExpenseCategoryKHRModal: React.FC<Props> = ({
     const modalElement = document.getElementById("add_expense_category");
     const handleHidden = () => {
       resetForm();
+      onClose(); // <--- CALL PARENT TO RESET STATE
     };
 
     if (modalElement) {
@@ -110,12 +113,13 @@ const AddEditExpenseCategoryKHRModal: React.FC<Props> = ({
         modalElement.removeEventListener("hidden.bs.modal", handleHidden);
       }
     };
-  }, []);
+  }, [onClose]);
 
   const resetForm = () => {
     setFormData(initialFormState);
     setErrors({});
     setIsSubmitted(false);
+    setIsSubmitting(false);
   };
 
   // --- 4. Helpers ---
@@ -134,7 +138,7 @@ const AddEditExpenseCategoryKHRModal: React.FC<Props> = ({
 
   // --- 5. Handlers ---
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev: any) => ({ ...prev, [name]: value }));
@@ -191,15 +195,9 @@ const AddEditExpenseCategoryKHRModal: React.FC<Props> = ({
         toast.success("Expense category created successfully");
       }
 
-      // Close modal programmatically
-      const modalElement = document.getElementById("add_expense_category");
-      const closeBtn = modalElement?.querySelector(
-        '[data-bs-dismiss="modal"]'
-      ) as HTMLElement;
-      if (closeBtn) closeBtn.click();
-
       onSuccess();
-      // resetForm(); // Handled by hidden.bs.modal listener
+      // Use standard close button click
+      document.getElementById("close-expense-category-modal")?.click();
     } catch (error: any) {
       console.error("Save error", error);
       toast.error(error.response?.data?.message || "Failed to save category");
@@ -235,7 +233,7 @@ const AddEditExpenseCategoryKHRModal: React.FC<Props> = ({
             <div className="modal-header border-bottom bg-light py-2">
               <h5 className="modal-title fw-bold fs-15">
                 <i className="ti ti-file-invoice me-2 text-primary"></i>
-                {data ? "Edit Expense Product" : "Expense Product Entry"}
+                {data ? "Edit Expense Category" : "Expense Category Entry"}
               </h5>
               <button
                 type="button"
@@ -286,7 +284,7 @@ const AddEditExpenseCategoryKHRModal: React.FC<Props> = ({
                         options={categoryOptions}
                         placeholder="Select Category"
                         defaultValue={categoryOptions.find(
-                          (o) => o.value === formData.category_name
+                          (o) => o.value === formData.category_name,
                         )}
                         onChange={(opt) =>
                           handleSelectChange("category_name", opt)
@@ -359,7 +357,7 @@ const AddEditExpenseCategoryKHRModal: React.FC<Props> = ({
                         options={accountOptions}
                         placeholder="Select GL Account"
                         defaultValue={accountOptions.find(
-                          (o) => o.value === formData.expense_account_name
+                          (o) => o.value === formData.expense_account_name,
                         )}
                         onChange={(opt) =>
                           handleSelectChange("expense_account_name", opt)
@@ -375,7 +373,7 @@ const AddEditExpenseCategoryKHRModal: React.FC<Props> = ({
                           options={purchaseTaxOptions}
                           placeholder="Select Tax"
                           defaultValue={purchaseTaxOptions.find((o) =>
-                            formData.purchase_tax_names.includes(o.value)
+                            formData.purchase_tax_names.includes(o.value),
                           )}
                           onChange={(opt) =>
                             handleTaxChange("purchase_tax_names", opt)
@@ -391,7 +389,7 @@ const AddEditExpenseCategoryKHRModal: React.FC<Props> = ({
                             >
                               {t}
                             </span>
-                          )
+                          ),
                         )}
                       </div>
                     </div>
@@ -404,7 +402,7 @@ const AddEditExpenseCategoryKHRModal: React.FC<Props> = ({
                           options={salesTaxOptions}
                           placeholder="Select Tax"
                           defaultValue={salesTaxOptions.find((o) =>
-                            formData.sales_tax_names.includes(o.value)
+                            formData.sales_tax_names.includes(o.value),
                           )}
                           onChange={(opt) =>
                             handleTaxChange("sales_tax_names", opt)
@@ -420,7 +418,7 @@ const AddEditExpenseCategoryKHRModal: React.FC<Props> = ({
                             >
                               {t}
                             </span>
-                          )
+                          ),
                         )}
                       </div>
                     </div>
@@ -464,11 +462,11 @@ const AddEditExpenseCategoryKHRModal: React.FC<Props> = ({
                 <div className="modal-footer border-0 px-0 mt-4 pb-0">
                   <button
                     type="button"
-                    className="btn btn-light px-4 me-2"
+                    className="btn btn-outline-secondary px-4 me-2"
                     data-bs-dismiss="modal"
                     onClick={resetForm}
                   >
-                    Cancel
+                    Discard
                   </button>
                   <button
                     type="submit"

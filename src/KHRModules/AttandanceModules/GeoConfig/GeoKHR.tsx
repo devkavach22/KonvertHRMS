@@ -208,6 +208,7 @@ const GeoKHR = () => {
           fetchData();
           setSelectedGeo(null);
         }}
+        onClose={() => setSelectedGeo(null)}
         data={selectedGeo}
       />
 

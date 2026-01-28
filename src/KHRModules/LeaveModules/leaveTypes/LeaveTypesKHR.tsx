@@ -4,12 +4,11 @@ import { all_routes } from "../../../router/all_routes";
 import DatatableKHR from "../../../CommonComponent/DataTableKHR/DatatableKHR";
 import CommonHeader from "../../../CommonComponent/HeaderKHR/HeaderKHR";
 import AddEditLeaveTypesModal from "./AddEditLeaveTypesModal";
-import { getAllLeaveTypes,deleteLeaveType } from "./LeavetypesServices";
-
+import { getAllLeaveTypes, deleteLeaveType } from "./LeavetypesServices";
 
 // service imports removed (not used here) — keep file focused on UI
 
-const LeaveAdminKHR = () => { 
+const LeaveAdminKHR = () => {
   const routes = all_routes;
   const [data, setData] = useState<any[]>([]);
   const [selectedPolicy, setSelectedPolicy] = useState<any | null>(null);
@@ -46,25 +45,35 @@ const LeaveAdminKHR = () => {
       title: "Name",
       dataIndex: "name",
       render: (val: any) => <span>{val ? String(val) : "-"}</span>,
-      sorter: (a: any, b: any) => String(a?.name ?? "").localeCompare(String(b?.name ?? "")),
+      sorter: (a: any, b: any) =>
+        String(a?.name ?? "").localeCompare(String(b?.name ?? "")),
     },
     {
       title: "Leave Type Code",
       dataIndex: "leave_type_code",
       render: (val: any) => <span>{val ? String(val) : "-"}</span>,
-      sorter: (a: any, b: any) => String(a?.leave_type_code ?? "").localeCompare(String(b?.leave_type_code ?? "")),
+      sorter: (a: any, b: any) =>
+        String(a?.leave_type_code ?? "").localeCompare(
+          String(b?.leave_type_code ?? ""),
+        ),
     },
     {
       title: "Leave Category",
       dataIndex: "leave_category",
       render: (val: any) => <span>{val ? String(val) : "-"}</span>,
-      sorter: (a: any, b: any) => String(a?.leave_category ?? "").localeCompare(String(b?.leave_category ?? "")),
+      sorter: (a: any, b: any) =>
+        String(a?.leave_category ?? "").localeCompare(
+          String(b?.leave_category ?? ""),
+        ),
     },
     {
       title: "Leave Validation Type",
       dataIndex: "leave_validation_type",
       render: (val: any) => <span>{val ? String(val) : "-"}</span>,
-      sorter: (a: any, b: any) => String(a?.leave_validation_type ?? "").localeCompare(String(b?.leave_validation_type ?? "")),
+      sorter: (a: any, b: any) =>
+        String(a?.leave_validation_type ?? "").localeCompare(
+          String(b?.leave_validation_type ?? ""),
+        ),
     },
     {
       title: "Actions",
@@ -106,21 +115,11 @@ const LeaveAdminKHR = () => {
               />
             </div>
 
-          
-          <DatatableKHR 
-              columns={columns} 
-              data={data} 
-              
-              />
-
+            <DatatableKHR columns={columns} data={data} />
           </div>
         </div>
 
-
-        <AddEditLeaveTypesModal
-          onSuccess={fetchData}
-          data={selectedPolicy}
-        />
+        <AddEditLeaveTypesModal onSuccess={fetchData} data={selectedPolicy} />
       </div>
     </>
   );
