@@ -27,7 +27,7 @@ const rawSidebarData = [
     roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only Section
     submenuItems: [
       {
-        label: "Settings",
+        label: "Master",
         link: "index",
         submenu: true,
         showSubRoute: false,
@@ -51,6 +51,8 @@ const rawSidebarData = [
           { label: "Geo Configurations", link: routes.geoKHR },
           { label: "Expense Category", link: routes.expenseCategoryKHR },
           { label: "Accrural Plan", link: routes.accruralPlanKHR },
+          { label: "Salary Rule Category", link: routes.SalaryRuleCategoryKHR },
+
         ],
       },
     ],

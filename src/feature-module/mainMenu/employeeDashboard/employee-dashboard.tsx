@@ -128,10 +128,9 @@ const EmployeeDashboard = () => {
     return modalElement ? modalElement : document.body; // Fallback to document.body if modalElement is null
   };
 
-  useEffect(() => {
-    // fetchData();
-    dispatch(getDashboadrdCount() as any);
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(getDashboadrdCount() as any);
+  // }, [dispatch]);
   console.log(getDashboadrdCountData, "getDashboadrdCountData");
 
   return (

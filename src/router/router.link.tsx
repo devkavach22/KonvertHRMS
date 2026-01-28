@@ -314,6 +314,7 @@ import {
   EmployeeCalendarsKHR,
   AllApprovalKHR,
   AccruralPlanKHR,
+  SalaryRuleCategoryKHR,
   SalaryStructureType,
   SalaryStructureKHR,
   // BanksAccountKHR,
@@ -1754,6 +1755,11 @@ export const publicRoutes = [
   {
     path: routes.mendetoryDaysKHR,
     element: <MendetoryDaysKHR />,
+    route: Route,
+  },
+   {
+    path: routes.SalaryRuleCategoryKHR,
+    element: <SalaryRuleCategoryKHR />,
     route: Route,
   },
   {
