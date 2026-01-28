@@ -61,8 +61,8 @@ const LeaveRequestKHR = () => {
         department_name: item.department_name || item.department_id,
         leave_type: item.leave_type_name,
         // Map dates from validity object
-        from_date: item.validity?.from,
-        to_date: item.validity?.to,
+        from_date: item?.from,
+        to_date: item?.to,
         status: item.status, // Keep raw status for mapping logic
       }));
 
@@ -90,12 +90,12 @@ const LeaveRequestKHR = () => {
   };
 
   const columns: any[] = [
-    {
-      title: "ID",
-      dataIndex: "id",
-      sorter: (a: any, b: any) => (a.id || 0) - (b.id || 0),
-      render: (val: any) => <span>{val || "-"}</span>,
-    },
+    // {
+    //   title: "ID",
+    //   dataIndex: "id",
+    //   sorter: (a: any, b: any) => (a.id || 0) - (b.id || 0),
+    //   render: (val: any) => <span>{val || "-"}</span>,
+    // },
     {
       title: "Employee Name",
       dataIndex: "employee_name",

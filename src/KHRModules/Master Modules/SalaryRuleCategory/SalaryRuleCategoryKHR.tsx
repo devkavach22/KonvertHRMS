@@ -25,7 +25,6 @@ const SalaryRuleCategoryKHR = () => {
       const response: any = await getRegCategories();
       console.log("Fetched Categories:", response);
 
-
       const rawArray = Array.isArray(response) ? response : [];
 
       const mappedData = rawArray.map((item: any) => ({
@@ -110,7 +109,7 @@ const SalaryRuleCategoryKHR = () => {
         <div className="content">
           <div onClick={() => setSelectedCategory(null)}>
             <CommonHeader
-              title="Regularization Category"
+              title="Regularization Category sdd"
               parentMenu="Settings"
               activeMenu="Reg Category"
               routes={routes}
