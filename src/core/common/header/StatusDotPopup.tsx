@@ -24,10 +24,9 @@ const StatusCheckInPopup: React.FC = () => {
   /* =====================
      LOAD CURRENT STATUS ON MOUNT
   ===================== */
-  useEffect(() => {
-    // Load current attendance status when component mounts
-    dispatch(getCurrentAttendanceStatus() as any);
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(getCurrentAttendanceStatus() as any);
+  // }, [dispatch]);
 
   /* =====================
      CLOSE ON OUTSIDE CLICK
