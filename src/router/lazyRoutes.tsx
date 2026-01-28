@@ -89,6 +89,10 @@ export const employeeSalaryKHR = createLazyComponent(
   () => import("../KHRModules/payRollModules/structureTypes/StructureTypes"),
   <LoadingSpinner text="Loading employee salary..." />
 );
+export const SalaryRuleCategoryKHR = createLazyComponent(
+  () => import("../KHRModules/Master Modules/SalaryRuleCategory/SalaryRuleCategoryKHR"),
+  <LoadingSpinner text="Loading salary rule category..." />
+);
 export const SecurityKeyLogin = createLazyComponent(
   () => import("../feature-module/auth/login/SecretKeyLogin"),
   <LoadingSpinner text="Loading login..." />,
