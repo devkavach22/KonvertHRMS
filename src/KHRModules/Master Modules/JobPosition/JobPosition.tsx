@@ -176,7 +176,11 @@ const JobPosition = () => {
           </div>
         </div>
       </div>
-      <AddEditJobPositionModal onSuccess={fetchData} data={selectedJob} />
+      <AddEditJobPositionModal
+        onSuccess={fetchData}
+        data={selectedJob}
+        onClose={() => setSelectedJob(null)}
+      />
     </div>
   );
 };

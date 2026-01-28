@@ -9,9 +9,10 @@ import { toast } from "react-toastify";
 interface Props {
   onSuccess: () => void;
   data: Department | null;
+  onClose: () => void;
 }
 
-const AddDepartmentModal: React.FC<Props> = ({ onSuccess, data }) => {
+const AddDepartmentModal: React.FC<Props> = ({ onSuccess, data, onClose }) => {
   const [name, setName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -29,7 +30,10 @@ const AddDepartmentModal: React.FC<Props> = ({ onSuccess, data }) => {
   // 2. BOOTSTRAP EVENT LISTENER
   useEffect(() => {
     const modalElement = document.getElementById("add_department");
-    const handleHidden = () => resetForm();
+    const handleHidden = () => {
+      resetForm();
+      onClose();
+    };
     modalElement?.addEventListener("hidden.bs.modal", handleHidden);
     return () => {
       modalElement?.removeEventListener("hidden.bs.modal", handleHidden);

@@ -1,16 +1,13 @@
 import MultiSelect from "@/KHRModules/commanForm/inputComman/MultiSelect";
 import React, { useEffect, useState } from "react";
 import { addGeoConfig, updateGeoConfig } from "./GeoServices";
-import {
-  getEmployees,
-  getEmployeesBasicInfo,
-} from "@/KHRModules/EmployeModules/Employee/EmployeeServices";
+import { getEmployeesBasicInfo } from "@/KHRModules/EmployeModules/Employee/EmployeeServices";
 import { toast } from "react-toastify";
 
 interface Props {
   data: any | null;
   onSuccess: () => void;
-  onClose?: () => void;
+  onClose: () => void; // <--- Made Required
 }
 
 interface Option {
@@ -20,19 +17,21 @@ interface Option {
 }
 
 const AddEditGeoModal: React.FC<Props> = ({ data, onSuccess, onClose }) => {
-  const [formData, setFormData] = useState<any>({
+  const initialFormState = {
     name: "",
     latitude: "",
     longitude: "",
     radius_km: "",
     employees_selection: [],
-  });
+  };
 
+  const [formData, setFormData] = useState<any>(initialFormState);
   const [errors, setErrors] = useState<any>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [employeesList, setEmployeeList] = useState<Option[]>([]);
 
+  // 1. Fetch Employees
   useEffect(() => {
     const fetchEmploymentData = async () => {
       try {
@@ -45,7 +44,27 @@ const AddEditGeoModal: React.FC<Props> = ({ data, onSuccess, onClose }) => {
     fetchEmploymentData();
   }, []);
 
-  // Handle Data Population (Edit Mode) vs Reset (Add Mode)
+  // 2. BOOTSTRAP EVENT LISTENER (Force clear & Parent Reset on close)
+  useEffect(() => {
+    const modalElement = document.getElementById("add_geo_config");
+
+    const handleHidden = () => {
+      resetForm();
+      onClose(); // <--- CRITICAL: Resets parent state 'selectedGeo' to null
+    };
+
+    if (modalElement) {
+      modalElement.addEventListener("hidden.bs.modal", handleHidden);
+    }
+
+    return () => {
+      if (modalElement) {
+        modalElement.removeEventListener("hidden.bs.modal", handleHidden);
+      }
+    };
+  }, [onClose]); // Added dependency
+
+  // 3. Populate Form
   useEffect(() => {
     if (data) {
       setFormData({
@@ -60,34 +79,11 @@ const AddEditGeoModal: React.FC<Props> = ({ data, onSuccess, onClose }) => {
     }
   }, [data]);
 
-  // FIX: Listen for Bootstrap's hidden event to clear form on backdrop click / Esc key
-  useEffect(() => {
-    const modalElement = document.getElementById("add_geo_config");
-    const handleHidden = () => {
-      resetForm();
-    };
-
-    if (modalElement) {
-      modalElement.addEventListener("hidden.bs.modal", handleHidden);
-    }
-
-    return () => {
-      if (modalElement) {
-        modalElement.removeEventListener("hidden.bs.modal", handleHidden);
-      }
-    };
-  }, []);
-
   const resetForm = () => {
-    setFormData({
-      name: "",
-      latitude: "",
-      longitude: "",
-      radius_km: "",
-      employees_selection: [],
-    });
+    setFormData(initialFormState);
     setErrors({});
     setIsSubmitted(false);
+    setIsSubmitting(false);
   };
 
   const getInputClass = (fieldName: string) => {
@@ -156,16 +152,9 @@ const AddEditGeoModal: React.FC<Props> = ({ data, onSuccess, onClose }) => {
         toast.success("Geo Configuration Created Successfully");
       }
 
-      // Close Modal Logic
-      const modalElement = document.getElementById("add_geo_config");
-      const closeBtn = modalElement?.querySelector(
-        '[data-bs-dismiss="modal"]',
-      ) as HTMLElement;
-      if (closeBtn) closeBtn.click();
-
       onSuccess();
-      if (onClose) onClose();
-      // resetForm(); // Handled by hidden.bs.modal event now
+      // Close button click triggers 'hidden.bs.modal' which calls onClose()
+      document.getElementById("close-btn-geo")?.click();
     } catch (error) {
       console.error("Error saving geo config:", error);
       toast.error("Failed to save configuration");
@@ -194,6 +183,7 @@ const AddEditGeoModal: React.FC<Props> = ({ data, onSuccess, onClose }) => {
         id="add_geo_config"
         tabIndex={-1}
         aria-hidden="true"
+        data-bs-backdrop="static" // Prevent accidental closing
       >
         <div className="modal-dialog modal-dialog-centered modal-lg">
           <div className="modal-content border-0 shadow-lg">
@@ -206,6 +196,7 @@ const AddEditGeoModal: React.FC<Props> = ({ data, onSuccess, onClose }) => {
                 type="button"
                 className="btn-close"
                 data-bs-dismiss="modal"
+                id="close-btn-geo"
                 onClick={resetForm}
               ></button>
             </div>
@@ -307,11 +298,11 @@ const AddEditGeoModal: React.FC<Props> = ({ data, onSuccess, onClose }) => {
                 <div className="modal-footer border-0 px-0 mt-4 pb-0">
                   <button
                     type="button"
-                    className="btn btn-light px-4 me-2"
+                    className="btn btn-outline-secondary px-4 me-2"
                     data-bs-dismiss="modal"
                     onClick={resetForm}
                   >
-                    Cancel
+                    Discard
                   </button>
                   <button
                     type="submit"

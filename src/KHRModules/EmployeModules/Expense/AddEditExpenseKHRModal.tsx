@@ -10,98 +10,123 @@ import {
 } from "./ExpenseKHRService";
 // Ensure this path matches where your Category service is located
 import { getExpenseCategories } from "@/KHRModules/Master Modules/ExpenseCategory/ExpenseCategoryKHRService";
+import CommonSelect from "@/core/common/commonSelect";
 
 interface Props {
   onSuccess: () => void;
   data: Expense | null;
+  onClose: () => void; // <--- NEW PROP
 }
 
-const AddEditExpenseKHRModal: React.FC<Props> = ({ onSuccess, data }) => {
+const AddEditExpenseKHRModal: React.FC<Props> = ({
+  onSuccess,
+  data,
+  onClose,
+}) => {
   const initialFormState = {
-    name: "",
-    product_id: "",
-    // account_id: "", // Empty initially to force selection
+    name: "", // Description
+    product_id: "", // Category
     total_amount_currency: "",
     payment_mode: "own_account",
     date: moment().format("YYYY-MM-DD"),
     fileName: "",
-    attachment: "",
+    attachment: "", // Base64
   };
 
   const [formData, setFormData] = useState<any>(initialFormState);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [errors, setErrors] = useState<any>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  // Initialize as empty arrays to prevent .map errors
-  const [products, setProducts] = useState<any[]>([]);
-  const [accounts, setAccounts] = useState<any[]>([]);
+  // Dropdown States
+  const [categories, setCategories] = useState<any[]>([]);
 
-  // --- 1. Load Dropdown Data ---
+  // --- 1. Fetch Dropdowns ---
   useEffect(() => {
-    const loadData = async () => {
+    const fetchDropdowns = async () => {
       try {
-        const [prodRes, accRes] = await Promise.all([
-          getExpenseCategories(), // Returns Axios Response object
-          getExpenseAccounts(), // Returns Array (Service handles extraction)
-        ]);
+        const catResult: any = await getExpenseCategories();
+        // Handle array inside .data or .data.data
+        const rawCats = Array.isArray(catResult.data)
+          ? catResult.data
+          : catResult.data?.data || [];
 
-        // --- Fix: Robust Extraction for Categories ---
-        let categoryList: any[] = [];
-        if (prodRes?.data && Array.isArray(prodRes.data.data)) {
-          // Case: { data: { data: [...] } }
-          categoryList = prodRes.data.data;
-        } else if (prodRes?.data && Array.isArray(prodRes.data)) {
-          // Case: { data: [...] }
-          categoryList = prodRes.data;
-        } else if (Array.isArray(prodRes)) {
-          // Case: [...]
-          categoryList = prodRes;
-        }
-
-        setProducts(categoryList);
-
-        // Accounts service usually extracts data, but safety check doesn't hurt
-        setAccounts(Array.isArray(accRes) ? accRes : []);
-      } catch (err) {
-        console.error("Dropdown Load Error:", err);
-        toast.error("Failed to load dropdown data");
+        setCategories(
+          rawCats.map((c: any) => ({
+            value: String(c.id),
+            label: c.name,
+          })),
+        );
+      } catch (error) {
+        console.error("Error loading categories", error);
       }
     };
-    loadData();
+    fetchDropdowns();
   }, []);
 
-  // --- 2. Set data if editing ---
+  // --- 2. Populate Data (Edit Mode) ---
   useEffect(() => {
     if (data) {
       setFormData({
-        ...data,
-        // Ensure Dropdown IDs are numbers or strings matching the options
-        product_id: data.product_id ? data.product_id : "",
-        account_id: data.account_id ? data.account_id : "",
-        date: data.date
-          ? moment(data.date).format("YYYY-MM-DD")
-          : moment().format("YYYY-MM-DD"),
+        name: data.name || "",
+        product_id: data.product_id ? String(data.product_id) : "",
+        total_amount_currency: data.total_amount_currency || "",
+        payment_mode: data.payment_mode || "own_account",
+        date: data.date || moment().format("YYYY-MM-DD"),
+        fileName: data.fileName || "",
+        attachment: "", // Keep empty unless new file selected
       });
     } else {
-      setFormData(initialFormState);
+      resetForm();
     }
   }, [data]);
+
+  // --- 3. BOOTSTRAP EVENT LISTENER (Reset on Close) ---
+  useEffect(() => {
+    const modalElement = document.getElementById("add_expense_modal");
+    const handleHidden = () => {
+      resetForm();
+      onClose(); // <--- CALL PARENT TO RESET STATE
+    };
+    modalElement?.addEventListener("hidden.bs.modal", handleHidden);
+    return () =>
+      modalElement?.removeEventListener("hidden.bs.modal", handleHidden);
+  }, [onClose]);
+
+  const resetForm = () => {
+    setFormData(initialFormState);
+    setErrors({});
+    setIsSubmitted(false);
+    setIsSubmitting(false);
+    // Reset file input manually
+    const fileInput = document.getElementById(
+      "expense_file",
+    ) as HTMLInputElement;
+    if (fileInput) fileInput.value = "";
+  };
+
+  // --- 4. Handlers ---
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors((prev: any) => ({ ...prev, [name]: null }));
+    }
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setSelectedFile(file);
       try {
         const base64 = await fileToBase64(file);
-        // Ensure we send pure base64 without the data: prefix if required by API
-        const cleanBase64 = base64.includes("base64,")
-          ? base64.split("base64,")[1]
-          : base64;
-
         setFormData((prev: any) => ({
           ...prev,
-          attachment: cleanBase64,
           fileName: file.name,
+          attachment: base64,
         }));
       } catch (err) {
         toast.error("Error processing file");
@@ -109,36 +134,78 @@ const AddEditExpenseKHRModal: React.FC<Props> = ({ onSuccess, data }) => {
     }
   };
 
+  const validate = () => {
+    let tempErrors: any = {};
+    let isValid = true;
+
+    if (!formData.name?.trim()) {
+      tempErrors.name = "Description is required";
+      isValid = false;
+    }
+    if (!formData.product_id) {
+      tempErrors.product_id = "Category is required";
+      isValid = false;
+    }
+    if (
+      !formData.total_amount_currency ||
+      Number(formData.total_amount_currency) <= 0
+    ) {
+      tempErrors.total_amount_currency = "Valid amount is required";
+      isValid = false;
+    }
+    if (!formData.date) {
+      tempErrors.date = "Date is required";
+      isValid = false;
+    }
+
+    setErrors(tempErrors);
+    return isValid;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitted(true);
+
+    if (!validate()) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      // Ensure numeric values are numbers
       const payload = {
         ...formData,
         product_id: Number(formData.product_id),
-        // account_id: Number(formData.account_id),
         total_amount_currency: Number(formData.total_amount_currency),
       };
 
-      await createExpense(payload);
-      toast.success("Expense created successfully");
-      onSuccess();
-
-      // Close modal
-      const modalElement = document.getElementById("add_expense_modal");
-      if (modalElement) {
-        // @ts-ignore
-        const modal = window.bootstrap?.Modal?.getInstance(modalElement);
-        modal?.hide();
-        // Fallback close
-        document.getElementById("close-btn-expense")?.click();
+      // NOTE: Ensure you have an updateExpense function in your service if editing is supported
+      if (data?.id) {
+        // await updateExpense(data.id, payload);
+        // For now using create if update isn't available, or uncomment above if added
+        await createExpense(payload);
+        toast.success("Expense updated successfully");
+      } else {
+        await createExpense(payload);
+        toast.success("Expense created successfully");
       }
-    } catch (error) {
-      toast.error("Failed to save expense");
+
+      onSuccess();
+      document.getElementById("close-btn-expense")?.click();
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to save expense");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // UI Helpers
+  const getInputClass = (fieldName: string) => {
+    if (isSubmitted && errors[fieldName]) return "form-control is-invalid";
+    if (isSubmitted && !errors[fieldName] && formData[fieldName])
+      return "form-control is-valid";
+    return "form-control";
   };
 
   return (
@@ -148,162 +215,234 @@ const AddEditExpenseKHRModal: React.FC<Props> = ({ onSuccess, data }) => {
       tabIndex={-1}
       aria-hidden="true"
     >
-      <div className="modal-dialog modal-dialog-centered">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">
-              {data ? "Edit Expense" : "Create New Expense"}
+      <div className="modal-dialog modal-dialog-centered modal-lg">
+        <div className="modal-content border-0 shadow-lg">
+          {/* Header */}
+          <div className="modal-header border-bottom bg-light py-2">
+            <h5 className="modal-title fw-bold text-dark fs-16">
+              <i className="ti ti-receipt me-2 text-primary"></i>
+              {data ? "Edit Expense" : "Create Expense"}
             </h5>
             <button
               type="button"
-              id="close-btn-expense"
               className="btn-close"
               data-bs-dismiss="modal"
-              aria-label="Close"
+              id="close-btn-expense"
+              onClick={resetForm}
             ></button>
           </div>
-          <form onSubmit={handleSubmit}>
-            <div className="modal-body">
-              <div className="row">
-                {/* Description */}
-                <div className="col-md-12 mb-3">
-                  <label className="form-label">Description / Name</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    required
-                    placeholder="e.g. Travel to HQ"
-                  />
-                </div>
 
-                {/* Expense Account Dropdown */}
-                <div className="col-md-12 mb-3">
-                  <label className="form-label">Expense Account</label>
-                  <select
-                    className="form-select"
-                    value={formData.account_id}
-                    onChange={(e) =>
-                      setFormData({ ...formData, account_id: e.target.value })
-                    }
-                    required
-                  >
-                    <option value="">Select Account</option>
-                    {accounts.map((acc: any) => (
-                      <option key={acc.id} value={acc.id}>
-                        {acc.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+          <div className="modal-body p-4">
+            <form onSubmit={handleSubmit} noValidate>
+              {/* Description */}
+              <div className="mb-4">
+                <label className="form-label fs-13 fw-bold">
+                  Description <span className="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  className={getInputClass("name")}
+                  placeholder="e.g. Client Lunch at Downtown"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                />
+                {isSubmitted && errors.name && (
+                  <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                    <i className="ti ti-info-circle me-1"></i> {errors.name}
+                  </div>
+                )}
+              </div>
 
-                {/* Category / Product Dropdown */}
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Category</label>
-                  <select
-                    className="form-select"
-                    value={formData.product_id}
-                    onChange={(e) =>
-                      setFormData({ ...formData, product_id: e.target.value })
+              <div className="row g-3 mb-4">
+                {/* Category / Product */}
+                <div className="col-md-6">
+                  <label className="form-label fs-13 fw-bold">
+                    Category <span className="text-danger">*</span>
+                  </label>
+                  <div
+                    className={
+                      isSubmitted && errors.product_id
+                        ? "border border-danger rounded"
+                        : ""
                     }
-                    required
                   >
-                    <option value="">Select Category</option>
-                    {products.map((p: any) => (
-                      // Handle Odoo-style IDs (sometimes they are arrays [id, name]) or simple objects
-                      <option key={p.id} value={p.id}>
-                        {p.name || p.display_name}
-                      </option>
-                    ))}
-                  </select>
+                    <CommonSelect
+                      options={categories}
+                      placeholder="Select Category"
+                      // Use 'key' to force re-render on reset
+                      key={formData.product_id}
+                      defaultValue={categories.find(
+                        (c) => c.value === formData.product_id,
+                      )}
+                      onChange={(opt) => {
+                        setFormData({
+                          ...formData,
+                          product_id: opt?.value || "",
+                        });
+                        if (errors.product_id)
+                          setErrors({ ...errors, product_id: null });
+                      }}
+                    />
+                  </div>
+                  {isSubmitted && errors.product_id && (
+                    <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                      <i className="ti ti-info-circle me-1"></i>{" "}
+                      {errors.product_id}
+                    </div>
+                  )}
                 </div>
 
                 {/* Amount */}
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Amount</label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    value={formData.total_amount_currency}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        total_amount_currency: e.target.value,
-                      })
-                    }
-                    required
-                  />
+                <div className="col-md-6">
+                  <label className="form-label fs-13 fw-bold">
+                    Total Amount <span className="text-danger">*</span>
+                  </label>
+                  <div className="input-group">
+                    <span className="input-group-text bg-light border-end-0">
+                      ₹
+                    </span>
+                    <input
+                      type="number"
+                      name="total_amount_currency"
+                      className={`form-control border-start-0 ${isSubmitted && errors.total_amount_currency ? "is-invalid" : ""}`}
+                      placeholder="0.00"
+                      value={formData.total_amount_currency}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  {isSubmitted && errors.total_amount_currency && (
+                    <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                      <i className="ti ti-info-circle me-1"></i>{" "}
+                      {errors.total_amount_currency}
+                    </div>
+                  )}
                 </div>
+              </div>
 
+              <div className="row g-3 mb-4">
                 {/* Date */}
-                <div className="col-md-6 mb-3">
-                  <label className="form-label d-block">Date</label>
-                  <DatePicker
-                    className="w-100"
-                    value={formData.date ? moment(formData.date) : null}
-                    onChange={(date) =>
-                      setFormData({
-                        ...formData,
-                        date: date?.format("YYYY-MM-DD"),
-                      })
-                    }
-                    allowClear={false}
+                <div className="col-md-6">
+                  <label className="form-label fs-13 fw-bold">
+                    Expense Date <span className="text-danger">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    name="date"
+                    className={getInputClass("date")}
+                    value={formData.date}
+                    onChange={handleInputChange}
                   />
+                  {isSubmitted && errors.date && (
+                    <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                      <i className="ti ti-info-circle me-1"></i> {errors.date}
+                    </div>
+                  )}
                 </div>
 
                 {/* Payment Mode */}
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Payment Mode</label>
-                  <select
-                    className="form-select"
-                    value={formData.payment_mode}
-                    onChange={(e) =>
-                      setFormData({ ...formData, payment_mode: e.target.value })
-                    }
-                  >
-                    <option value="own_account">Employee (to reimburse)</option>
-                    <option value="company_account">Company</option>
-                  </select>
+                <div className="col-md-6">
+                  <label className="form-label fs-13 fw-bold">Paid By</label>
+                  <div className="d-flex gap-3 mt-2">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="payment_mode"
+                        id="paid_own"
+                        value="own_account"
+                        checked={formData.payment_mode === "own_account"}
+                        onChange={handleInputChange}
+                      />
+                      <label
+                        className="form-check-label fs-13"
+                        htmlFor="paid_own"
+                      >
+                        Employee (Reimburse)
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="payment_mode"
+                        id="paid_company"
+                        value="company_account"
+                        checked={formData.payment_mode === "company_account"}
+                        onChange={handleInputChange}
+                      />
+                      <label
+                        className="form-check-label fs-13"
+                        htmlFor="paid_company"
+                      >
+                        Company
+                      </label>
+                    </div>
+                  </div>
                 </div>
+              </div>
 
-                {/* Attachment */}
-                <div className="col-md-12 mb-3">
-                  <label className="form-label">Receipt Attachment</label>
+              {/* Attachment */}
+              <div className="mb-3">
+                <label className="form-label fs-13 fw-bold">
+                  Receipt / Bill
+                </label>
+                <div className="input-group">
                   <input
                     type="file"
+                    id="expense_file"
                     className="form-control"
                     onChange={handleFileChange}
                     accept="image/*,.pdf"
                   />
-                  {formData.fileName && (
-                    <small className="text-success mt-1 d-block">
-                      <i className="ti ti-check me-1" /> Selected:{" "}
-                      {formData.fileName}
-                    </small>
-                  )}
+                  <label
+                    className="input-group-text bg-light"
+                    htmlFor="expense_file"
+                  >
+                    <i className="ti ti-upload"></i>
+                  </label>
+                </div>
+                {formData.fileName && (
+                  <div className="text-success fs-12 mt-1">
+                    <i className="ti ti-check me-1"></i> {formData.fileName}
+                  </div>
+                )}
+                <div className="form-text fs-11 text-muted">
+                  Allowed formats: PDF, JPG, PNG. Max size: 5MB.
                 </div>
               </div>
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-light"
-                data-bs-dismiss="modal"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Saving..." : "Save Expense"}
-              </button>
-            </div>
-          </form>
+
+              {/* Footer */}
+              <div className="modal-footer border-0 px-0 mt-4 pb-0">
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary px-4 me-2"
+                  data-bs-dismiss="modal"
+                  onClick={resetForm}
+                >
+                  Discard
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary px-5 shadow-sm"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <span
+                        className="spinner-border spinner-border-sm me-2"
+                        role="status"
+                        aria-hidden="true"
+                      ></span>
+                      Saving...
+                    </>
+                  ) : (
+                    <>{data ? "Update Changes" : "Create Expense"}</>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>

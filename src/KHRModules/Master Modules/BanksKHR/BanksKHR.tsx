@@ -154,7 +154,11 @@ const BanksKHR = () => {
         </div>
       </div>
 
-      <AddEditBanksKHRModal onSuccess={fetchData} data={selectedBank} />
+      <AddEditBanksKHRModal
+        onSuccess={fetchData}
+        data={selectedBank}
+        onClose={() => setSelectedBank(null)}
+      />
     </>
   );
 };

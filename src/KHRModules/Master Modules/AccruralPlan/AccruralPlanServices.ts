@@ -54,7 +54,7 @@ export const addAccruralPlan = async (formData: Omit<AccruralPlan, "id">) => {
 // PUT - Update Accrual Plan
 export const updateAccruralPlan = async (
   id: string,
-  formData: Partial<AccruralPlan>
+  formData: Partial<AccruralPlan>,
 ) => {
   const { user_id } = getAuthDetails();
 

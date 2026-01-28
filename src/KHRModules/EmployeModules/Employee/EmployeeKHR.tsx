@@ -114,6 +114,7 @@ const EmployeeKHR = () => {
             fetchEmployees();
             setEditData(null);
           }}
+          onClose={() => setEditData(null)}
         />
       </div>
     </div>
