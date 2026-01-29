@@ -1,14 +1,21 @@
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
-import { CheckinCheckout, getCurrentAttendanceStatus, TBSelector } from "@/Store/Reducers/TBSlice";
+import {
+  CheckinCheckout,
+  getCurrentAttendanceStatus,
+  TBSelector,
+} from "@/Store/Reducers/TBSlice";
 
 const StatusCheckInPopup: React.FC = () => {
   const dispatch = useDispatch();
   const ref = useRef<HTMLDivElement>(null);
 
-  const { CheckinCheckoutData, isCheckinCheckoutFetching } =
-    useSelector(TBSelector);
+  const {
+    CheckinCheckoutData,
+    isCheckinCheckoutFetching,
+    getCurrentAttendanceStatusData,
+  } = useSelector(TBSelector);
 
   const [open, setOpen] = useState(false);
   const [checkInTime, setCheckInTime] = useState<Date | null>(null);
@@ -18,8 +25,10 @@ const StatusCheckInPopup: React.FC = () => {
   /* =====================
      DERIVED STATE
   ===================== */
-  const isCheckedIn = CheckinCheckoutData?.status === "CheckedIn";
+  const isCheckedIn = getCurrentAttendanceStatusData?.status === "CheckedIn";
   console.log(CheckinCheckoutData, "lplp");
+
+  console.log(getCurrentAttendanceStatusData, "getCurrentAttendanceStatusData");
 
   /* =====================
      LOAD CURRENT STATUS ON MOUNT
@@ -53,7 +62,7 @@ const StatusCheckInPopup: React.FC = () => {
     if (status === "CheckedIn") {
       setCheckInTime(new Date(data?.check_in_time));
       setOpen(true);
-      
+
       // Only show toast if this was triggered by user action
       if (isUserAction) {
         toast.success("Checked in successfully");
@@ -65,7 +74,7 @@ const StatusCheckInPopup: React.FC = () => {
       setCheckInTime(null);
       setTotalMinutes(0);
       setOpen(true);
-      
+
       // Only show toast if this was triggered by user action
       if (isUserAction) {
         toast.success("Checked out successfully");
@@ -93,6 +102,25 @@ const StatusCheckInPopup: React.FC = () => {
      CHECK IN / CHECK OUT
   ===================== */
 
+  useEffect(() => {
+    if (
+      getCurrentAttendanceStatusData?.status === "CheckedIn" &&
+      getCurrentAttendanceStatusData?.action_time
+    ) {
+      const checkInDate = new Date(
+        getCurrentAttendanceStatusData.action_time.replace(" ", "T"),
+      );
+
+      setCheckInTime(checkInDate);
+      setOpen(true);
+    }
+
+    if (getCurrentAttendanceStatusData?.status === "CheckedOut") {
+      setCheckInTime(null);
+      setTotalMinutes(0);
+    }
+  }, [getCurrentAttendanceStatusData]);
+
   const handleAction = () => {
     if (!navigator.geolocation) {
       toast.error("Geolocation is not supported by your browser");
@@ -109,7 +137,7 @@ const StatusCheckInPopup: React.FC = () => {
           CheckinCheckout({
             Latitude: latitude,
             Longitude: longitude,
-          }) as any
+          }) as any,
         );
       },
       (error) => {
@@ -117,14 +145,14 @@ const StatusCheckInPopup: React.FC = () => {
         toast.error("Unable to get your location");
         setIsUserAction(false); // Reset flag on error
       },
-      { enableHighAccuracy: true }
+      { enableHighAccuracy: true },
     );
   };
 
   // const handleAction = () => {
   //   // Set flag to indicate this is a user-initiated action
   //   setIsUserAction(true);
-  //   
+  //
   //   dispatch(
   //     CheckinCheckout({
   //       Latitude: 23.0894095,

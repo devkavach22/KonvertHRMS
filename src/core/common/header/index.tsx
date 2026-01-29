@@ -407,7 +407,7 @@ const Header = React.memo(() => {
                     <i className="ti ti-maximize"></i>
                   </Link>
                 </div>
-                <div className="dropdown me-1">
+                {/* <div className="dropdown me-1">
                   <Link
                     to="#"
                     className="btn btn-menubar"
@@ -460,8 +460,8 @@ const Header = React.memo(() => {
                       </div>
                     </div>
                   </div>
-                </div>
-                <div className="me-1">
+                </div> */}
+                {/* <div className="me-1">
                   <Link
                     to={routes.chat}
                     className="btn btn-menubar position-relative"
@@ -471,13 +471,13 @@ const Header = React.memo(() => {
                       5
                     </span>
                   </Link>
-                </div>
-                <div className="me-1">
+                </div> */}
+                {/* <div className="me-1">
                   <Link to={routes.email} className="btn btn-menubar">
                     <i className="ti ti-mail"></i>
                   </Link>
-                </div>
-                <div className="me-1 notification_item">
+                </div> */}
+                {/* <div className="me-1 notification_item">
                   <Link
                     to="#"
                     className="btn btn-menubar position-relative me-1"
@@ -635,7 +635,7 @@ const Header = React.memo(() => {
                       </Link>
                     </div>
                   </div>
-                </div>
+                </div> */}
                 <div className="dropdown profile-dropdown">
                   <Link
                     to="#"
