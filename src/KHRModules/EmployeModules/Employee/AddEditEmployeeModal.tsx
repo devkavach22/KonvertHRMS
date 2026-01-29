@@ -6,7 +6,6 @@ import { toast } from "react-toastify";
 import {
   addEmployee,
   getAttendancePolicies,
-  getBanks,
   getBranches,
   getBusinessLocations,
   getBusinessTypes,
@@ -26,6 +25,7 @@ import {
 } from "./EmployeeServices";
 import CommonAlertCard from "@/CommonComponent/AlertKHR/CommonAlertCard";
 import { AddEditBankAccountModal } from "./AddEditBankAccountModal";
+import { getBanks } from "@/KHRModules/Master Modules/BanksKHR/BanksServices";
 
 interface Props {
   onSuccess: () => void;
@@ -67,6 +67,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
   const [workLocations, setWorkLocations] = useState<Option[]>([]);
   const [managers, setManagers] = useState<Option[]>([]);
   const [banks, setBanks] = useState<Option[]>([]);
+  const [bankMasterList, setBankMasterList] = useState<any[]>([]);
   const [branches, setBranches] = useState<Option[]>([]);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
   const [groupOptions, setGroupOptions] = useState<Option[]>([]);
@@ -148,7 +149,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     grade_band: "",
     joining_date: null,
     group_company_joining_date: null,
-    probation_period: 0,
+    probation_period: 6,
     probation_end_date: null,
     in_probation: false,
     confirmation_date: null,
@@ -161,7 +162,12 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     attendance_capture_mode: "",
 
     // 7. Banking Information
-    bank_account_id: "",
+    // bank_account_id: "",
+    bank_id: "", // New field from Bank Modal
+    account_number: "", // New field from Bank Modal
+    bank_iafc_code: "", // New field from Bank Modal
+    bank_swift_code: "", // New field from Bank Modal
+    currency: "INR", // New field from Bank Modal
 
     // 8. Notice Period
     type_of_sepration: "",
@@ -196,6 +202,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     pan_number: "",
     voter_id: "",
     passport_no: "",
+    probation_period: 6,
     driving_license: null,
     is_uan_number_applicable: false,
     uan_number: "",
@@ -226,7 +233,13 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     emergency_contact_relation: "",
     emergency_contact_mobile: "",
     emergency_contact_address: "",
-    bank_account_id: "",
+    // bank_account_id: "",
+    bank_id: "",
+    account_number: "",
+    bank_iafc_code: "",
+    bank_swift_code: "",
+    currency_id: "INR",
+
     department_id: "",
     job_id: "",
     employment_type: "permanent",
@@ -269,6 +282,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({
         return String(field);
       };
 
+      const bankDetails = data.bank_account_details || {};
+
       // 2. Set the Form Data
       setFormData({
         ...initialFormData, // Start with defaults
@@ -276,6 +291,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
 
         // --- Explicitly map Dropdown/Select fields ---
         // This ensures the Select component gets a clean ID string, not an array
+        work_phone: data.work_phone ? String(data.work_phone) : "",
         attendance_policy_id: getVal(data.attendance_policy_id),
         name_of_client: getVal(data.name_of_site || data.name_of_client), // Handle key mismatch
         resource_calendar_id: getVal(data.resource_calendar_id),
@@ -285,7 +301,14 @@ const AddEditEmployeeModal: React.FC<Props> = ({
         district_id: getVal(data.district_id),
         department_id: getVal(data.department_id),
         job_id: getVal(data.job_id),
-        bank_account_id: getVal(data.bank_account_id),
+        // bank_account_id: getVal(data.bank_account_id),
+
+        bank_id: getVal(bankDetails.bank_id),
+        account_number: bankDetails.account_number || "",
+        bank_iafc_code: bankDetails.bank_iafc_code || "",
+        bank_swift_code: bankDetails.bank_swift_code || "",
+        currency_id: bankDetails.currency_name || "INR",
+
         reporting_manager_id: getVal(data.reporting_manager_id),
         head_of_department_id: getVal(data.head_of_department_id),
         employment_type: data.employment_type
@@ -298,7 +321,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
 
         // --- Handle numeric fields ---
         pin_code: data.pin_code === 0 ? "" : data.pin_code,
-        probation_period: data.probation_period || 0,
+        probation_period: data.probation_period || 6,
         notice_period_days: data.notice_period_days || 0,
 
         // --- Handle Dates (Ensure false/null becomes null) ---
@@ -310,7 +333,6 @@ const AddEditEmployeeModal: React.FC<Props> = ({
         probation_end_date: data.probation_end_date || null,
         group_company_joining_date: data.group_company_joining_date || null,
         date_of_marriage: data.date_of_marriage || null,
-
         // --- Handle Files/Images ---
         // Keep them as null or existing strings; do not overwrite with File objects yet
         image_1920: data.image_1920 || null,
@@ -319,6 +341,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({
 
         latitude: data.latitude || "",
         longitude: data.longitude || "",
+
+        random_code_for_reg: data.random_code_for_reg || "", // Pre-fill from API
 
         // Ensure device fields are also mapped if they weren't already
         device_id: data.device_id || "",
@@ -488,6 +512,35 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     }
   }, [data]);
 
+  useEffect(() => {
+    const loadMasterBanks = async () => {
+      try {
+        // 1. Fetch the data
+        const bankDataRaw = await getBanks();
+
+        // 2. Cast to 'any' to bypass the "Property does not exist" type error
+        const bankResponse = bankDataRaw as any;
+
+        // 3. Extract the array using multiple fallback paths
+        const rawBanks =
+          bankResponse?.banks ||
+          bankResponse?.data ||
+          (Array.isArray(bankResponse) ? bankResponse : []);
+
+        // 4. Map to your dropdown format
+        setBankMasterList(
+          rawBanks.map((b: any) => ({
+            value: String(b.id),
+            label: b.name,
+            swift: b.swift_code || "",
+          })),
+        );
+      } catch (error) {
+        console.error("Error loading banks:", error);
+      }
+    };
+    loadMasterBanks();
+  }, []);
   useEffect(() => {
     const modalElement = document.getElementById("add_employee_modal");
     const handleModalHidden = () => {
@@ -720,21 +773,66 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     return isValid;
   };
 
+  // const validateBankingTab = () => {
+  //   let tempErrors: any = {};
+  //   let isValid = true;
+
+  //   // Mandatory check: Bank Account
+  //   if (!formData.bank_account_id) {
+  //     tempErrors.bank_account_id =
+  //       "Please select a bank account for payroll processing.";
+  //     isValid = false;
+  //   }
+
+  //   setErrors((prev: any) => ({ ...prev, ...tempErrors }));
+  //   return isValid;
+  // };
+
   const validateBankingTab = () => {
     let tempErrors: any = {};
     let isValid = true;
+    const accNumRegex = /^\d+$/; // Regex to allow only digits
+    const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 
-    // Mandatory check: Bank Account
-    if (!formData.bank_account_id) {
-      tempErrors.bank_account_id =
-        "Please select a bank account for payroll processing.";
+    if (!formData.bank_id) {
+      tempErrors.bank_id = "Bank selection is required.";
+      isValid = false;
+    }
+    // Account Number Validation
+    if (!formData.account_number?.toString().trim()) {
+      tempErrors.account_number = "Account number is required.";
+      isValid = false;
+    } else if (!accNumRegex.test(formData.account_number)) {
+      tempErrors.account_number =
+        "Invalid account number. Only digits are allowed.";
+      isValid = false;
+    } else if (formData.account_number.length < 9) {
+      // Only check for minimum length, as maxLength handles the top limit
+      tempErrors.account_number = "Account number must be at least 9 digits.";
+      isValid = false;
+    } else if (
+      formData.account_number.length < 9 ||
+      formData.account_number.length > 18
+    ) {
+      tempErrors.account_number =
+        "Account number should be between 9 and 18 digits.";
+      isValid = false;
+    }
+
+    if (!formData.bank_iafc_code?.trim()) {
+      tempErrors.bank_iafc_code = "IFSC Code is required.";
+      isValid = false;
+    } else if (formData.bank_iafc_code.length !== 11) {
+      tempErrors.bank_iafc_code = "IFSC Code must be exactly 11 characters.";
+      isValid = false;
+    } else if (!ifscRegex.test(formData.bank_iafc_code)) {
+      tempErrors.bank_iafc_code = "Invalid IFSC format (e.g., ABCD0123456).";
       isValid = false;
     }
 
     setErrors((prev: any) => ({ ...prev, ...tempErrors }));
     return isValid;
   };
-
   const validateDeviceTab = () => {
     let tempErrors: any = {};
     let isValid = true;
@@ -999,7 +1097,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
         const formattedBanks = bankList.map((b: any) => ({
           value: String(b.id),
           // FIX: Check 'b.bank_name' first, then fall back to array check
-          label: `${b.acc_number} - ${
+          label: `${b.account_number} - ${
             b.bank_name ||
             (Array.isArray(b.bank_id) ? b.bank_id[1] : "Unknown Bank")
           }`,
@@ -1013,6 +1111,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
 
     loadBankingData();
   }, []);
+
   useEffect(() => {
     const fetchEmploymentData = async () => {
       try {
@@ -1301,7 +1400,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
       "emergency_contact_mobile",
     ],
     employment: ["employee_password", "hold_remarks"],
-    banking: ["bank_account_id"],
+    banking: ["bank_id", "account_number", "bank_iafc_code"],
     notice: ["type_of_sepration", "resignation_date", "notice_period_days"],
     // header fields (name, father_name) are always visible, so no tab mapping needed for them
   };
@@ -1692,7 +1791,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
           ? dayjs(formData.birthday).format("YYYY-MM-DD")
           : null,
         blood_group: formData.blood_group,
-        work_phone: Number(formData.work_phone),
+        work_phone: formData.work_phone ? Number(formData.work_phone) : 0,
         private_email: formData.private_email,
         present_address: formData.present_address,
         permanent_address: formData.permanent_address,
@@ -1743,7 +1842,12 @@ const AddEditEmployeeModal: React.FC<Props> = ({
         status: formData.status,
         employee_password: formData.employee_password,
         hold_status: formData.hold_status,
-        bank_account_id: Number(formData.bank_account_id),
+        // bank_account_id: Number(formData.bank_account_id),
+        bank_id: Number(formData.bank_id),
+        account_number: formData.account_number,
+        bank_iafc_code: formData.bank_iafc_code,
+        bank_swift_code: formData.bank_swift_code,
+        currency_id: formData.currency_id,
         reporting_manager_id: formData.reporting_manager_id
           ? Number(formData.reporting_manager_id)
           : null,
@@ -3054,6 +3158,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                               <input
                                 type="file"
                                 className="form-control border-0 shadow-none"
+                                accept=".jpg,.jpeg,.png,.pdf"
                                 onChange={(e) =>
                                   setFormData({
                                     ...formData,
@@ -3063,7 +3168,13 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                 }
                               />
                             </div>
-
+                            <div className="mt-1 d-flex align-items-center text-info">
+                              <i className="ti ti-info-circle fs-14 me-1"></i>
+                              <span className="fs-11 fw-medium">
+                                Please upload the <strong>front page</strong>{" "}
+                                only (showing A/C holder name & details).
+                              </span>
+                            </div>
                             {/* Show Existing File Indicator */}
                             {typeof formData.upload_passbook === "string" &&
                               formData.upload_passbook.length > 0 && (
@@ -3554,7 +3665,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             />
                           </div>
 
-                          <div className="col-md-3">
+                          {/* <div className="col-md-3">
                             <label className="form-label fs-13">
                               Group Joining Date
                             </label>
@@ -3572,7 +3683,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                 })
                               }
                             />
-                          </div>
+                          </div> */}
 
                           <div className="col-md-3">
                             <label className="form-label fs-13">
@@ -3931,67 +4042,155 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                         </h6>
 
                         <div className="row g-3">
-                          <div className="col-md-12">
-                            <label className="form-label fs-13">
-                              Bank Account{" "}
-                              <span className="text-danger">*</span>
+                          {/* 1. Bank Name Dropdown */}
+                          <div className="col-md-6">
+                            <label className="form-label fs-13 fw-bold">
+                              Bank Name <span className="text-danger">*</span>
                             </label>
-
-                            {/* Validation Border Wrapper */}
                             <div
                               className={
-                                isSubmitted
-                                  ? errors.bank_account_id
-                                    ? "border border-danger rounded shadow-sm"
-                                    : formData.bank_account_id
-                                      ? "border border-success rounded shadow-sm"
-                                      : ""
+                                isSubmitted && errors.bank_id
+                                  ? "border border-danger rounded"
                                   : ""
                               }
                             >
                               <CommonSelect
-                                options={banks}
-                                placeholder="Select Bank Account"
-                                defaultValue={banks.find(
-                                  (opt) =>
-                                    opt.value ===
-                                    String(formData.bank_account_id),
+                                // Force re-render when the list is loaded
+                                key={`bank-master-${bankMasterList.length}-${formData.bank_id}`}
+                                options={bankMasterList}
+                                placeholder="Select Bank"
+                                // Use String() to ensure comparison works regardless of type (12 vs "12")
+                                defaultValue={bankMasterList.find(
+                                  (b) =>
+                                    String(b.value) ===
+                                    String(formData.bank_id),
                                 )}
-                                onChange={(option) => {
+                                onChange={(opt) => {
                                   setFormData({
                                     ...formData,
-                                    bank_account_id: option?.value || "",
+                                    bank_id: opt?.value || "",
+                                    bank_swift_code: opt?.swift || "",
                                   });
-                                  // FIX: Clear error immediately on selection
-                                  if (errors.bank_account_id) {
-                                    setErrors({
-                                      ...errors,
-                                      bank_account_id: "",
-                                    });
-                                  }
+                                  if (errors.bank_id)
+                                    setErrors({ ...errors, bank_id: "" });
                                 }}
                               />
                             </div>
-
-                            {/* Validation Error Message */}
-                            {isSubmitted && errors.bank_account_id && (
+                            {isSubmitted && errors.bank_id && (
                               <div className="text-danger fs-11 mt-1">
-                                {errors.bank_account_id}
+                                {errors.bank_id}
                               </div>
                             )}
+                          </div>
 
-                            {/* Helper Message for Missing Options */}
-                            <div className="mt-3 p-2 border border-dashed rounded bg-light d-flex align-items-start">
-                              <i className="ti ti-info-circle text-muted fs-16 me-2 mt-1"></i>
-                              <div className="fs-12 text-muted">
-                                <strong>Can't find the account?</strong>
-                                <br />
-                                Please contact the{" "}
-                                <strong>HR Department</strong> or{" "}
-                                <strong>Administration</strong> to add the bank
-                                details to the master list.
+                          {/* 2. Account Number */}
+                          <div className="col-md-6">
+                            <label className="form-label fs-13 fw-bold">
+                              Account Number{" "}
+                              <span className="text-danger">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              // HTML constraint to stop typing at 18 characters
+                              maxLength={18}
+                              className={`form-control ${
+                                isSubmitted && errors.account_number
+                                  ? "is-invalid"
+                                  : isSubmitted && formData.account_number
+                                    ? "is-valid"
+                                    : ""
+                              }`}
+                              value={formData.account_number}
+                              placeholder="Enter Account Number (Max 18 digits)"
+                              onChange={(e) => {
+                                // 1. Remove non-numeric characters
+                                // 2. Slice string to 18 characters as a failsafe
+                                const val = e.target.value
+                                  .replace(/\D/g, "")
+                                  .slice(0, 18);
+
+                                setFormData({
+                                  ...formData,
+                                  account_number: val,
+                                });
+
+                                // Clear error as user types
+                                if (errors.account_number) {
+                                  setErrors((prev: any) => ({
+                                    ...prev,
+                                    account_number: "",
+                                  }));
+                                }
+                              }}
+                            />
+                            {isSubmitted && errors.account_number && (
+                              <div className="invalid-feedback animate__animated animate__fadeIn">
+                                <i className="ti ti-info-circle me-1"></i>
+                                {errors.account_number}
                               </div>
-                            </div>
+                            )}
+                          </div>
+
+                          {/* 3. IFSC Code */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13 fw-bold">
+                              IFSC Code <span className="text-danger">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              className={`form-control ${isSubmitted && errors.bank_iafc_code ? "is-invalid" : ""}`}
+                              value={formData.bank_iafc_code}
+                              placeholder="e.g. SBIN0001234"
+                              maxLength={11}
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  bank_iafc_code: e.target.value.toUpperCase(),
+                                });
+                                if (errors.bank_iafc_code)
+                                  setErrors({ ...errors, bank_iafc_code: "" });
+                              }}
+                            />
+                            {isSubmitted && errors.bank_iafc_code && (
+                              <div className="invalid-feedback">
+                                {errors.bank_iafc_code}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* 4. SWIFT Code (Read Only) */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13 fw-bold text-muted">
+                              SWIFT Code
+                            </label>
+                            <input
+                              type="text"
+                              className="form-control bg-light"
+                              value={formData.bank_swift_code}
+                              readOnly
+                              placeholder="Auto-populated"
+                            />
+                          </div>
+
+                          {/* 5. Currency */}
+                          <div className="col-md-4">
+                            <label className="form-label fs-13 fw-bold">
+                              Currency
+                            </label>
+                            <select
+                              className="form-select"
+                              value={formData.currency_id}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  currency_id: e.target.value,
+                                })
+                              }
+                            >
+                              <option value="INR">INR</option>
+                              <option value="USD">USD</option>
+                              <option value="EUR">EUR</option>
+                            </select>
                           </div>
                         </div>
                       </div>
@@ -4122,20 +4321,20 @@ const AddEditEmployeeModal: React.FC<Props> = ({
 
                           {/* Random Registration Code */}
                           <div className="col-md-3">
-                            <label className="form-label fs-13">
+                            <label className="form-label fs-13 text-muted">
                               Reg. Code
                             </label>
                             <input
                               type="text"
-                              className="form-control bg-light"
+                              readOnly
+                              className="form-control bg-light border-dashed fw-bold text-primary"
                               value={formData.random_code_for_reg}
-                              placeholder="!gGzd!"
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  random_code_for_reg: e.target.value,
-                                })
-                              }
+                              placeholder="No Code Assigned" // onChange={(e) =>
+                              //   setFormData({
+                              //     ...formData,
+                              //     random_code_for_reg: e.target.value,
+                              //   })
+                              // }
                             />
                           </div>
                         </div>
