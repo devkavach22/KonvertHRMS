@@ -75,6 +75,7 @@ const EmployeeAttendanceKHR = () => {
     isApiAuth,
     isGetRegularizationStatus,
     getRegularizationStatusData,
+    getCurrentAttendanceStatusData,
   } = useSelector(TBSelector);
 
   const [selectedAttendancee, setSelectedAttendancee] = useState<any>(null);
@@ -110,6 +111,8 @@ const EmployeeAttendanceKHR = () => {
 
   if (!CheckinCheckoutData) return null;
 
+  console.log(CheckinCheckoutData, "CheckinCheckoutData");
+
   const isCheckedIn = CheckinCheckoutData.status === "CheckedIn";
   const datass = CheckinCheckoutData.data;
 
@@ -130,10 +133,10 @@ const EmployeeAttendanceKHR = () => {
   const formatDate = (dateStr: string) =>
     dateStr
       ? new Date(dateStr).toLocaleDateString([], {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
       : "";
 
   const handleAction = () => {
@@ -175,6 +178,11 @@ const EmployeeAttendanceKHR = () => {
     // Load current attendance status on page load
     dispatch(getCurrentAttendanceStatus() as any);
   }, [dispatch]);
+
+  console.log(
+    getCurrentAttendanceStatusData,
+    "getCurrentAttendanceStatusData",
+  );
   useEffect(() => {
     // dispatch(AdminWorkingHours());
   }, []);
@@ -192,14 +200,15 @@ const EmployeeAttendanceKHR = () => {
       const regularizationMap = new Map();
       if (getRegularizationStatusData?.data) {
         getRegularizationStatusData.data.forEach((reg: any) => {
-          const dateKey = reg.from_date?.split(' ')[0]; // Get date part only
+          const dateKey = reg.from_date?.split(" ")[0]; // Get date part only
           // regularizationMap.set(dateKey, {
           //   status: reg.state_select,
           //   hasRegularization: true,
           //   rejectedReason: reg.RejectedReason || null
           // });
           regularizationMap.set(dateKey, {
-            status: reg.state_select === "reject" ? "rejected" : reg.state_select,
+            status:
+              reg.state_select === "reject" ? "rejected" : reg.state_select,
             hasRegularization: true,
             rejectedReason: reg.RejectedReason || null,
           });
@@ -238,10 +247,13 @@ const EmployeeAttendanceKHR = () => {
       setData(mappedData);
       dispatch(updateState({ isEmployeeAttendanceApi: false }));
     }
-  }, [isEmployeeAttendanceApi, isEmployeeAttendanceApiFetching, getRegularizationStatusData]);
+  }, [
+    isEmployeeAttendanceApi,
+    isEmployeeAttendanceApiFetching,
+    getRegularizationStatusData,
+  ]);
 
   console.log(data, "mappedDatamappedData");
-
 
   useEffect(() => {
     if (!isEmployeeAttendanceApi || !EmployeeAttendanceApiData?.data) return;
@@ -385,10 +397,11 @@ const EmployeeAttendanceKHR = () => {
       dataIndex: "Status",
       render: (text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge ${text === "Present"
+          className={`badge ${
+            text === "Present"
               ? "badge-success-transparent"
               : "badge-danger-transparent"
-            } d-inline-flex align-items-center`}
+          } d-inline-flex align-items-center`}
         >
           <i className="ti ti-point-filled me-1" />
           {record.Status}
@@ -426,13 +439,14 @@ const EmployeeAttendanceKHR = () => {
       dataIndex: "ProductionHours",
       render: (_text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge d-inline-flex align-items-center badge-sm ${parseFloat(record.ProductionHours) < 8
+          className={`badge d-inline-flex align-items-center badge-sm ${
+            parseFloat(record.ProductionHours) < 8
               ? "badge-danger"
               : parseFloat(record.ProductionHours) >= 8 &&
-                parseFloat(record.ProductionHours) <= 9
+                  parseFloat(record.ProductionHours) <= 9
                 ? "badge-success"
                 : "badge-info"
-            }`}
+          }`}
         >
           <i className="ti ti-clock-hour-11 me-1"></i>
           {record.ProductionHours}
@@ -456,16 +470,20 @@ const EmployeeAttendanceKHR = () => {
           rejected: { class: "badge-danger", text: "Rejected" },
         };
 
-        const config = statusConfig[status as keyof typeof statusConfig] ||
-          { class: "badge-secondary", text: status || "Unknown" };
+        const config = statusConfig[status as keyof typeof statusConfig] || {
+          class: "badge-secondary",
+          text: status || "Unknown",
+        };
 
         return (
           <div>
-            <span className={`badge ${config.class} d-inline-flex align-items-center`}>
+            <span
+              className={`badge ${config.class} d-inline-flex align-items-center`}
+            >
               <i className="ti ti-point-filled me-1" />
               {config.text}
             </span>
-            {status === 'rejected' && record.rejectedReason && (
+            {status === "rejected" && record.rejectedReason && (
               <div className="mt-1">
                 <small className="text-danger">
                   <strong>Reason:</strong> {record.rejectedReason}
@@ -481,7 +499,7 @@ const EmployeeAttendanceKHR = () => {
       title: "Action",
       dataIndex: "actions",
       render: (_: any, record: AttendanceAdminData) => {
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split("T")[0];
         const isToday = record.StartDate === today;
         const hasRegularization = record.hasRegularization;
 
@@ -491,7 +509,11 @@ const EmployeeAttendanceKHR = () => {
             <button
               className="btn btn-sm btn-outline-secondary"
               disabled
-              title={isToday ? "Cannot raise query for today's attendance" : "Query already raised"}
+              title={
+                isToday
+                  ? "Cannot raise query for today's attendance"
+                  : "Query already raised"
+              }
             >
               {hasRegularization ? "Query Raised" : "Not Available"}
             </button>
@@ -512,9 +534,6 @@ const EmployeeAttendanceKHR = () => {
       },
     },
   ];
-
-
-
 
   return (
     <>
@@ -646,16 +665,20 @@ const EmployeeAttendanceKHR = () => {
 
                     <h6 className="fw-medium d-flex align-items-center justify-content-center mb-3">
                       <i className="ti ti-fingerprint text-primary me-1" />
-                      {datass?.check_out_time
-                        ? `Checked Out at ${formatTime(datass.check_out_time)}`
-                        : datass?.check_in_time
-                          ? `Punch In at ${formatTime(datass.check_in_time)}`
+                      {getCurrentAttendanceStatusData.status === "CheckedOut" &&
+                      getCurrentAttendanceStatusData.action_time
+                        ? `Checked Out at ${formatTime(getCurrentAttendanceStatusData.action_time)}`
+                        : getCurrentAttendanceStatusData.status ===
+                              "CheckedIn" &&
+                            getCurrentAttendanceStatusData.action_time
+                          ? `Checked In at ${formatTime(getCurrentAttendanceStatusData.action_time)}`
                           : "Not Checked In Yet"}
                     </h6>
 
                     <button
-                      className={`btn w-100 ${isCheckedIn ? "btn-warning" : "btn-success"
-                        }`}
+                      className={`btn w-100 ${
+                        isCheckedIn ? "btn-warning" : "btn-success"
+                      }`}
                       onClick={handleAction}
                       disabled={isCheckinCheckoutFetching}
                     >
