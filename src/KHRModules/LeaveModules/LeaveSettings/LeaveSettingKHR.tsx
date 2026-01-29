@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { PickList } from 'primereact/picklist';
-import CollapseHeader from '@/core/common/collapse-header/collapse-header';
-import CommonHeader from '@/CommonComponent/HeaderKHR/HeaderKHR';
-import { all_routes } from '@/router/all_routes';
-import CommonSelect from '@/core/common/commonSelect';
-import ImageWithBasePath from '@/core/common/imageWithBasePath';
-import { SelectWithImage } from '@/core/common/selectWithImage';
-import AddEditAttendancePolicyModal from './AddEditLeaveSettingModal';
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { PickList } from "primereact/picklist";
+import CollapseHeader from "@/core/common/collapse-header/collapse-header";
+import CommonHeader from "@/CommonComponent/HeaderKHR/HeaderKHR";
+import { all_routes } from "@/router/all_routes";
+import CommonSelect from "@/core/common/commonSelect";
+import ImageWithBasePath from "@/core/common/imageWithBasePath";
+import { SelectWithImage } from "@/core/common/selectWithImage";
+import AddEditAttendancePolicyModal from "./AddEditLeaveSettingModal";
 import {
   getAttendancePolicies,
   deleteAttendancePolicy,
@@ -16,12 +16,14 @@ import {
 } from "./LeaveSettingServices";
 
 const LeaveSettingKHR = () => {
-    const routes = all_routes;
+  const routes = all_routes;
   const [data, setData] = useState<AttendancePolicyType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedPolicy, setSelectedPolicy] =
     useState<AttendancePolicyType | null>(null);
-  const [employeesOptions, setEmployeesOptions] = useState<Array<{id:any;name:string}>>([]);
+  const [employeesOptions, setEmployeesOptions] = useState<
+    Array<{ id: any; name: string }>
+  >([]);
 
   const leavetype = [
     { value: "Select", label: "Select" },
@@ -40,7 +42,7 @@ const LeaveSettingKHR = () => {
     { key: "2", Name: "Bernardo Galaviz" },
     { key: "3", Name: "John Doe" },
     { key: "4", Name: "John Smith" },
-    { key: "5", Name: 'Mike Litorus' },
+    { key: "5", Name: "Mike Litorus" },
   ]);
   const [target, setTarget] = useState<any>([]);
 
@@ -49,58 +51,74 @@ const LeaveSettingKHR = () => {
     setTarget(event.target);
   };
   const itemTemplate = (item: any) => {
-    return (
-      <span className="font-bold">{item.Name}</span>
-    );
+    return <span className="font-bold">{item.Name}</span>;
   };
 
-    const fetchData = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
       const result = await getAttendancePolicies();
       const safeResult = Array.isArray(result) ? result : [];
 
       // Build a lookup map of employees by id if we fetched options earlier
-      const empMap: Record<string,string> = {};
-      employeesOptions.forEach((e) => { empMap[String(e.id)] = e.name; });
-
-      const mappedData: AttendancePolicyType[] = safeResult.map((item: APIAttendancePolicy) => {
-        // normalize employees selection to array of objects with id/name
-        let employees_selection: any[] = [];
-        const raw = (item as any).employees_selection ?? (item as any).employees ?? [];
-        if (Array.isArray(raw)) {
-          employees_selection = raw.map((v: any) => {
-            if (v && typeof v === "object") return v;
-            const id = v;
-            return { id, name: empMap[String(id)] ?? String(id) };
-          });
-        } else if (typeof raw === "string") {
-          try {
-            const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed)) {
-              employees_selection = parsed.map((v: any) => (v && typeof v === "object") ? v : { id: v, name: empMap[String(v)] ?? String(v) });
-            }
-          } catch (e) {
-            employees_selection = [];
-          }
-        }
-
-        return {
-          id: String(item.id),
-          key: String(item.id),
-          employees_selection,
-          type: item.type ?? "",
-          from_date: (item as any).from_date ?? (item as any).start_date ?? null,
-          to_date: (item as any).to_date ?? (item as any).end_date ?? null,
-          no_of_days: (item as any).no_of_days ?? null,
-          remaining_days: (item as any).remaining_days ?? null,
-          reason: (item as any).reason ?? "",
-          // include approved_by and status fields so columns map correctly
-          approved_by: (item as any).approved_by ?? (item as any).approver ?? (item as any).approved_by_name ?? null,
-          status: (item as any).status ?? (item as any).approval_status ?? (item as any).state ?? null,
-          created_date: item.create_date ?? "-",
-        } as any;
+      const empMap: Record<string, string> = {};
+      employeesOptions.forEach((e) => {
+        empMap[String(e.id)] = e.name;
       });
+
+      const mappedData: AttendancePolicyType[] = safeResult.map(
+        (item: APIAttendancePolicy) => {
+          // normalize employees selection to array of objects with id/name
+          let employees_selection: any[] = [];
+          const raw =
+            (item as any).employees_selection ?? (item as any).employees ?? [];
+          if (Array.isArray(raw)) {
+            employees_selection = raw.map((v: any) => {
+              if (v && typeof v === "object") return v;
+              const id = v;
+              return { id, name: empMap[String(id)] ?? String(id) };
+            });
+          } else if (typeof raw === "string") {
+            try {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) {
+                employees_selection = parsed.map((v: any) =>
+                  v && typeof v === "object"
+                    ? v
+                    : { id: v, name: empMap[String(v)] ?? String(v) },
+                );
+              }
+            } catch (e) {
+              employees_selection = [];
+            }
+          }
+
+          return {
+            id: String(item.id),
+            key: String(item.id),
+            employees_selection,
+            type: item.type ?? "",
+            from_date:
+              (item as any).from_date ?? (item as any).start_date ?? null,
+            to_date: (item as any).to_date ?? (item as any).end_date ?? null,
+            no_of_days: (item as any).no_of_days ?? null,
+            remaining_days: (item as any).remaining_days ?? null,
+            reason: (item as any).reason ?? "",
+            // include approved_by and status fields so columns map correctly
+            approved_by:
+              (item as any).approved_by ??
+              (item as any).approver ??
+              (item as any).approved_by_name ??
+              null,
+            status:
+              (item as any).status ??
+              (item as any).approval_status ??
+              (item as any).state ??
+              null,
+            created_date: item.create_date ?? "-",
+          } as any;
+        },
+      );
 
       setData(mappedData);
     } catch (error) {
@@ -109,7 +127,7 @@ const LeaveSettingKHR = () => {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -120,14 +138,14 @@ const LeaveSettingKHR = () => {
       <div className="page-wrapper">
         <div className="content">
           {/* Breadcrumb */}
-           <CommonHeader
-                title="Leave Settings"
-                parentMenu="HR"
-                activeMenu="Leave Settings"
-                routes={routes}
-                buttonText="Edit leave settings"
-                modalTarget="#add_attendance_policy"
-              />
+          <CommonHeader
+            title="Leave Settings"
+            parentMenu="HR"
+            activeMenu="Leave Settings"
+            routes={routes}
+            buttonText="Edit leave settings"
+            modalTarget="#add_attendance_policy"
+          />
 
           {/* /Breadcrumb */}
           {/* Leaves Info */}
@@ -152,14 +170,16 @@ const LeaveSettingKHR = () => {
                     <Link
                       to="#"
                       className="text-decoration-underline me-2"
-                      data-bs-toggle="modal" data-inert={true}
+                      data-bs-toggle="modal"
+                      data-inert={true}
                       data-bs-target="#add_custom_policy"
                     >
                       Custom Policy
                     </Link>
                     <Link
                       to="#"
-                      data-bs-toggle="modal" data-inert={true}
+                      data-bs-toggle="modal"
+                      data-inert={true}
                       data-bs-target="#annual_leave_settings"
                     >
                       {" "}
@@ -188,14 +208,16 @@ const LeaveSettingKHR = () => {
                     <Link
                       to="#"
                       className="text-decoration-underline me-2"
-                      data-bs-toggle="modal" data-inert={true}
+                      data-bs-toggle="modal"
+                      data-inert={true}
                       data-bs-target="#add_custom_policy"
                     >
                       Custom Policy
                     </Link>
                     <Link
                       to="#"
-                      data-bs-toggle="modal" data-inert={true}
+                      data-bs-toggle="modal"
+                      data-inert={true}
                       data-bs-target="#sick_leave_settings"
                     >
                       {" "}
@@ -219,20 +241,24 @@ const LeaveSettingKHR = () => {
                         />
                       </label>
                     </div>
-                    <h6 className="d-flex align-items-center">Hospitalisation</h6>
+                    <h6 className="d-flex align-items-center">
+                      Hospitalisation
+                    </h6>
                   </div>
                   <div className="d-flex align-items-center">
                     <Link
                       to="#"
                       className="text-decoration-underline me-2"
-                      data-bs-toggle="modal" data-inert={true}
+                      data-bs-toggle="modal"
+                      data-inert={true}
                       data-bs-target="#add_custom_policy"
                     >
                       Custom Policy
                     </Link>
                     <Link
                       to="#"
-                      data-bs-toggle="modal" data-inert={true}
+                      data-bs-toggle="modal"
+                      data-inert={true}
                       data-bs-target="#hospitalisation_settings"
                     >
                       <i className="ti ti-settings" />{" "}
@@ -261,14 +287,16 @@ const LeaveSettingKHR = () => {
                     <Link
                       to="#"
                       className="text-decoration-underline me-2"
-                      data-bs-toggle="modal" data-inert={true}
+                      data-bs-toggle="modal"
+                      data-inert={true}
                       data-bs-target="#add_custom_policy"
                     >
                       Custom Policy
                     </Link>
                     <Link
                       to="#"
-                      data-bs-toggle="modal" data-inert={true}
+                      data-bs-toggle="modal"
+                      data-inert={true}
                       data-bs-target="#maternity_settings"
                     >
                       {" "}
@@ -297,14 +325,16 @@ const LeaveSettingKHR = () => {
                     <Link
                       to="#"
                       className="text-decoration-underline me-2"
-                      data-bs-toggle="modal" data-inert={true}
+                      data-bs-toggle="modal"
+                      data-inert={true}
                       data-bs-target="#add_custom_policy"
                     >
                       Custom Policy
                     </Link>
                     <Link
                       to="#"
-                      data-bs-toggle="modal" data-inert={true}
+                      data-bs-toggle="modal"
+                      data-inert={true}
                       data-bs-target="#paternity_settings"
                     >
                       {" "}
@@ -333,14 +363,16 @@ const LeaveSettingKHR = () => {
                     <Link
                       to="#"
                       className="text-decoration-underline me-2"
-                      data-bs-toggle="modal" data-inert={true}
+                      data-bs-toggle="modal"
+                      data-inert={true}
                       data-bs-target="#add_custom_policy"
                     >
                       Custom Policy
                     </Link>
                     <Link
                       to="#"
-                      data-bs-toggle="modal" data-inert={true}
+                      data-bs-toggle="modal"
+                      data-inert={true}
                       data-bs-target="#lop_settings"
                     >
                       {" "}
@@ -358,7 +390,7 @@ const LeaveSettingKHR = () => {
           <p>
             Designed &amp; Developed By{" "}
             <Link to="#" className="text-primary">
-              Dreams
+              Konvert HR
             </Link>
           </p>
         </div>
@@ -379,14 +411,14 @@ const LeaveSettingKHR = () => {
                 <i className="ti ti-x" />
               </button>
             </div>
-            <form >
+            <form>
               <div className="modal-body pb-0">
                 <div className="row">
                   <div className="col-md-12">
                     <div className="mb-3">
                       <label className="form-label">Leave Type</label>
                       <CommonSelect
-                        className='select'
+                        className="select"
                         options={leavetype}
                         defaultValue={leavetype[0]}
                       />
@@ -420,7 +452,11 @@ const LeaveSettingKHR = () => {
                 >
                   Cancel
                 </button>
-                <button type="button" data-bs-dismiss="modal" className="btn btn-primary">
+                <button
+                  type="button"
+                  data-bs-dismiss="modal"
+                  className="btn btn-primary"
+                >
                   Add Leaves
                 </button>
               </div>
@@ -444,7 +480,7 @@ const LeaveSettingKHR = () => {
                 <i className="ti ti-x" />
               </button>
             </div>
-            <form >
+            <form>
               <div className="contact-grids-tab">
                 <ul className="nav nav-underline" id="myTab" role="tablist">
                   <li className="nav-item" role="presentation">
@@ -514,7 +550,10 @@ const LeaveSettingKHR = () => {
                                 name="flexRadio"
                                 id="flexRadioOne"
                               />
-                              <label className="form-label" htmlFor="flexRadioOne">
+                              <label
+                                className="form-label"
+                                htmlFor="flexRadioOne"
+                              >
                                 No
                               </label>
                             </div>
@@ -523,7 +562,9 @@ const LeaveSettingKHR = () => {
                       </div>
                       <div className="col-md-12">
                         <div className="mb-3">
-                          <label className="form-label">Maximum No of Days</label>
+                          <label className="form-label">
+                            Maximum No of Days
+                          </label>
                           <input type="text" className="form-control" />
                         </div>
                       </div>
@@ -539,7 +580,10 @@ const LeaveSettingKHR = () => {
                                 id="flexRadioTwo"
                                 defaultChecked
                               />
-                              <label className="form-label" htmlFor="flexRadioTwo">
+                              <label
+                                className="form-label"
+                                htmlFor="flexRadioTwo"
+                              >
                                 Yes
                               </label>
                             </div>
@@ -570,7 +614,11 @@ const LeaveSettingKHR = () => {
                     >
                       Cancel
                     </button>
-                    <button type="button" data-bs-dismiss="modal" className="btn btn-primary">
+                    <button
+                      type="button"
+                      data-bs-dismiss="modal"
+                      className="btn btn-primary"
+                    >
                       Save Changes{" "}
                     </button>
                   </div>
@@ -596,7 +644,9 @@ const LeaveSettingKHR = () => {
                               </div>
                               <div>
                                 <p className="mb-1">No Of Days</p>
-                                <span className="text-dark fw-normal mb-0">2</span>
+                                <span className="text-dark fw-normal mb-0">
+                                  2
+                                </span>
                               </div>
                               <div className="avatar-list-stacked avatar-group-sm">
                                 <span className="avatar border-0">
@@ -644,7 +694,8 @@ const LeaveSettingKHR = () => {
                                 </Link>
                                 <Link
                                   to="#"
-                                  data-bs-toggle="modal" data-inert={true}
+                                  data-bs-toggle="modal"
+                                  data-inert={true}
                                   data-bs-target="#delete_modal"
                                 >
                                   <i className="ti ti-trash" />
@@ -663,7 +714,10 @@ const LeaveSettingKHR = () => {
                                         Policy Name{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-md-6">
@@ -672,7 +726,10 @@ const LeaveSettingKHR = () => {
                                         No of Days{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-me-12">
@@ -680,7 +737,7 @@ const LeaveSettingKHR = () => {
                                       Add Employee
                                     </label>
                                     <CommonSelect
-                                      className='select'
+                                      className="select"
                                       options={addemployee}
                                       defaultValue={addemployee[0]}
                                     />
@@ -703,7 +760,9 @@ const LeaveSettingKHR = () => {
                               </div>
                               <div>
                                 <p className="mb-1">No Of Days</p>
-                                <span className="text-dark fw-normal mb-0">2</span>
+                                <span className="text-dark fw-normal mb-0">
+                                  2
+                                </span>
                               </div>
                               <div className="avatar-list-stacked avatar-group-sm">
                                 <span className="avatar border-0">
@@ -749,7 +808,10 @@ const LeaveSettingKHR = () => {
                                         Policy Name{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-md-6">
@@ -758,7 +820,10 @@ const LeaveSettingKHR = () => {
                                         No of Days{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-me-12">
@@ -766,7 +831,7 @@ const LeaveSettingKHR = () => {
                                       Add Employee
                                     </label>
                                     <CommonSelect
-                                      className='select'
+                                      className="select"
                                       options={addemployee}
                                       defaultValue={addemployee[0]}
                                     />
@@ -789,7 +854,9 @@ const LeaveSettingKHR = () => {
                               </div>
                               <div>
                                 <p className="mb-1">No Of Days</p>
-                                <span className="text-dark fw-normal mb-0">2</span>
+                                <span className="text-dark fw-normal mb-0">
+                                  2
+                                </span>
                               </div>
                               <div className="avatar-list-stacked avatar-group-sm">
                                 <span className="avatar border-0">
@@ -813,7 +880,8 @@ const LeaveSettingKHR = () => {
                                 </Link>
                                 <Link
                                   to="#"
-                                  data-bs-toggle="modal" data-inert={true}
+                                  data-bs-toggle="modal"
+                                  data-inert={true}
                                   data-bs-target="#delete_modal"
                                 >
                                   <i className="ti ti-trash" />
@@ -832,7 +900,10 @@ const LeaveSettingKHR = () => {
                                         Policy Name{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-md-6">
@@ -841,7 +912,10 @@ const LeaveSettingKHR = () => {
                                         No of Days{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-me-12">
@@ -849,7 +923,7 @@ const LeaveSettingKHR = () => {
                                       Add Employee
                                     </label>
                                     <CommonSelect
-                                      className='select'
+                                      className="select"
                                       options={addemployee}
                                       defaultValue={addemployee[0]}
                                     />
@@ -872,7 +946,9 @@ const LeaveSettingKHR = () => {
                               </div>
                               <div>
                                 <p className="mb-1">No Of Days</p>
-                                <span className="text-dark fw-normal mb-0">2</span>
+                                <span className="text-dark fw-normal mb-0">
+                                  2
+                                </span>
                               </div>
                               <div className="avatar-list-stacked avatar-group-sm">
                                 <span className="avatar border-0">
@@ -896,7 +972,8 @@ const LeaveSettingKHR = () => {
                                 </Link>
                                 <Link
                                   to="#"
-                                  data-bs-toggle="modal" data-inert={true}
+                                  data-bs-toggle="modal"
+                                  data-inert={true}
                                   data-bs-target="#delete_modal"
                                 >
                                   <i className="ti ti-trash" />
@@ -915,7 +992,10 @@ const LeaveSettingKHR = () => {
                                         Policy Name{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-md-6">
@@ -924,7 +1004,10 @@ const LeaveSettingKHR = () => {
                                         No of Days{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-me-12">
@@ -932,7 +1015,7 @@ const LeaveSettingKHR = () => {
                                       Add Employee
                                     </label>
                                     <CommonSelect
-                                      className='select'
+                                      className="select"
                                       options={addemployee}
                                       defaultValue={addemployee[0]}
                                     />
@@ -953,7 +1036,11 @@ const LeaveSettingKHR = () => {
                     >
                       Cancel
                     </button>
-                    <button type="button" data-bs-dismiss="modal" className="btn btn-primary">
+                    <button
+                      type="button"
+                      data-bs-dismiss="modal"
+                      className="btn btn-primary"
+                    >
                       Save Changes{" "}
                     </button>
                   </div>
@@ -979,7 +1066,7 @@ const LeaveSettingKHR = () => {
                 <i className="ti ti-x" />
               </button>
             </div>
-            <form >
+            <form>
               <div className="contact-grids-tab">
                 <ul className="nav nav-underline" id="myTab6" role="tablist">
                   <li className="nav-item" role="presentation">
@@ -1036,7 +1123,11 @@ const LeaveSettingKHR = () => {
                     >
                       Cancel
                     </button>
-                    <button type="button" data-bs-dismiss="modal" className="btn btn-primary">
+                    <button
+                      type="button"
+                      data-bs-dismiss="modal"
+                      className="btn btn-primary"
+                    >
                       Save Changes{" "}
                     </button>
                   </div>
@@ -1062,7 +1153,9 @@ const LeaveSettingKHR = () => {
                               </div>
                               <div>
                                 <p className="mb-1">No Of Days</p>
-                                <span className="text-dark fw-normal mb-0">2</span>
+                                <span className="text-dark fw-normal mb-0">
+                                  2
+                                </span>
                               </div>
                               <div className="avatar-list-stacked avatar-group-sm">
                                 <span className="avatar border-0">
@@ -1110,7 +1203,8 @@ const LeaveSettingKHR = () => {
                                 </Link>
                                 <Link
                                   to="#"
-                                  data-bs-toggle="modal" data-inert={true}
+                                  data-bs-toggle="modal"
+                                  data-inert={true}
                                   data-bs-target="#delete_modal"
                                 >
                                   <i className="ti ti-trash" />
@@ -1129,7 +1223,10 @@ const LeaveSettingKHR = () => {
                                         Policy Name{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-md-6">
@@ -1138,7 +1235,10 @@ const LeaveSettingKHR = () => {
                                         No of Days{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-me-12">
@@ -1146,7 +1246,7 @@ const LeaveSettingKHR = () => {
                                       Add Employee
                                     </label>
                                     <CommonSelect
-                                      className='select'
+                                      className="select"
                                       options={addemployee}
                                       defaultValue={addemployee[0]}
                                     />
@@ -1169,7 +1269,9 @@ const LeaveSettingKHR = () => {
                               </div>
                               <div>
                                 <p className="mb-1">No Of Days</p>
-                                <span className="text-dark fw-normal mb-0">2</span>
+                                <span className="text-dark fw-normal mb-0">
+                                  2
+                                </span>
                               </div>
                               <div className="avatar-list-stacked avatar-group-sm">
                                 <span className="avatar border-0">
@@ -1215,7 +1317,10 @@ const LeaveSettingKHR = () => {
                                         Policy Name{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-md-6">
@@ -1224,7 +1329,10 @@ const LeaveSettingKHR = () => {
                                         No of Days{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-me-12">
@@ -1232,7 +1340,7 @@ const LeaveSettingKHR = () => {
                                       Add Employee
                                     </label>
                                     <CommonSelect
-                                      className='select'
+                                      className="select"
                                       options={addemployee}
                                       defaultValue={addemployee[0]}
                                     />
@@ -1255,7 +1363,9 @@ const LeaveSettingKHR = () => {
                               </div>
                               <div>
                                 <p className="mb-1">No Of Days</p>
-                                <span className="text-dark fw-normal mb-0">2</span>
+                                <span className="text-dark fw-normal mb-0">
+                                  2
+                                </span>
                               </div>
                               <div className="avatar-list-stacked avatar-group-sm">
                                 <span className="avatar border-0">
@@ -1279,7 +1389,8 @@ const LeaveSettingKHR = () => {
                                 </Link>
                                 <Link
                                   to="#"
-                                  data-bs-toggle="modal" data-inert={true}
+                                  data-bs-toggle="modal"
+                                  data-inert={true}
                                   data-bs-target="#delete_modal"
                                 >
                                   <i className="ti ti-trash" />
@@ -1298,7 +1409,10 @@ const LeaveSettingKHR = () => {
                                         Policy Name{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-md-6">
@@ -1307,7 +1421,10 @@ const LeaveSettingKHR = () => {
                                         No of Days{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-me-12">
@@ -1315,7 +1432,7 @@ const LeaveSettingKHR = () => {
                                       Add Employee
                                     </label>
                                     <CommonSelect
-                                      className='select'
+                                      className="select"
                                       options={addemployee}
                                       defaultValue={addemployee[0]}
                                     />
@@ -1338,7 +1455,9 @@ const LeaveSettingKHR = () => {
                               </div>
                               <div>
                                 <p className="mb-1">No Of Days</p>
-                                <span className="text-dark fw-normal mb-0">2</span>
+                                <span className="text-dark fw-normal mb-0">
+                                  2
+                                </span>
                               </div>
                               <div className="avatar-list-stacked avatar-group-sm">
                                 <span className="avatar border-0">
@@ -1362,7 +1481,8 @@ const LeaveSettingKHR = () => {
                                 </Link>
                                 <Link
                                   to="#"
-                                  data-bs-toggle="modal" data-inert={true}
+                                  data-bs-toggle="modal"
+                                  data-inert={true}
                                   data-bs-target="#delete_modal"
                                 >
                                   <i className="ti ti-trash" />
@@ -1381,7 +1501,10 @@ const LeaveSettingKHR = () => {
                                         Policy Name{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-md-6">
@@ -1390,7 +1513,10 @@ const LeaveSettingKHR = () => {
                                         No of Days{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-me-12">
@@ -1398,7 +1524,7 @@ const LeaveSettingKHR = () => {
                                       Add Employee
                                     </label>
                                     <CommonSelect
-                                      className='select'
+                                      className="select"
                                       options={addemployee}
                                       defaultValue={addemployee[0]}
                                     />
@@ -1419,7 +1545,11 @@ const LeaveSettingKHR = () => {
                     >
                       Cancel
                     </button>
-                    <button type="button" data-bs-dismiss="modal" className="btn btn-primary">
+                    <button
+                      type="button"
+                      data-bs-dismiss="modal"
+                      className="btn btn-primary"
+                    >
                       Save Changes{" "}
                     </button>
                   </div>
@@ -1445,7 +1575,7 @@ const LeaveSettingKHR = () => {
                 <i className="ti ti-x" />
               </button>
             </div>
-            <form >
+            <form>
               <div className="contact-grids-tab">
                 <ul className="nav nav-underline" id="myTab2" role="tablist">
                   <li className="nav-item" role="presentation">
@@ -1502,7 +1632,11 @@ const LeaveSettingKHR = () => {
                     >
                       Cancel
                     </button>
-                    <button type="button" data-bs-dismiss="modal" className="btn btn-primary">
+                    <button
+                      type="button"
+                      data-bs-dismiss="modal"
+                      className="btn btn-primary"
+                    >
                       Save Changes{" "}
                     </button>
                   </div>
@@ -1528,7 +1662,9 @@ const LeaveSettingKHR = () => {
                               </div>
                               <div>
                                 <p className="mb-1">No Of Days</p>
-                                <span className="text-dark fw-normal mb-0">2</span>
+                                <span className="text-dark fw-normal mb-0">
+                                  2
+                                </span>
                               </div>
                               <div className="avatar-list-stacked avatar-group-sm">
                                 <span className="avatar border-0">
@@ -1576,7 +1712,8 @@ const LeaveSettingKHR = () => {
                                 </Link>
                                 <Link
                                   to="#"
-                                  data-bs-toggle="modal" data-inert={true}
+                                  data-bs-toggle="modal"
+                                  data-inert={true}
                                   data-bs-target="#delete_modal"
                                 >
                                   <i className="ti ti-trash" />
@@ -1595,7 +1732,10 @@ const LeaveSettingKHR = () => {
                                         Policy Name{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-md-6">
@@ -1604,7 +1744,10 @@ const LeaveSettingKHR = () => {
                                         No of Days{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-me-12">
@@ -1612,7 +1755,7 @@ const LeaveSettingKHR = () => {
                                       Add Employee
                                     </label>
                                     <CommonSelect
-                                      className='select'
+                                      className="select"
                                       options={addemployee}
                                       defaultValue={addemployee[0]}
                                     />
@@ -1635,7 +1778,9 @@ const LeaveSettingKHR = () => {
                               </div>
                               <div>
                                 <p className="mb-1">No Of Days</p>
-                                <span className="text-dark fw-normal mb-0">2</span>
+                                <span className="text-dark fw-normal mb-0">
+                                  2
+                                </span>
                               </div>
                               <div className="avatar-list-stacked avatar-group-sm">
                                 <span className="avatar border-0">
@@ -1681,7 +1826,10 @@ const LeaveSettingKHR = () => {
                                         Policy Name{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-md-6">
@@ -1690,7 +1838,10 @@ const LeaveSettingKHR = () => {
                                         No of Days{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-me-12">
@@ -1698,7 +1849,7 @@ const LeaveSettingKHR = () => {
                                       Add Employee
                                     </label>
                                     <CommonSelect
-                                      className='select'
+                                      className="select"
                                       options={addemployee}
                                       defaultValue={addemployee[0]}
                                     />
@@ -1721,7 +1872,9 @@ const LeaveSettingKHR = () => {
                               </div>
                               <div>
                                 <p className="mb-1">No Of Days</p>
-                                <span className="text-dark fw-normal mb-0">2</span>
+                                <span className="text-dark fw-normal mb-0">
+                                  2
+                                </span>
                               </div>
                               <div className="avatar-list-stacked avatar-group-sm">
                                 <span className="avatar border-0">
@@ -1745,7 +1898,8 @@ const LeaveSettingKHR = () => {
                                 </Link>
                                 <Link
                                   to="#"
-                                  data-bs-toggle="modal" data-inert={true}
+                                  data-bs-toggle="modal"
+                                  data-inert={true}
                                   data-bs-target="#delete_modal"
                                 >
                                   <i className="ti ti-trash" />
@@ -1764,7 +1918,10 @@ const LeaveSettingKHR = () => {
                                         Policy Name{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-md-6">
@@ -1773,7 +1930,10 @@ const LeaveSettingKHR = () => {
                                         No of Days{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-me-12">
@@ -1781,7 +1941,7 @@ const LeaveSettingKHR = () => {
                                       Add Employee
                                     </label>
                                     <CommonSelect
-                                      className='select'
+                                      className="select"
                                       options={addemployee}
                                       defaultValue={addemployee[0]}
                                     />
@@ -1802,7 +1962,11 @@ const LeaveSettingKHR = () => {
                     >
                       Cancel
                     </button>
-                    <button type="button" data-bs-dismiss="modal" className="btn btn-primary">
+                    <button
+                      type="button"
+                      data-bs-dismiss="modal"
+                      className="btn btn-primary"
+                    >
                       Save Changes{" "}
                     </button>
                   </div>
@@ -1828,7 +1992,7 @@ const LeaveSettingKHR = () => {
                 <i className="ti ti-x" />
               </button>
             </div>
-            <form >
+            <form>
               <div className="contact-grids-tab">
                 <ul className="nav nav-underline" id="myTab3" role="tablist">
                   <li className="nav-item" role="presentation">
@@ -1890,7 +2054,11 @@ const LeaveSettingKHR = () => {
                     >
                       Cancel
                     </button>
-                    <button type="button" data-bs-dismiss="modal" className="btn btn-primary">
+                    <button
+                      type="button"
+                      data-bs-dismiss="modal"
+                      className="btn btn-primary"
+                    >
                       Save Changes{" "}
                     </button>
                   </div>
@@ -1916,7 +2084,9 @@ const LeaveSettingKHR = () => {
                               </div>
                               <div>
                                 <p className="mb-1">No Of Days</p>
-                                <span className="text-dark fw-normal mb-0">2</span>
+                                <span className="text-dark fw-normal mb-0">
+                                  2
+                                </span>
                               </div>
                               <div className="avatar-list-stacked avatar-group-sm">
                                 <span className="avatar border-0">
@@ -1964,7 +2134,8 @@ const LeaveSettingKHR = () => {
                                 </Link>
                                 <Link
                                   to="#"
-                                  data-bs-toggle="modal" data-inert={true}
+                                  data-bs-toggle="modal"
+                                  data-inert={true}
                                   data-bs-target="#delete_modal"
                                 >
                                   <i className="ti ti-trash" />
@@ -1983,7 +2154,10 @@ const LeaveSettingKHR = () => {
                                         Policy Name{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-md-6">
@@ -1992,7 +2166,10 @@ const LeaveSettingKHR = () => {
                                         No of Days{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-me-12">
@@ -2000,7 +2177,7 @@ const LeaveSettingKHR = () => {
                                       Add Employee
                                     </label>
                                     <CommonSelect
-                                      className='select'
+                                      className="select"
                                       options={addemployee}
                                       defaultValue={addemployee[0]}
                                     />
@@ -2023,7 +2200,9 @@ const LeaveSettingKHR = () => {
                               </div>
                               <div>
                                 <p className="mb-1">No Of Days</p>
-                                <span className="text-dark fw-normal mb-0">2</span>
+                                <span className="text-dark fw-normal mb-0">
+                                  2
+                                </span>
                               </div>
                               <div className="avatar-list-stacked avatar-group-sm">
                                 <span className="avatar border-0">
@@ -2069,7 +2248,10 @@ const LeaveSettingKHR = () => {
                                         Policy Name{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-md-6">
@@ -2078,7 +2260,10 @@ const LeaveSettingKHR = () => {
                                         No of Days{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-me-12">
@@ -2086,7 +2271,7 @@ const LeaveSettingKHR = () => {
                                       Add Employee
                                     </label>
                                     <CommonSelect
-                                      className='select'
+                                      className="select"
                                       options={addemployee}
                                       defaultValue={addemployee[0]}
                                     />
@@ -2109,7 +2294,9 @@ const LeaveSettingKHR = () => {
                               </div>
                               <div>
                                 <p className="mb-1">No Of Days</p>
-                                <span className="text-dark fw-normal mb-0">2</span>
+                                <span className="text-dark fw-normal mb-0">
+                                  2
+                                </span>
                               </div>
                               <div className="avatar-list-stacked avatar-group-sm">
                                 <span className="avatar border-0">
@@ -2133,7 +2320,8 @@ const LeaveSettingKHR = () => {
                                 </Link>
                                 <Link
                                   to="#"
-                                  data-bs-toggle="modal" data-inert={true}
+                                  data-bs-toggle="modal"
+                                  data-inert={true}
                                   data-bs-target="#delete_modal"
                                 >
                                   <i className="ti ti-trash" />
@@ -2152,7 +2340,10 @@ const LeaveSettingKHR = () => {
                                         Policy Name{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-md-6">
@@ -2161,7 +2352,10 @@ const LeaveSettingKHR = () => {
                                         No of Days{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-me-12">
@@ -2169,7 +2363,7 @@ const LeaveSettingKHR = () => {
                                       Add Employee
                                     </label>
                                     <CommonSelect
-                                      className='select'
+                                      className="select"
                                       options={addemployee}
                                       defaultValue={addemployee[0]}
                                     />
@@ -2190,7 +2384,11 @@ const LeaveSettingKHR = () => {
                     >
                       Cancel
                     </button>
-                    <button type="button" data-bs-dismiss="modal" className="btn btn-primary">
+                    <button
+                      type="button"
+                      data-bs-dismiss="modal"
+                      className="btn btn-primary"
+                    >
                       Save Changes{" "}
                     </button>
                   </div>
@@ -2216,10 +2414,10 @@ const LeaveSettingKHR = () => {
                 <i className="ti ti-x" />
               </button>
             </div>
-            <form >
+            <form>
               <div className="contact-grids-tab">
                 <ul className="nav nav-underline" id="myTab4" role="tablist">
-                                   <li className="nav-item" role="presentation">
+                  <li className="nav-item" role="presentation">
                     <button
                       className="nav-link active"
                       id="settings-four-tab"
@@ -2278,7 +2476,11 @@ const LeaveSettingKHR = () => {
                     >
                       Cancel
                     </button>
-                    <button type="button" data-bs-dismiss="modal" className="btn btn-primary">
+                    <button
+                      type="button"
+                      data-bs-dismiss="modal"
+                      className="btn btn-primary"
+                    >
                       Save Changes{" "}
                     </button>
                   </div>
@@ -2304,7 +2506,9 @@ const LeaveSettingKHR = () => {
                               </div>
                               <div>
                                 <p className="mb-1">No Of Days</p>
-                                <span className="text-dark fw-normal mb-0">2</span>
+                                <span className="text-dark fw-normal mb-0">
+                                  2
+                                </span>
                               </div>
                               <div className="avatar-list-stacked avatar-group-sm">
                                 <span className="avatar border-0">
@@ -2352,7 +2556,8 @@ const LeaveSettingKHR = () => {
                                 </Link>
                                 <Link
                                   to="#"
-                                  data-bs-toggle="modal" data-inert={true}
+                                  data-bs-toggle="modal"
+                                  data-inert={true}
                                   data-bs-target="#delete_modal"
                                 >
                                   <i className="ti ti-trash" />
@@ -2371,7 +2576,10 @@ const LeaveSettingKHR = () => {
                                         Policy Name{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-md-6">
@@ -2380,7 +2588,10 @@ const LeaveSettingKHR = () => {
                                         No of Days{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-me-12">
@@ -2388,7 +2599,7 @@ const LeaveSettingKHR = () => {
                                       Add Employee
                                     </label>
                                     <CommonSelect
-                                      className='select'
+                                      className="select"
                                       options={addemployee}
                                       defaultValue={addemployee[0]}
                                     />
@@ -2411,7 +2622,9 @@ const LeaveSettingKHR = () => {
                               </div>
                               <div>
                                 <p className="mb-1">No Of Days</p>
-                                <span className="text-dark fw-normal mb-0">2</span>
+                                <span className="text-dark fw-normal mb-0">
+                                  2
+                                </span>
                               </div>
                               <div className="avatar-list-stacked avatar-group-sm">
                                 <span className="avatar border-0">
@@ -2435,7 +2648,8 @@ const LeaveSettingKHR = () => {
                                 </Link>
                                 <Link
                                   to="#"
-                                  data-bs-toggle="modal" data-inert={true}
+                                  data-bs-toggle="modal"
+                                  data-inert={true}
                                   data-bs-target="#delete_modal"
                                 >
                                   <i className="ti ti-trash" />
@@ -2454,7 +2668,10 @@ const LeaveSettingKHR = () => {
                                         Policy Name{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-md-6">
@@ -2463,7 +2680,10 @@ const LeaveSettingKHR = () => {
                                         No of Days{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-me-12">
@@ -2471,7 +2691,7 @@ const LeaveSettingKHR = () => {
                                       Add Employee
                                     </label>
                                     <CommonSelect
-                                      className='select'
+                                      className="select"
                                       options={addemployee}
                                       defaultValue={addemployee[0]}
                                     />
@@ -2494,7 +2714,9 @@ const LeaveSettingKHR = () => {
                               </div>
                               <div>
                                 <p className="mb-1">No Of Days</p>
-                                <span className="text-dark fw-normal mb-0">2</span>
+                                <span className="text-dark fw-normal mb-0">
+                                  2
+                                </span>
                               </div>
                               <div className="avatar-list-stacked avatar-group-sm">
                                 <span className="avatar border-0">
@@ -2518,7 +2740,8 @@ const LeaveSettingKHR = () => {
                                 </Link>
                                 <Link
                                   to="#"
-                                  data-bs-toggle="modal" data-inert={true}
+                                  data-bs-toggle="modal"
+                                  data-inert={true}
                                   data-bs-target="#delete_modal"
                                 >
                                   <i className="ti ti-trash" />
@@ -2537,7 +2760,10 @@ const LeaveSettingKHR = () => {
                                         Policy Name{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-md-6">
@@ -2546,7 +2772,10 @@ const LeaveSettingKHR = () => {
                                         No of Days{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-me-12">
@@ -2554,7 +2783,7 @@ const LeaveSettingKHR = () => {
                                       Add Employee
                                     </label>
                                     <CommonSelect
-                                      className='select'
+                                      className="select"
                                       options={addemployee}
                                       defaultValue={addemployee[0]}
                                     />
@@ -2575,7 +2804,11 @@ const LeaveSettingKHR = () => {
                     >
                       Cancel
                     </button>
-                    <button type="button" data-bs-dismiss="modal" className="btn btn-primary">
+                    <button
+                      type="button"
+                      data-bs-dismiss="modal"
+                      className="btn btn-primary"
+                    >
                       Save Changes{" "}
                     </button>
                   </div>
@@ -2660,7 +2893,10 @@ const LeaveSettingKHR = () => {
                                 id="flexRadio4"
                                 defaultChecked
                               />
-                              <label className="form-label" htmlFor="flexRadio4">
+                              <label
+                                className="form-label"
+                                htmlFor="flexRadio4"
+                              >
                                 Yes
                               </label>
                             </div>
@@ -2671,7 +2907,10 @@ const LeaveSettingKHR = () => {
                                 name="flexRadio"
                                 id="flexRadio5"
                               />
-                              <label className="form-label" htmlFor="flexRadio5">
+                              <label
+                                className="form-label"
+                                htmlFor="flexRadio5"
+                              >
                                 No
                               </label>
                             </div>
@@ -2680,7 +2919,9 @@ const LeaveSettingKHR = () => {
                       </div>
                       <div className="col-md-12">
                         <div className="mb-3">
-                          <label className="form-label">Maximum No of Days</label>
+                          <label className="form-label">
+                            Maximum No of Days
+                          </label>
                           <input type="text" className="form-control" />
                         </div>
                       </div>
@@ -2696,7 +2937,10 @@ const LeaveSettingKHR = () => {
                                 id="flexRadio6"
                                 defaultChecked
                               />
-                              <label className="form-label" htmlFor="flexRadio6">
+                              <label
+                                className="form-label"
+                                htmlFor="flexRadio6"
+                              >
                                 Yes
                               </label>
                             </div>
@@ -2707,7 +2951,10 @@ const LeaveSettingKHR = () => {
                                 name="flexRadioOne"
                                 id="flexRadio7"
                               />
-                              <label className="form-label" htmlFor="flexRadio7">
+                              <label
+                                className="form-label"
+                                htmlFor="flexRadio7"
+                              >
                                 No
                               </label>
                             </div>
@@ -2724,7 +2971,11 @@ const LeaveSettingKHR = () => {
                     >
                       Cancel
                     </button>
-                    <button type="button" data-bs-dismiss="modal" className="btn btn-primary">
+                    <button
+                      type="button"
+                      data-bs-dismiss="modal"
+                      className="btn btn-primary"
+                    >
                       Save Changes{" "}
                     </button>
                   </div>
@@ -2750,7 +3001,9 @@ const LeaveSettingKHR = () => {
                               </div>
                               <div>
                                 <p className="mb-1">No Of Days</p>
-                                <span className="text-dark fw-normal mb-0">2</span>
+                                <span className="text-dark fw-normal mb-0">
+                                  2
+                                </span>
                               </div>
                               <div className="avatar-list-stacked avatar-group-sm">
                                 <span className="avatar border-0">
@@ -2798,7 +3051,8 @@ const LeaveSettingKHR = () => {
                                 </Link>
                                 <Link
                                   to="#"
-                                  data-bs-toggle="modal" data-inert={true}
+                                  data-bs-toggle="modal"
+                                  data-inert={true}
                                   data-bs-target="#delete_modal"
                                 >
                                   <i className="ti ti-trash" />
@@ -2817,7 +3071,10 @@ const LeaveSettingKHR = () => {
                                         Policy Name{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-md-6">
@@ -2826,7 +3083,10 @@ const LeaveSettingKHR = () => {
                                         No of Days{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-me-12">
@@ -2834,7 +3094,7 @@ const LeaveSettingKHR = () => {
                                       Add Employee
                                     </label>
                                     <CommonSelect
-                                      className='select'
+                                      className="select"
                                       options={addemployee}
                                       defaultValue={addemployee[0]}
                                     />
@@ -2857,7 +3117,9 @@ const LeaveSettingKHR = () => {
                               </div>
                               <div>
                                 <p className="mb-1">No Of Days</p>
-                                <span className="text-dark fw-normal mb-0">2</span>
+                                <span className="text-dark fw-normal mb-0">
+                                  2
+                                </span>
                               </div>
                               <div className="avatar-list-stacked avatar-group-sm">
                                 <span className="avatar border-0">
@@ -2903,7 +3165,10 @@ const LeaveSettingKHR = () => {
                                         Policy Name{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-md-6">
@@ -2912,7 +3177,10 @@ const LeaveSettingKHR = () => {
                                         No of Days{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-me-12">
@@ -2920,7 +3188,7 @@ const LeaveSettingKHR = () => {
                                       Add Employee
                                     </label>
                                     <CommonSelect
-                                      className='select'
+                                      className="select"
                                       options={addemployee}
                                       defaultValue={addemployee[0]}
                                     />
@@ -2943,7 +3211,9 @@ const LeaveSettingKHR = () => {
                               </div>
                               <div>
                                 <p className="mb-1">No Of Days</p>
-                                <span className="text-dark fw-normal mb-0">2</span>
+                                <span className="text-dark fw-normal mb-0">
+                                  2
+                                </span>
                               </div>
                               <div className="avatar-list-stacked avatar-group-sm">
                                 <span className="avatar border-0">
@@ -2967,7 +3237,8 @@ const LeaveSettingKHR = () => {
                                 </Link>
                                 <Link
                                   to="#"
-                                  data-bs-toggle="modal" data-inert={true}
+                                  data-bs-toggle="modal"
+                                  data-inert={true}
                                   data-bs-target="#delete_modal"
                                 >
                                   <i className="ti ti-trash" />
@@ -2986,7 +3257,10 @@ const LeaveSettingKHR = () => {
                                         Policy Name{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-md-6">
@@ -2995,7 +3269,10 @@ const LeaveSettingKHR = () => {
                                         No of Days{" "}
                                         <span className="text-danger"> *</span>
                                       </label>
-                                      <input type="text" className="form-control" />
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                      />
                                     </div>
                                   </div>
                                   <div className="col-me-12">
@@ -3003,7 +3280,7 @@ const LeaveSettingKHR = () => {
                                       Add Employee
                                     </label>
                                     <CommonSelect
-                                      className='select'
+                                      className="select"
                                       options={addemployee}
                                       defaultValue={addemployee[0]}
                                     />
@@ -3024,7 +3301,11 @@ const LeaveSettingKHR = () => {
                     >
                       Cancel
                     </button>
-                    <button type="button" data-bs-dismiss="modal" className="btn btn-primary">
+                    <button
+                      type="button"
+                      data-bs-dismiss="modal"
+                      className="btn btn-primary"
+                    >
                       Save Changes{" "}
                     </button>
                   </div>
@@ -3036,7 +3317,11 @@ const LeaveSettingKHR = () => {
       </div>
       {/* /LOP Leave */}
       {/* Add Custom Policy Modal */}
-      <div id="add_custom_policy" className="modal custom-modal fade" role="dialog">
+      <div
+        id="add_custom_policy"
+        className="modal custom-modal fade"
+        role="dialog"
+      >
         <div
           className="modal-dialog modal-dialog-centered modal-lg"
           role="document"
@@ -3070,8 +3355,18 @@ const LeaveSettingKHR = () => {
                 <div className="input-block mb-3 leave-duallist">
                   <label className="col-form-label">Add employee</label>
                   <div className="card">
-                    <PickList dataKey="id" source={source} target={target} onChange={onChange} itemTemplate={itemTemplate} breakpoint="1280px"
-                      sourceHeader="Available" targetHeader="Selected" sourceStyle={{ height: '24rem' }} targetStyle={{ height: '24rem' }} />
+                    <PickList
+                      dataKey="id"
+                      source={source}
+                      target={target}
+                      onChange={onChange}
+                      itemTemplate={itemTemplate}
+                      breakpoint="1280px"
+                      sourceHeader="Available"
+                      targetHeader="Selected"
+                      sourceStyle={{ height: "24rem" }}
+                      targetStyle={{ height: "24rem" }}
+                    />
                   </div>
                 </div>
                 <div className="submit-section">
@@ -3111,13 +3406,21 @@ const LeaveSettingKHR = () => {
                   <label className="col-form-label">
                     Policy Name <span className="text-danger">*</span>
                   </label>
-                  <input type="text" className="form-control" defaultValue="LOP" />
+                  <input
+                    type="text"
+                    className="form-control"
+                    defaultValue="LOP"
+                  />
                 </div>
                 <div className="input-block mb-3">
                   <label className="col-form-label">
                     Days <span className="text-danger">*</span>
                   </label>
-                  <input type="text" className="form-control" defaultValue={4} />
+                  <input
+                    type="text"
+                    className="form-control"
+                    defaultValue={4}
+                  />
                 </div>
                 <div className="input-block mb-3 leave-duallist">
                   <label className="col-form-label">Add employee</label>
@@ -3184,24 +3487,19 @@ const LeaveSettingKHR = () => {
               </form>
 
               <AddEditAttendancePolicyModal
-          onSuccess={fetchData}
-          data={selectedPolicy}
-        />
+                onSuccess={fetchData}
+                data={selectedPolicy}
+              />
             </div>
           </div>
         </div>
       </div>
       {/* /Edit Custom Policy Modal */}
     </>
+  );
+};
 
-
-
-
-  )
-}
-
-export default LeaveSettingKHR
-
+export default LeaveSettingKHR;
 
 // import React, { useEffect, useState } from "react";
 // import { Link } from "react-router-dom";
@@ -3219,12 +3517,12 @@ export default LeaveSettingKHR
 // } from "./LeaveSettingServices";
 
 // const LeaveAdminKHR = () => {
-  // const routes = all_routes;
-  // const [data, setData] = useState<AttendancePolicyType[]>([]);
-  // const [loading, setLoading] = useState<boolean>(true);
-  // const [selectedPolicy, setSelectedPolicy] =
-  //   useState<AttendancePolicyType | null>(null);
-  // const [employeesOptions, setEmployeesOptions] = useState<Array<{id:any;name:string}>>([]);
+// const routes = all_routes;
+// const [data, setData] = useState<AttendancePolicyType[]>([]);
+// const [loading, setLoading] = useState<boolean>(true);
+// const [selectedPolicy, setSelectedPolicy] =
+//   useState<AttendancePolicyType | null>(null);
+// const [employeesOptions, setEmployeesOptions] = useState<Array<{id:any;name:string}>>([]);
 //   const [leaveCards, setLeaveCards] = useState<Array<{key:string;title:string;enabled:boolean;remaining:number}>>([
 //     { key: "annual", title: "Annual Leave", enabled: true, remaining: 7 },
 //     { key: "sick", title: "Sick Leave", enabled: false, remaining: 1 },
@@ -3255,66 +3553,65 @@ export default LeaveSettingKHR
 //       try { jq("#add_attendance_policy").modal("show"); } catch (e) { /* ignore */ }
 //     }
 //   };
-  // const fetchData = async () => {
-  //   setLoading(true);
-  //   try {
-  //     const result = await getAttendancePolicies();
-  //     const safeResult = Array.isArray(result) ? result : [];
+// const fetchData = async () => {
+//   setLoading(true);
+//   try {
+//     const result = await getAttendancePolicies();
+//     const safeResult = Array.isArray(result) ? result : [];
 
-  //     // Build a lookup map of employees by id if we fetched options earlier
-  //     const empMap: Record<string,string> = {};
-  //     employeesOptions.forEach((e) => { empMap[String(e.id)] = e.name; });
+//     // Build a lookup map of employees by id if we fetched options earlier
+//     const empMap: Record<string,string> = {};
+//     employeesOptions.forEach((e) => { empMap[String(e.id)] = e.name; });
 
-  //     const mappedData: AttendancePolicyType[] = safeResult.map((item: APIAttendancePolicy) => {
-  //       // normalize employees selection to array of objects with id/name
-  //       let employees_selection: any[] = [];
-  //       const raw = (item as any).employees_selection ?? (item as any).employees ?? [];
-  //       if (Array.isArray(raw)) {
-  //         employees_selection = raw.map((v: any) => {
-  //           if (v && typeof v === "object") return v;
-  //           const id = v;
-  //           return { id, name: empMap[String(id)] ?? String(id) };
-  //         });
-  //       } else if (typeof raw === "string") {
-  //         try {
-  //           const parsed = JSON.parse(raw);
-  //           if (Array.isArray(parsed)) {
-  //             employees_selection = parsed.map((v: any) => (v && typeof v === "object") ? v : { id: v, name: empMap[String(v)] ?? String(v) });
-  //           }
-  //         } catch (e) {
-  //           employees_selection = [];
-  //         }
-  //       }
+//     const mappedData: AttendancePolicyType[] = safeResult.map((item: APIAttendancePolicy) => {
+//       // normalize employees selection to array of objects with id/name
+//       let employees_selection: any[] = [];
+//       const raw = (item as any).employees_selection ?? (item as any).employees ?? [];
+//       if (Array.isArray(raw)) {
+//         employees_selection = raw.map((v: any) => {
+//           if (v && typeof v === "object") return v;
+//           const id = v;
+//           return { id, name: empMap[String(id)] ?? String(id) };
+//         });
+//       } else if (typeof raw === "string") {
+//         try {
+//           const parsed = JSON.parse(raw);
+//           if (Array.isArray(parsed)) {
+//             employees_selection = parsed.map((v: any) => (v && typeof v === "object") ? v : { id: v, name: empMap[String(v)] ?? String(v) });
+//           }
+//         } catch (e) {
+//           employees_selection = [];
+//         }
+//       }
 
-  //       return {
-  //         id: String(item.id),
-  //         key: String(item.id),
-  //         employees_selection,
-  //         type: item.type ?? "",
-  //         from_date: (item as any).from_date ?? (item as any).start_date ?? null,
-  //         to_date: (item as any).to_date ?? (item as any).end_date ?? null,
-  //         no_of_days: (item as any).no_of_days ?? null,
-  //         remaining_days: (item as any).remaining_days ?? null,
-  //         reason: (item as any).reason ?? "",
-  //         // include approved_by and status fields so columns map correctly
-  //         approved_by: (item as any).approved_by ?? (item as any).approver ?? (item as any).approved_by_name ?? null,
-  //         status: (item as any).status ?? (item as any).approval_status ?? (item as any).state ?? null,
-  //         created_date: item.create_date ?? "-",
-  //       } as any;
-  //     });
+//       return {
+//         id: String(item.id),
+//         key: String(item.id),
+//         employees_selection,
+//         type: item.type ?? "",
+//         from_date: (item as any).from_date ?? (item as any).start_date ?? null,
+//         to_date: (item as any).to_date ?? (item as any).end_date ?? null,
+//         no_of_days: (item as any).no_of_days ?? null,
+//         remaining_days: (item as any).remaining_days ?? null,
+//         reason: (item as any).reason ?? "",
+//         // include approved_by and status fields so columns map correctly
+//         approved_by: (item as any).approved_by ?? (item as any).approver ?? (item as any).approved_by_name ?? null,
+//         status: (item as any).status ?? (item as any).approval_status ?? (item as any).state ?? null,
+//         created_date: item.create_date ?? "-",
+//       } as any;
+//     });
 
-  //     setData(mappedData);
-  //   } catch (error) {
-  //     console.error("Failed to load policies", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+//     setData(mappedData);
+//   } catch (error) {
+//     console.error("Failed to load policies", error);
+//   } finally {
+//     setLoading(false);
+//   }
+// };
 
-
-  // useEffect(() => {
-  //   fetchData();
-  // }, []);
+// useEffect(() => {
+//   fetchData();
+// }, []);
 
 //   // fetch employees list for name lookup
 //   useEffect(() => {
@@ -3484,7 +3781,6 @@ export default LeaveSettingKHR
 //     },
 //   ];
 
-  
 //   const initialPolicies = [
 //     { id: 1, name: "Annual Leave", enabled: true },
 //     { id: 2, name: "Sick Leave", enabled: false },
@@ -3493,7 +3789,7 @@ export default LeaveSettingKHR
 //     { id: 5, name: "Paternity", enabled: false },
 //     { id: 6, name: "LOP", enabled: false },
 //   ];
-  
+
 //   const [policies, setPolicies] = useState(initialPolicies);
 
 //     const togglePolicy = (id: number) => {
@@ -3520,8 +3816,6 @@ export default LeaveSettingKHR
 //               />
 //             </div>
 
-
-          
 //     <div className="card">
 
 // <div className="bg-gray-50 p-2 rounded-xl">
@@ -3555,20 +3849,17 @@ export default LeaveSettingKHR
 //   </div>
 // </div>
 
-
 //             </div>
 //           </div>
 //         </div>
 
-        // <AddEditAttendancePolicyModal
-        //   onSuccess={fetchData}
-        //   data={selectedPolicy}
-        // />
+// <AddEditAttendancePolicyModal
+//   onSuccess={fetchData}
+//   data={selectedPolicy}
+// />
 //       </div>
 //     </>
 //   );
 // };
 
 // export default LeaveAdminKHR;
-
-
