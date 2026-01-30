@@ -89,7 +89,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     // 1. Header Section
     name: "",
     father_name: "",
-    name_of_client: "", // Branch
+    name_of_client: "",
     attendance_policy_id: "",
     employee_category: "Staff",
     resource_calendar_id: "",
@@ -151,7 +151,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     group_company_joining_date: null,
     probation_period: 6,
     probation_end_date: null,
-    in_probation: false,
+    in_probation: true,
     confirmation_date: null,
     week_off: "",
     status: "active",
@@ -203,6 +203,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     voter_id: "",
     passport_no: "",
     probation_period: 6,
+    in_probation: true,
     driving_license: null,
     is_uan_number_applicable: false,
     uan_number: "",
@@ -282,7 +283,16 @@ const AddEditEmployeeModal: React.FC<Props> = ({
         return String(field);
       };
 
+      const cId = getVal(data.country_id) || "104";
+      const sId = getVal(data.state_id);
+
+      loadStates(cId); // Load states so the dropdown can find the label
+      if (sId) loadDistricts(cId, sId); // Load cities so the dropdown can find the label
+
       const bankDetails = data.bank_account_details || {};
+      const imgUrl = data.image_url || null;
+      const licenseUrl = data.driving_license_url || null;
+      const passbookUrl = data.passbook_url || null;
 
       // 2. Set the Form Data
       setFormData({
@@ -296,8 +306,11 @@ const AddEditEmployeeModal: React.FC<Props> = ({
         name_of_client: getVal(data.name_of_site || data.name_of_client), // Handle key mismatch
         resource_calendar_id: getVal(data.resource_calendar_id),
         shift_roster_id: getVal(data.shift_roster_id),
-        country_id: getVal(data.country_id),
-        state_id: getVal(data.state_id),
+        // country_id: getVal(data.country_id),
+        // state_id: getVal(data.state_id),
+        // district_id: getVal(data.district_id),
+        country_id: cId,
+        state_id: sId,
         district_id: getVal(data.district_id),
         department_id: getVal(data.department_id),
         job_id: getVal(data.job_id),
@@ -323,8 +336,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({
         pin_code: data.pin_code === 0 ? "" : data.pin_code,
         probation_period: data.probation_period || 6,
         notice_period_days: data.notice_period_days || 0,
-
-        // --- Handle Dates (Ensure false/null becomes null) ---
+        in_probation:
+          data.in_probation !== undefined ? data.in_probation : true,
         birthday: data.birthday || null,
         joining_date: data.joining_date || null,
         confirmation_date: data.confirmation_date || null,
@@ -333,12 +346,15 @@ const AddEditEmployeeModal: React.FC<Props> = ({
         probation_end_date: data.probation_end_date || null,
         group_company_joining_date: data.group_company_joining_date || null,
         date_of_marriage: data.date_of_marriage || null,
+
         // --- Handle Files/Images ---
         // Keep them as null or existing strings; do not overwrite with File objects yet
-        image_1920: data.image_1920 || null,
-        driving_license: data.driving_license || null,
-        upload_passbook: data.upload_passbook || null,
-
+        // image_1920: data.image_1920 || null,
+        // driving_license: data.driving_license || null,
+        // upload_passbook: data.upload_passbook || null,
+        image_1920: imgUrl,
+        driving_license: licenseUrl,
+        upload_passbook: passbookUrl,
         latitude: data.latitude || "",
         longitude: data.longitude || "",
 
@@ -416,6 +432,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
       //   ]);
       // }
       // --- GROUP ACCESS LOGIC START ---
+
       let loadedGroupAccess: any[] = [];
 
       // A. Check for NEW 'approvals' array (Matches your JSON)
@@ -497,21 +514,40 @@ const AddEditEmployeeModal: React.FC<Props> = ({
         ]);
       }
       // 3. Set Visual Previews
-      if (data.image_1920) {
-        // Check if it's already a full Data URI or just base64
+      if (imgUrl) {
+        setImgPreview(imgUrl);
+      } else if (data.image_1920 && typeof data.image_1920 === "string") {
         const prefix = data.image_1920.startsWith("data:")
           ? ""
           : "data:image/png;base64,";
         setImgPreview(`${prefix}${data.image_1920}`);
-      } else if (data.image) {
-        // Fallback if API uses 'image' key
-        setImgPreview(data.image);
       } else {
         setImgPreview(null);
       }
     }
   }, [data]);
 
+  // Add this inside your component to watch for date changes
+  useEffect(() => {
+    if (formData.joining_date && formData.probation_period > 0) {
+      const calculatedDate = dayjs(formData.joining_date)
+        .add(Number(formData.probation_period), "month")
+        .format("YYYY-MM-DD");
+
+      if (formData.probation_end_date !== calculatedDate) {
+        setFormData((prev: any) => ({
+          ...prev,
+          probation_end_date: calculatedDate,
+          in_probation: true, // Automatically check if period > 0
+        }));
+      }
+    } else if (Number(formData.probation_period) === 0) {
+      // If period is 0, they are likely not in probation
+      if (formData.in_probation) {
+        setFormData((prev: any) => ({ ...prev, in_probation: false }));
+      }
+    }
+  }, [formData.joining_date, formData.probation_period]);
   useEffect(() => {
     const loadMasterBanks = async () => {
       try {
@@ -579,6 +615,26 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     { value: "expense", label: "Expense" },
   ];
 
+  // Function to strip all non-alphabetical characters
+  // Reusable function to strip numbers and symbols
+  const handleAlphaOnlyChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    fieldName: string,
+  ) => {
+    // Regex: [^a-zA-Z\s] removes anything that is NOT a letter or a space
+    const val = e.target.value.replace(/[^a-zA-Z\s]/g, "");
+
+    setFormData((prev: any) => ({
+      ...prev,
+      [fieldName]: val,
+    }));
+
+    // Clear errors for this field as the user types
+    if (errors[fieldName]) {
+      setErrors((prev: any) => ({ ...prev, [fieldName]: "" }));
+    }
+  };
+
   const validateHeader = () => {
     let tempErrors: any = {};
     let isValid = true;
@@ -606,6 +662,50 @@ const AddEditEmployeeModal: React.FC<Props> = ({
       tempErrors.aadhaar_number =
         "A valid 12-digit Aadhaar number is required.";
       isValid = false;
+    }
+    // Passport Validation (Optional but must be valid format if filled)
+    if (formData.passport_no) {
+      // Standard format: 1 Letter + 7 Digits (Total 8)
+      const passportRegex = /^[A-Z][0-9]{7}$/;
+
+      if (formData.passport_no.length !== 8) {
+        tempErrors.passport_no =
+          "Passport number must be exactly 8 characters.";
+        isValid = false;
+      } else if (!passportRegex.test(formData.passport_no)) {
+        tempErrors.passport_no =
+          "Invalid format (Expected 1 letter followed by 7 digits).";
+        isValid = false;
+      }
+    }
+    // Voter ID Validation (if provided)
+    if (formData.voter_id) {
+      // Standard format: 3 Letters + 7 Digits
+      const voterRegex = /^[A-Z]{3}[0-9]{7}$/;
+
+      if (formData.voter_id.length !== 10) {
+        tempErrors.voter_id = "Voter ID must be exactly 10 characters.";
+        isValid = false;
+      } else if (!voterRegex.test(formData.voter_id)) {
+        tempErrors.voter_id =
+          "Invalid format (Expected: 3 Letters followed by 7 Digits).";
+        isValid = false;
+      }
+    }
+
+    // PAN Validation (if provided)
+    if (formData.pan_number) {
+      // Regex: 5 letters + 4 digits + 1 letter
+      const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+
+      if (formData.pan_number.length !== 10) {
+        tempErrors.pan_number = "PAN number must be exactly 10 characters.";
+        isValid = false;
+      } else if (!panRegex.test(formData.pan_number)) {
+        tempErrors.pan_number =
+          "Invalid PAN format (Expected: 5 Letters, 4 Digits, 1 Letter).";
+        isValid = false;
+      }
     }
     // 2. Category - Mandatory
     // if (!formData.category) {
@@ -960,27 +1060,46 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     fetchDropdownData();
   }, []);
 
-  useEffect(() => {
-    const fetchAddressData = async () => {
-      const [stateData, districtData] = await Promise.all([
-        getStates(),
-        getDistricts(),
-      ]);
-      setStates(
-        stateData.map((s: any) => ({ value: s.id.toString(), label: s.name })),
-      );
-      setDistricts(
-        districtData.map((d: any) => ({
-          value: d.id.toString(),
-          label: d.name,
-        })),
-      );
-    };
-    fetchAddressData();
-  }, []);
+  // useEffect(() => {
+  //   const fetchAddressData = async () => {
+  //     const [stateData, districtData] = await Promise.all([
+  //       getStates(),
+  //       getDistricts(),
+  //     ]);
+  //     setStates(
+  //       stateData.map((s: any) => ({ value: s.id.toString(), label: s.name })),
+  //     );
+  //     setDistricts(
+  //       districtData.map((d: any) => ({
+  //         value: d.id.toString(),
+  //         label: d.name,
+  //       })),
+  //     );
+  //   };
+  //   fetchAddressData();
+  // }, []);
 
   // --- FETCH GROUPS ON LOAD ---
   // --- FETCH GROUPS ON LOAD (Robust & Debug Version) ---
+  const loadStates = async (countryId: string) => {
+    const data = await getStates(countryId);
+    setStates(
+      data.map((s: any) => ({ value: s.id.toString(), label: s.name })),
+    );
+  };
+
+  const loadDistricts = async (countryId: string, stateId: string) => {
+    const data = await getDistricts(countryId, stateId);
+    setDistricts(
+      data.map((d: any) => ({ value: d.id.toString(), label: d.name })),
+    );
+  };
+
+  // Load initial states for India on mount
+  useEffect(() => {
+    loadStates("104");
+  }, []);
+
   useEffect(() => {
     const fetchGroupsData = async () => {
       try {
@@ -1196,6 +1315,21 @@ const AddEditEmployeeModal: React.FC<Props> = ({
         resolve(base64String.split(",")[1]);
       };
       reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const urlToBase64 = async (url: string): Promise<string> => {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        // Strip the data:image/jpeg;base64, prefix for the API
+        resolve(base64String.split(",")[1]);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
     });
   };
 
@@ -1652,31 +1786,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
   //   }
   // };
 
-  const handleAddGroupLine = () => {
-    setGroupAccessLines([
-      ...groupAccessLines,
-      {
-        model: "leave", // Added default
-        group_id: "",
-        approval_user_id: "",
-        approval_sequance: 0,
-      },
-    ]);
-  };
-
-  const handleRemoveGroupLine = (index: number) => {
-    const list = [...groupAccessLines];
-    list.splice(index, 1);
-    setGroupAccessLines(list);
-  };
-
   const handleLineChange = (index: number, field: string, value: any) => {
-    const list = [...groupAccessLines];
-    list[index][field] = value;
-    setGroupAccessLines(list);
-  };
-
-  const handleGroupLineChange = (index: number, field: string, value: any) => {
     const list = [...groupAccessLines];
     list[index][field] = value;
     setGroupAccessLines(list);
@@ -1696,7 +1806,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
       emergency: validateEmergencyTab(),
       banking: validateBankingTab(),
       notice: validateNoticeTab(),
-      settings: validateSettingsTab(),
+      // settings: validateSettingsTab(),
       device: validateDeviceTab(), // Add this
     };
 
@@ -1751,35 +1861,72 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     setShowErrorAlert(false); // Hide alert if it was previously shown
 
     try {
+      const processToPayload = async (fieldValue: any) => {
+        if (!fieldValue) return null;
+
+        // Case A: New local file upload
+        if (fieldValue instanceof File) {
+          return await fileToBase64(fieldValue);
+        }
+
+        // Case B: Existing CDN URL - Fetch and convert to Base64
+        if (typeof fieldValue === "string" && fieldValue.startsWith("http")) {
+          try {
+            const response = await fetch(fieldValue);
+            const blob = await response.blob();
+            return new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                const base64String = reader.result as string;
+                resolve(base64String.split(",")[1]); // Strip data prefix
+              };
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+          } catch (error) {
+            console.error("URL to Base64 conversion failed:", error);
+            return null;
+          }
+        }
+
+        // Case C: Already a Base64 string
+        return fieldValue.includes("base64,")
+          ? fieldValue.split("base64,")[1]
+          : fieldValue;
+      };
       // Handle File Conversions (OCR/Document logic)
-      let licenseBase64 = null;
-      let passbookBase64 = null;
-      let imageBase64 = null;
+      // let licenseBase64 = null;
+      // let passbookBase64 = null;
+      // let imageBase64 = null;
 
-      if (formData.driving_license instanceof File) {
-        // Case A: User uploaded a NEW file
-        licenseBase64 = await fileToBase64(formData.driving_license);
-      } else if (typeof formData.driving_license === "string") {
-        // Case B: Keeping the EXISTING file from API (which is a base64 string)
-        licenseBase64 = formData.driving_license;
-      }
+      // if (formData.driving_license instanceof File) {
+      //   // Case A: User uploaded a NEW file
+      //   licenseBase64 = await processToPayload(formData.driving_license);
+      // } else if (typeof formData.driving_license === "string") {
+      //   // Case B: Keeping the EXISTING file from API (which is a base64 string)
+      //   licenseBase64 = formData.driving_license;
+      // }
 
-      if (formData.upload_passbook instanceof File) {
-        passbookBase64 = await fileToBase64(formData.upload_passbook);
-      } else if (typeof formData.upload_passbook === "string") {
-        passbookBase64 = formData.upload_passbook;
-      }
-      if (formData.image_1920 instanceof File) {
-        imageBase64 = await fileToBase64(formData.image_1920);
-      } else if (typeof formData.image_1920 === "string") {
-        // API often sends image with or without prefix, ensure we send raw base64 if needed
-        // If your API expects RAW base64 (no 'data:image...'), strip it if present:
-        const imgStr = formData.image_1920;
-        imageBase64 = imgStr.includes("base64,")
-          ? imgStr.split("base64,")[1]
-          : imgStr;
-      }
-
+      // if (formData.upload_passbook instanceof File) {
+      //   passbookBase64 = await processToPayload(formData.upload_passbook);
+      // } else if (typeof formData.upload_passbook === "string") {
+      //   passbookBase64 = formData.upload_passbook;
+      // }
+      // if (formData.image_1920 instanceof File) {
+      //   imageBase64 = await processToPayload(formData.image_1920);
+      // } else if (typeof formData.image_1920 === "string") {
+      //   // API often sends image with or without prefix, ensure we send raw base64 if needed
+      //   // If your API expects RAW base64 (no 'data:image...'), strip it if present:
+      //   const imgStr = formData.image_1920;
+      //   imageBase64 = imgStr.includes("base64,")
+      //     ? imgStr.split("base64,")[1]
+      //     : imgStr;
+      // }
+      const [licenseBase64, passbookBase64, imageBase64] = await Promise.all([
+        processToPayload(formData.driving_license),
+        processToPayload(formData.upload_passbook),
+        processToPayload(formData.image_1920),
+      ]);
       const groupData = groupAccessLines.length > 0 ? groupAccessLines[0] : {};
 
       // 4. Construct Final Payload (Mapping values as per your API requirements)
@@ -1866,9 +2013,14 @@ const AddEditEmployeeModal: React.FC<Props> = ({
           ? dayjs(formData.joining_date).format("YYYY-MM-DD")
           : null,
         employment_type: formData.employment_type?.toLowerCase(),
+
         driving_license: licenseBase64,
         upload_passbook: passbookBase64,
         image_1920: imageBase64, // Update with base64 string
+
+        // ...(imageBase64 && { image_1920: imageBase64 }),
+        // ...(licenseBase64 && { driving_license: licenseBase64 }),
+        // ...(passbookBase64 && { upload_passbook: passbookBase64 }),
         name_of_site: Number(formData.name_of_client), // Specific API mapping
         Spouse_name: formData.spouse_name, // Capitalized as per your requirements
 
@@ -1968,10 +2120,11 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           }`}
                           placeholder="Enter Name"
                           value={formData.name}
-                          onChange={(e) => {
-                            setFormData({ ...formData, name: e.target.value });
-                            if (errors.name) setErrors({ ...errors, name: "" });
-                          }}
+                          // onChange={(e) => {
+                          //   setFormData({ ...formData, name: e.target.value });
+                          //   if (errors.name) setErrors({ ...errors, name: "" });
+                          // }}
+                          onChange={(e) => handleAlphaOnlyChange(e, "name")}
                         />
                         {isSubmitted && errors.name && (
                           <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
@@ -1999,14 +2152,17 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           }`}
                           placeholder="Enter Father's Name"
                           value={formData.father_name}
-                          onChange={(e) => {
-                            setFormData({
-                              ...formData,
-                              father_name: e.target.value,
-                            });
-                            if (errors.father_name)
-                              setErrors({ ...errors, father_name: "" });
-                          }}
+                          // onChange={(e) => {
+                          //   setFormData({
+                          //     ...formData,
+                          //     father_name: e.target.value,
+                          //   });
+                          //   if (errors.father_name)
+                          //     setErrors({ ...errors, father_name: "" });
+                          // }}
+                          onChange={(e) =>
+                            handleAlphaOnlyChange(e, "father_name")
+                          }
                         />
                         {isSubmitted && errors.father_name && (
                           <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
@@ -2078,7 +2234,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                         </div>
                       </div>
                       {/* 4. Attendance Policy - OPTIONAL */}
-                      <div className="col-md-4">
+                      {/* <div className="col-md-4">
                         <label className="form-label fs-13">
                           Attendance Policy
                         </label>
@@ -2096,7 +2252,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             })
                           }
                         />
-                      </div>
+                      </div> */}
 
                       {/* 5. Employee Category - OPTIONAL */}
                       <div className="col-md-4">
@@ -2145,7 +2301,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                       </div>
 
                       {/* 7. Shift Roster - OPTIONAL */}
-                      <div className="col-md-3">
+                      {/* <div className="col-md-3">
                         <label className="form-label fs-13">Shift Roster</label>
                         <CommonSelect
                           options={shiftRosters}
@@ -2160,10 +2316,10 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             })
                           }
                         />
-                      </div>
+                      </div> */}
 
                       {/* 8. Timezone - OPTIONAL */}
-                      <div className="col-md-3">
+                      {/* <div className="col-md-3">
                         <label className="form-label fs-13">Timezone</label>
                         <CommonSelect
                           options={timezones}
@@ -2178,10 +2334,10 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             })
                           }
                         />
-                      </div>
+                      </div> */}
 
                       {/* 9. Geo Tracking - OPTIONAL */}
-                      <div className="col-md-3 d-flex align-items-center mt-4">
+                      {/* <div className="col-md-3 d-flex align-items-center mt-4">
                         <div className="form-check form-switch">
                           <input
                             type="checkbox"
@@ -2202,7 +2358,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             Geo Tracking
                           </label>
                         </div>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
 
@@ -2311,7 +2467,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                       "Employment",
                       "Banking",
                       "Notice",
-                      "Setting",
+                      // "Setting",
                       "Device",
                       "Group Access",
                     ].map((tabLabel) => {
@@ -2426,15 +2582,19 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                               placeholder="ABCDE1234F"
                               value={formData.pan_number}
                               onChange={(e) => {
-                                setFormData({
-                                  ...formData,
-                                  pan_number: e.target.value
-                                    .toUpperCase()
-                                    .replace(/\s/g, ""),
-                                });
-                                // Clear error if user is fixing it
-                                if (errors.pan_number)
-                                  setErrors({ ...errors, pan_number: "" });
+                                // Force uppercase and remove anything that isn't a letter or number
+                                const val = e.target.value
+                                  .toUpperCase()
+                                  .replace(/[^A-Z0-9]/g, "");
+                                setFormData({ ...formData, pan_number: val });
+
+                                // Clear error as user types
+                                if (errors.pan_number) {
+                                  setErrors((prev: any) => ({
+                                    ...prev,
+                                    pan_number: "",
+                                  }));
+                                }
                               }}
                             />
                             {isSubmitted && errors.pan_number && (
@@ -2450,18 +2610,38 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             <label className="form-label fs-13">Voter ID</label>
                             <input
                               type="text"
-                              className="form-control text-uppercase"
-                              placeholder="ABC1234567"
+                              className={`form-control text-uppercase ${
+                                isSubmitted && errors.voter_id
+                                  ? "is-invalid"
+                                  : isSubmitted &&
+                                      formData.voter_id &&
+                                      !errors.voter_id
+                                    ? "is-valid"
+                                    : ""
+                              }`}
+                              placeholder="e.g. ABC1234567"
+                              maxLength={10}
                               value={formData.voter_id}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  voter_id: e.target.value
-                                    .toUpperCase()
-                                    .replace(/\s/g, ""),
-                                })
-                              }
+                              onChange={(e) => {
+                                // Force uppercase and remove special characters
+                                const val = e.target.value
+                                  .toUpperCase()
+                                  .replace(/[^A-Z0-9]/g, "");
+                                setFormData({ ...formData, voter_id: val });
+
+                                if (errors.voter_id) {
+                                  setErrors((prev: any) => ({
+                                    ...prev,
+                                    voter_id: "",
+                                  }));
+                                }
+                              }}
                             />
+                            {isSubmitted && errors.voter_id && (
+                              <div className="invalid-feedback animate__animated animate__fadeIn">
+                                {errors.voter_id}
+                              </div>
+                            )}
                           </div>
 
                           {/* Passport No - OPTIONAL */}
@@ -2471,18 +2651,34 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             </label>
                             <input
                               type="text"
-                              className="form-control text-uppercase"
-                              placeholder="A1234567"
+                              maxLength={8}
+                              className={`form-control text-uppercase ${
+                                isSubmitted && errors.passport_no
+                                  ? "is-invalid"
+                                  : ""
+                              }`}
+                              placeholder="e.g. A1234567"
                               value={formData.passport_no}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  passport_no: e.target.value
-                                    .toUpperCase()
-                                    .replace(/\s/g, ""),
-                                })
-                              }
+                              onChange={(e) => {
+                                // Convert to uppercase and remove non-alphanumeric characters
+                                const val = e.target.value
+                                  .toUpperCase()
+                                  .replace(/[^A-Z0-9]/g, "");
+                                setFormData({ ...formData, passport_no: val });
+
+                                if (errors.passport_no) {
+                                  setErrors((prev: any) => ({
+                                    ...prev,
+                                    passport_no: "",
+                                  }));
+                                }
+                              }}
                             />
+                            {isSubmitted && errors.passport_no && (
+                              <div className="invalid-feedback animate__animated animate__fadeIn">
+                                {errors.passport_no}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -2656,9 +2852,23 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                 }}
                               />
                             </div>
+                            {/* Example for Driving License */}
+                            {typeof formData.driving_license === "string" && (
+                              <div className="mt-2">
+                                <a
+                                  href={formData.driving_license}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="btn btn-xs btn-outline-success"
+                                >
+                                  <i className="ti ti-eye me-1"></i> View
+                                  Existing License
+                                </a>
+                              </div>
+                            )}
 
                             {/* NEW: Show Existing File Indicator */}
-                            {typeof formData.driving_license === "string" &&
+                            {/* {typeof formData.driving_license === "string" &&
                               formData.driving_license.length > 0 && (
                                 <div className="mt-2 p-2 bg-soft-success text-success rounded fs-12 d-flex align-items-center">
                                   <i className="ti ti-check-circle me-2 fs-16"></i>
@@ -2666,7 +2876,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                     Existing License Document Uploaded
                                   </span>
                                 </div>
-                              )}
+                              )} */}
 
                             {/* Existing: Show New File Name */}
                             {formData.driving_license instanceof File && (
@@ -2980,11 +3190,17 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                               className="form-control"
                               placeholder="MBA, etc."
                               value={formData.name_of_post_graduation}
+                              // onChange={(e) =>
+                              //   setFormData({
+                              //     ...formData,
+                              //     name_of_post_graduation: e.target.value,
+                              //   })
+                              // }
                               onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  name_of_post_graduation: e.target.value,
-                                })
+                                handleAlphaOnlyChange(
+                                  e,
+                                  "name_of_post_graduation",
+                                )
                               }
                             />
                           </div>
@@ -2996,11 +3212,17 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                               type="text"
                               className="form-control"
                               value={formData.name_of_any_other_education}
+                              // onChange={(e) =>
+                              //   setFormData({
+                              //     ...formData,
+                              //     name_of_any_other_education: e.target.value,
+                              //   })
+                              // }
                               onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  name_of_any_other_education: e.target.value,
-                                })
+                                handleAlphaOnlyChange(
+                                  e,
+                                  "name_of_any_other_education",
+                                )
                               }
                             />
                           </div>
@@ -3118,21 +3340,39 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             <label className="form-label fs-13">
                               Secondary Mobile
                             </label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              maxLength={10}
-                              value={formData.mobile_phone}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  mobile_phone: e.target.value.replace(
-                                    /\D/g,
-                                    "",
-                                  ),
-                                })
-                              }
-                            />
+                            <div className="input-group">
+                              {/* Matching prefix from Primary Mobile */}
+                              <span className="input-group-text fs-12 bg-light">
+                                +91
+                              </span>
+                              <input
+                                type="text"
+                                className={`form-control ${
+                                  isSubmitted &&
+                                  formData.mobile_phone &&
+                                  !errors.mobile_phone
+                                    ? "is-valid"
+                                    : ""
+                                }`}
+                                maxLength={10}
+                                placeholder="Enter Secondary Mobile"
+                                value={formData.mobile_phone}
+                                onChange={(e) => {
+                                  // Sanitize to digits only
+                                  const val = e.target.value.replace(/\D/g, "");
+                                  setFormData({
+                                    ...formData,
+                                    mobile_phone: val,
+                                  });
+                                }}
+                              />
+                            </div>
+                            {/* Optional: Add validation if you decide to make it mandatory later */}
+                            {isSubmitted && errors.mobile_phone && (
+                              <div className="text-danger fs-11 mt-1">
+                                {errors.mobile_phone}
+                              </div>
+                            )}
                           </div>
 
                           <div className="col-md-4">
@@ -3142,11 +3382,14 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                               className="form-control"
                               value={formData.religion}
                               onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  religion: e.target.value,
-                                })
+                                handleAlphaOnlyChange(e, "religion")
                               }
+                              // onChange={(e) =>
+                              //   setFormData({
+                              //     ...formData,
+                              //     religion: e.target.value,
+                              //   })
+                              // }
                             />
                           </div>
 
@@ -3176,13 +3419,27 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                               </span>
                             </div>
                             {/* Show Existing File Indicator */}
-                            {typeof formData.upload_passbook === "string" &&
+                            {/* {typeof formData.upload_passbook === "string" &&
                               formData.upload_passbook.length > 0 && (
                                 <div className="mt-2 p-2 bg-soft-success text-success rounded fs-12 d-flex align-items-center">
                                   <i className="ti ti-check-circle me-2 fs-16"></i>
                                   <span>Passbook Uploaded</span>
                                 </div>
-                              )}
+                              )} */}
+
+                            {typeof formData.upload_passbook === "string" && (
+                              <div className="mt-2">
+                                <a
+                                  href={formData.upload_passbook}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="btn btn-xs btn-outline-success"
+                                >
+                                  <i className="ti ti-eye me-1"></i> View
+                                  Uploaded Passbook
+                                </a>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -3302,21 +3559,34 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             />
                           </div>
 
-                          {/* District - OPTIONAL */}
+                          {/* Country - OPTIONAL */}
                           <div className="col-md-3">
-                            <label className="form-label fs-13">District</label>
+                            <label className="form-label fs-13">Country</label>
                             <CommonSelect
-                              options={districts}
-                              placeholder="Select City/District"
-                              defaultValue={districts.find(
-                                (d) => d.value === String(formData.district_id),
+                              options={countries}
+                              placeholder="Select Country"
+                              // defaultValue={countries.find(
+                              //   (c) => c.value === String(formData.country_id),
+                              // )}
+                              defaultValue={countries.find(
+                                (c) => c.value === "104",
                               )}
-                              onChange={(opt) =>
+                              // onChange={(opt) =>
+                              //   setFormData({
+                              //     ...formData,
+                              //     country_id: opt?.value || "",
+                              //   })
+                              // }
+                              onChange={(opt) => {
+                                const countryId = opt?.value || "";
                                 setFormData({
                                   ...formData,
-                                  district_id: opt?.value || "",
-                                })
-                              }
+                                  country_id: countryId,
+                                  state_id: "",
+                                  district_id: "",
+                                });
+                                loadStates(countryId); // Fetch states for new country
+                              }}
                             />
                           </div>
 
@@ -3324,33 +3594,53 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           <div className="col-md-3">
                             <label className="form-label fs-13">State</label>
                             <CommonSelect
+                              key={`state-${formData.country_id}`}
                               options={states}
                               placeholder="Select State"
                               defaultValue={states.find(
                                 (s) => s.value === String(formData.state_id),
                               )}
-                              onChange={(opt) =>
+                              // onChange={(opt) =>
+                              //   setFormData({
+                              //     ...formData,
+                              //     state_id: opt?.value || "",
+                              //   })
+                              // }
+                              onChange={(opt) => {
+                                const stateId = opt?.value || "";
                                 setFormData({
                                   ...formData,
-                                  state_id: opt?.value || "",
-                                })
-                              }
+                                  state_id: stateId,
+                                  district_id: "",
+                                });
+                                loadDistricts(
+                                  formData.country_id || "104",
+                                  stateId,
+                                ); // Fetch cities for new state
+                              }}
                             />
                           </div>
 
-                          {/* Country - OPTIONAL */}
+                          {/* District - OPTIONAL */}
                           <div className="col-md-3">
-                            <label className="form-label fs-13">Country</label>
+                            <label className="form-label fs-13">District</label>
                             <CommonSelect
-                              options={countries}
-                              placeholder="Select Country"
-                              defaultValue={countries.find(
-                                (c) => c.value === String(formData.country_id),
+                              key={`city-${formData.state_id}`}
+                              options={districts}
+                              placeholder="Select City/District"
+                              defaultValue={districts.find(
+                                (d) => d.value === String(formData.district_id),
                               )}
+                              // onChange={(opt) =>
+                              //   setFormData({
+                              //     ...formData,
+                              //     district_id: opt?.value || "",
+                              //   })
+                              // }
                               onChange={(opt) =>
                                 setFormData({
                                   ...formData,
-                                  country_id: opt?.value || "",
+                                  district_id: opt?.value || "",
                                 })
                               }
                             />
@@ -3389,17 +3679,23 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                               }`}
                               placeholder="Full Name"
                               value={formData.emergency_contact_name}
-                              onChange={(e) => {
-                                setFormData({
-                                  ...formData,
-                                  emergency_contact_name: e.target.value,
-                                });
-                                if (errors.emergency_contact_name)
-                                  setErrors({
-                                    ...errors,
-                                    emergency_contact_name: "",
-                                  });
-                              }}
+                              // onChange={(e) => {
+                              //   setFormData({
+                              //     ...formData,
+                              //     emergency_contact_name: e.target.value,
+                              //   });
+                              //   if (errors.emergency_contact_name)
+                              //     setErrors({
+                              //       ...errors,
+                              //       emergency_contact_name: "",
+                              //     });
+                              // }}
+                              onChange={(e) =>
+                                handleAlphaOnlyChange(
+                                  e,
+                                  "emergency_contact_name",
+                                )
+                              }
                             />
                             {isSubmitted && errors.emergency_contact_name && (
                               <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
@@ -3427,17 +3723,23 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                               }`}
                               placeholder="e.g. Spouse, Father, Brother"
                               value={formData.emergency_contact_relation}
-                              onChange={(e) => {
-                                setFormData({
-                                  ...formData,
-                                  emergency_contact_relation: e.target.value,
-                                });
-                                if (errors.emergency_contact_relation)
-                                  setErrors({
-                                    ...errors,
-                                    emergency_contact_relation: "",
-                                  });
-                              }}
+                              // onChange={(e) => {
+                              //   setFormData({
+                              //     ...formData,
+                              //     emergency_contact_relation: e.target.value,
+                              //   });
+                              //   if (errors.emergency_contact_relation)
+                              //     setErrors({
+                              //       ...errors,
+                              //       emergency_contact_relation: "",
+                              //     });
+                              // }}
+                              onChange={(e) =>
+                                handleAlphaOnlyChange(
+                                  e,
+                                  "emergency_contact_relation",
+                                )
+                              }
                             />
                             {isSubmitted &&
                               errors.emergency_contact_relation && (
@@ -3828,6 +4130,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                   : null
                               }
                               disabled
+                              placeholder="Auto-calculated"
                             />
                           </div>
 
@@ -3963,11 +4266,14 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                               className="form-control"
                               placeholder="e.g. Sunday"
                               value={formData.week_off}
+                              // onChange={(e) =>
+                              //   setFormData({
+                              //     ...formData,
+                              //     week_off: e.target.value,
+                              //   })
+                              // }
                               onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  week_off: e.target.value,
-                                })
+                                handleAlphaOnlyChange(e, "week_off")
                               }
                             />
                           </div>
@@ -4572,16 +4878,14 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                   )}
 
                   {/* 8. Settings */}
-                  {activeTab === "setting" && (
+                  {/* {activeTab === "setting" && (
                     <div className="settings-info-wrapper animate__animated animate__fadeIn">
-                      {/* --- Section: Security & Access --- */}
                       <div className="form-section mb-4">
                         <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
                           <i className="ti ti-lock-access fs-18 me-2"></i>{" "}
                           Security & Access Credentials
                         </h6>
                         <div className="row g-3">
-                          {/* PIN Code Field - OPTIONAL */}
                           <div className="col-md-4">
                             <label className="form-label fs-13">
                               Employee PIN
@@ -4606,7 +4910,6 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                         </div>
                       </div>
 
-                      {/* Security Advisory Card */}
                       <div
                         className="alert alert-soft-secondary d-flex align-items-start border-0 p-3 shadow-sm"
                         role="alert"
@@ -4628,7 +4931,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                         </div>
                       </div>
                     </div>
-                  )}
+                  )} */}
+
                   {/* 9. Group Access Tab */}
                   {/* {activeTab === "group_access" && (
                     <div className="group-access-wrapper animate__animated animate__fadeIn">
