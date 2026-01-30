@@ -25,4 +25,4 @@ jobs:
             # Rebuild and restart containers in detached mode
             docker compose up -d --build
             # Clean up unused images to save space
-            docker image prune -f
+            # docker image prune -f
