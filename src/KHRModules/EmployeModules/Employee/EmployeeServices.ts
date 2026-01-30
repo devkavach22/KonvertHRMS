@@ -186,9 +186,20 @@ export const getBranches = async () => {
   }
 };
 
-export const getStates = async () => {
+// export const getStates = async () => {
+//   try {
+//     const response = await Instance.get("/api/states");
+//     return response.data.data || response.data || [];
+//   } catch (error) {
+//     return [];
+//   }
+// };
+
+export const getStates = async (countryId?: string) => {
   try {
-    const response = await Instance.get("/api/states");
+    const response = await Instance.get(`/api/states`, {
+      params: { country_id: countryId || "104" }, // Default to India if not provided
+    });
     return response.data.data || response.data || [];
   } catch (error) {
     return [];
@@ -208,15 +219,25 @@ export const getBanks = async () => {
   }
 };
 
-export const getDistricts = async () => {
+// export const getDistricts = async () => {
+//   try {
+//     const response = await Instance.get("/api/city");
+//     return response.data.data || response.data || [];
+//   } catch (error) {
+//     return [];
+//   }
+// };
+
+export const getDistricts = async (countryId: string, stateId: string) => {
   try {
-    const response = await Instance.get("/api/city");
+    const response = await Instance.get("/api/city", {
+      params: { country_id: countryId, state_id: stateId },
+    });
     return response.data.data || response.data || [];
   } catch (error) {
     return [];
   }
 };
-
 export const getTimezones = async () => {
   try {
     const response = await Instance.get("/api/timezones");

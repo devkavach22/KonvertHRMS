@@ -13,7 +13,11 @@ interface Props {
   data: any;
 }
 
-const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, onClose, data }) => {
+const AddEditLeaveTypesModal: React.FC<Props> = ({
+  onSuccess,
+  onClose,
+  data,
+}) => {
   // console.log("data ->>", data);
   const [isSavingLeaveType, setIsSavingLeaveType] = useState(false);
 
@@ -296,12 +300,12 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, onClose, data }) =
                   <label className="form-label fs-13">
                     Leave Validation Type
                   </label>
-                    <CommonSelect
-                      options={validationOptions}
-                      placeholder="Select Type"
-                      value={validationOptions.find(
-                        (o) => o.value === leaveValidationType,
-                      )}
+                  <CommonSelect
+                    options={validationOptions}
+                    placeholder="Select Type"
+                    value={validationOptions.find(
+                      (o) => o.value === leaveValidationType,
+                    )}
                     onChange={(opt) => setLeaveValidationType(opt?.value || "")}
                   />
                 </div>
@@ -313,12 +317,12 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, onClose, data }) =
                   <label className="form-label fs-13">
                     Allocation Validation Type
                   </label>
-                    <CommonSelect
-                      options={allocationOptions}
-                      placeholder="Select Type"
-                      value={allocationOptions.find(
-                        (o) => o.value === allocationValidationType,
-                      )}
+                  <CommonSelect
+                    options={allocationOptions}
+                    placeholder="Select Type"
+                    value={allocationOptions.find(
+                      (o) => o.value === allocationValidationType,
+                    )}
                     onChange={(opt) =>
                       setAllocationValidationType(opt?.value || "")
                     }
@@ -332,12 +336,12 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, onClose, data }) =
                   <label className="form-label fs-13">
                     Requires Allocation
                   </label>
-                    <CommonSelect
-                      options={yesNoOptions}
-                      placeholder="Select Option"
-                      value={yesNoOptions.find(
-                        (o) => o.value === requiresAllocation,
-                      )}
+                  <CommonSelect
+                    options={yesNoOptions}
+                    placeholder="Select Option"
+                    value={yesNoOptions.find(
+                      (o) => o.value === requiresAllocation,
+                    )}
                     onChange={(opt) => setRequiresAllocation(opt?.value || "")}
                   />
                 </div>
@@ -347,12 +351,12 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, onClose, data }) =
               <div className="col-md-6">
                 <div className="form-group">
                   <label className="form-label fs-13">Employee Requests</label>
-                    <CommonSelect
-                      options={yesNoOptions}
-                      placeholder="Select Option"
-                      value={yesNoOptions.find(
-                        (o) => o.value === employeeRequests,
-                      )}
+                  <CommonSelect
+                    options={yesNoOptions}
+                    placeholder="Select Option"
+                    value={yesNoOptions.find(
+                      (o) => o.value === employeeRequests,
+                    )}
                     onChange={(opt) => setEmployeeRequests(opt?.value || "")}
                   />
                 </div>
@@ -362,19 +366,17 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, onClose, data }) =
               <div className="col-md-6">
                 <div className="form-group">
                   <label className="form-label fs-13">Request Unit</label>
-                    <CommonSelect
-                      options={unitOptions}
-                      placeholder="Select Unit"
-                      value={unitOptions.find(
-                        (o) => o.value === requestUnit,
-                      )}
+                  <CommonSelect
+                    options={unitOptions}
+                    placeholder="Select Unit"
+                    value={unitOptions.find((o) => o.value === requestUnit)}
                     onChange={(opt) => setRequestUnit(opt?.value || "half_day")}
                   />
                 </div>
               </div>
 
               {/* 9. RESPONSIBLE IDs (Number Input) */}
-              <div className="col-md-6">
+              {/* <div className="col-md-6">
                 <div className="form-group">
                   <label className="form-label fs-13">Responsible IDs</label>
                   <input
@@ -389,7 +391,7 @@ const AddEditLeaveTypesModal: React.FC<Props> = ({ onSuccess, onClose, data }) =
                     placeholder="Enter ID"
                   />
                 </div>
-              </div>
+              </div> */}
 
               {/* 10. CHECKBOXES */}
               <div className="col-md-12 mt-4">

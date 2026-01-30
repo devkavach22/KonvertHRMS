@@ -63,7 +63,7 @@ const HRContractTypeKHR = () => {
         <span className="badge badge-soft-info">{text}</span>
       ),
     },
-    { title: "Country", dataIndex: "country_name", sorter: true },
+    // { title: "Country", dataIndex: "country_name", sorter: true },
     {
       title: "Actions",
       render: (_: any, record: ContractType) => (

@@ -116,7 +116,13 @@ const AddEditExpenseCategoryKHRModal: React.FC<Props> = ({
   }, [onClose]);
 
   const resetForm = () => {
-    setFormData(initialFormState);
+    setFormData({
+      ...initialFormState,
+      category_name: "", // Explicitly clear dropdown state
+      expense_account_name: "", // Explicitly clear dropdown state
+      sales_tax_names: [], // Explicitly clear dropdown state
+      purchase_tax_names: [], // Explicitly clear dropdown state
+    });
     setErrors({});
     setIsSubmitted(false);
     setIsSubmitting(false);

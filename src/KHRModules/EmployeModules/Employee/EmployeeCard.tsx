@@ -31,8 +31,11 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
     typeof employee.image_1920 === "string"
       ? employee.image_1920.replace(/\s/g, "")
       : null;
-  const imageSrc = cleanBase64 ? `data:image/png;base64,${cleanBase64}` : null;
-
+  const imageSrc =
+    employee.image_url ||
+    (employee.image_1920
+      ? `data:image/png;base64,${employee.image_1920.replace(/\s/g, "")}`
+      : null);
   // Status
   const isActive = employee.status === "active";
 
@@ -109,9 +112,8 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
             {imageSrc ? (
               <img
                 src={imageSrc}
-                alt=""
+                alt={employee.name}
                 className="w-100 h-100 object-fit-cover rounded-1"
-                style={{ backgroundColor: "#f8f9fa" }}
               />
             ) : (
               <div className="w-100 h-100 bg-light d-flex align-items-center justify-content-center text-secondary fw-bold fs-24 rounded-1">
