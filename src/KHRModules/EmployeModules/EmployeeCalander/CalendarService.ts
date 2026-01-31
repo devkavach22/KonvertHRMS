@@ -38,7 +38,7 @@ export const createCalendarEvent = async (data: CreateEventPayload) => {
     localStorage.getItem("id");
   return await Instance.post(
     `/employee/create/calendar?user_id=${user_id}`,
-    data
+    data,
   );
 };
 

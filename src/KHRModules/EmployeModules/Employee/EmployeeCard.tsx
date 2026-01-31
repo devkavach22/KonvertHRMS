@@ -19,12 +19,10 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
   const BRAND_GRADIENT = "linear-gradient(135deg, #E42128 0%, #FF666B 100%)";
 
   // Data Extraction
-  const designation = Array.isArray(employee.job_id)
-    ? employee.job_id[1]
-    : "N/A";
+  const designation = Array.isArray(employee.job_id) ? employee.job_id[1] : "";
   const department = Array.isArray(employee.department_id)
     ? employee.department_id[1]
-    : "N/A";
+    : "";
 
   // Image Logic
   const cleanBase64 =
@@ -112,8 +110,9 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
             {imageSrc ? (
               <img
                 src={imageSrc}
-                alt={employee.name}
+                alt=""
                 className="w-100 h-100 object-fit-cover rounded-1"
+                style={{ backgroundColor: "#f8f9fa" }}
               />
             ) : (
               <div className="w-100 h-100 bg-light d-flex align-items-center justify-content-center text-secondary fw-bold fs-24 rounded-1">
