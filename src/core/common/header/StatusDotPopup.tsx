@@ -22,11 +22,14 @@ const StatusCheckInPopup: React.FC = () => {
   const [totalMinutes, setTotalMinutes] = useState(0);
   const [isUserAction, setIsUserAction] = useState(false);
 
+
+  console.log(getCurrentAttendanceStatusData.status,"getCurrentAttendanceStatusData");
+  
   /* =====================
      DERIVED STATE
   ===================== */
   const isCheckedIn = getCurrentAttendanceStatusData?.status === "CheckedIn";
-  console.log(CheckinCheckoutData, "lplp");
+  console.log(isCheckedIn, "isCheckedIn");
 
   console.log(getCurrentAttendanceStatusData, "getCurrentAttendanceStatusData");
 
