@@ -2490,9 +2490,11 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             {/* Tab Label */}
                             {tabLabel === "Legal"
                               ? "Legal / Identification"
-                              : tabLabel === "Group Access"
-                                ? "Group Access"
-                                : tabLabel + " Information"}
+                              : tabLabel === "Device"
+                                ? "Mobile App Device" // Changed from "Device Information"
+                                : tabLabel === "Group Access"
+                                  ? "Group Access"
+                                  : tabLabel + " Information"}
 
                             {/* Error Icon Indicator */}
                             {isError && (
@@ -4512,13 +4514,14 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                       <div className="form-section mb-4">
                         <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
                           <i className="ti ti-device-mobile fs-18 me-2"></i>{" "}
-                          Registered Device Details
+                          {/* Registered Device Details */}
+                          Mobile Device Binding Details
                         </h6>
                         <div className="row g-3">
                           {/* Device Unique ID - OPTIONAL */}
                           <div className="col-md-4">
                             <label className="form-label fs-13">
-                              Device Unique ID
+                              Mobile Device Unique ID
                             </label>
                             <input
                               type="text"
@@ -4537,7 +4540,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           {/* Device Name */}
                           <div className="col-md-4">
                             <label className="form-label fs-13">
-                              Device Name
+                              Mobile Model Name
                             </label>
                             <input
                               type="text"
@@ -4556,7 +4559,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           {/* Device ID */}
                           <div className="col-md-4">
                             <label className="form-label fs-13">
-                              Device ID
+                              Mobile Device ID
                             </label>
                             <input
                               type="text"
@@ -4573,7 +4576,9 @@ const AddEditEmployeeModal: React.FC<Props> = ({
 
                           {/* Platform & Version */}
                           <div className="col-md-3">
-                            <label className="form-label fs-13">Platform</label>
+                            <label className="form-label fs-13">
+                              Mobile OS Version
+                            </label>
                             <input
                               type="text"
                               className="form-control"
@@ -4590,7 +4595,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
 
                           <div className="col-md-3">
                             <label className="form-label fs-13">
-                              System Version
+                              Mobile OS Version{" "}
                             </label>
                             <input
                               type="text"
