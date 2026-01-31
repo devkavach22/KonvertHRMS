@@ -51,7 +51,7 @@ const rawSidebarData = [
           { label: "Geo Configurations", link: routes.geoKHR },
           { label: "Expense Category", link: routes.expenseCategoryKHR },
           { label: "Accrural Plan", link: routes.accruralPlanKHR },
-          { label: "Salary Rule Category", link: routes.SalaryRuleCategoryKHR },
+        
 
         ],
       },
@@ -187,6 +187,7 @@ const rawSidebarData = [
             label: "Salary Structure Types",
             link: routes.salaryStructureTypeKHR,
           },
+            { label: "Salary Rule Category", link: routes.SalaryRuleCategoryKHR },
           { label: "Salary Structure", link: routes.salaryStructureKHR },
           { label: "Salary Rules", link: routes.SalaryRuleKHR },
         ],
