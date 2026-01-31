@@ -38,6 +38,11 @@ const AddEditEmployeeCalendarsKHRModal: React.FC<Props> = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const disabledDate = (current: Dayjs) => {
+    // Can not select days before today
+    return current && current < dayjs().startOf("day");
+  };
+
   // Fix for Ant Design popup scrolling issues inside Bootstrap modal
   const getModalContainer = () =>
     document.getElementById("add_event_modal_content") || document.body;
@@ -150,6 +155,7 @@ const AddEditEmployeeCalendarsKHRModal: React.FC<Props> = ({
                     format="DD-MM-YYYY"
                     value={eventDate}
                     onChange={(date) => setEventDate(date)}
+                    disabledDate={disabledDate}
                     getPopupContainer={getModalContainer}
                     placeholder="Select Date"
                   />
