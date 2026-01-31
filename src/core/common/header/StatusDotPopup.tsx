@@ -30,6 +30,10 @@ const StatusCheckInPopup: React.FC = () => {
 
   console.log(getCurrentAttendanceStatusData, "getCurrentAttendanceStatusData");
 
+
+  console.log(isCheckinCheckoutFetching,"isCheckinCheckoutFetching");
+  
+
   /* =====================
      LOAD CURRENT STATUS ON MOUNT
   ===================== */

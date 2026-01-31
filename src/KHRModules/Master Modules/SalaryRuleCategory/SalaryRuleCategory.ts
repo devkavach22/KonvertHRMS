@@ -2,7 +2,9 @@ import Instance from "../../../api/axiosInstance";
 
 export interface SalaryRuleCategory {
   id?: string;
-  type: string;
+  name: string;
+  parent_id?: number | null;
+  note?: string;
   client_id?: any; // Based on your JSON response
   key?: string; // For Datatable
 }
@@ -14,11 +16,10 @@ const getAuthDetails = () => {
   };
 };
 
-// GET - List
-export const getRegCategories = async (): Promise<SalaryRuleCategory[]> => {
+// GET - List Salary Rule Categories
+export const getSalaryRuleCategories = async (): Promise<SalaryRuleCategory[]> => {
   try {
     const { user_id } = getAuthDetails();
-    // Adjust endpoint as per your actual backend route
     const response = await Instance.get("/api/salary-rule-categories", {
       params: { user_id },
     });
@@ -28,39 +29,56 @@ export const getRegCategories = async (): Promise<SalaryRuleCategory[]> => {
     return [];
   }
 };
+export const getSalaryRuleCategoriesForDropdown = async () => {
+  try {
+    const { user_id } = getAuthDetails();
+    const response = await Instance.get("/api/salary-rule-categories", {
+      params: { user_id },
+    });
+    const data = response.data.data || response.data || [];
 
-// POST - Create
-export const addRegCategory = async (formData: Omit<SalaryRuleCategory, "id">) => {
+    // Transform for dropdown usage
+    return data.map((item: any) => ({
+      label: item.name,
+      value: item.id,
+    }));
+  } catch (error) {
+    console.error("Fetch Categories for Dropdown Error:", error);
+    return [];
+  }
+};
+// POST - Create Salary Rule Category
+export const addSalaryRuleCategory = async (formData: Omit<SalaryRuleCategory, "id">) => {
   const { user_id } = getAuthDetails();
   const payload = {
     ...formData,
-    user_id: user_id,
   };
-  return await Instance.post("/api/create/salary-rule-category", payload);
+  return await Instance.post("/api/create/salary-rule-category", payload, {
+    params: { user_id },
+  });
 };
 
-// PUT - Update
-// Updated to your specific URL: http://localhost:4000/api/regcategories/2?user_id=3145
-export const updateRegCategory = async (
+// PUT - Update Salary Rule Category
+export const updateSalaryRuleCategory = async (
   id: string,
   formData: Partial<SalaryRuleCategory>,
 ) => {
   const { user_id } = getAuthDetails();
   const payload = {
     ...formData,
-    user_id: user_id,
   };
-  // Passing user_id in 'params' ensures it appears in the URL query string
-  return await Instance.put(`/api/regcategories/${id}`, payload, {
+  return await Instance.put(`/api/salary-rule-categories/${id}`, payload, {
     params: { user_id },
   });
 };
 
-// DELETE - Delete
-// Updated to your specific URL: http://localhost:4000/api/regcategories/2?user_id=3145
-export const deleteRegCategory = async (id: string) => {
+// DELETE - Delete Salary Rule Category
+export const deleteSalaryRuleCategory = async (id: string) => {
   const { user_id } = getAuthDetails();
-  return await Instance.delete(`/api/regcategories/${id}`, {
+  return await Instance.delete(`/api/salary-rule-categories/${id}`, {
     params: { user_id },
   });
 };
+
+// GET - List for Parent Dropdown (for SalaryRule module)
+
