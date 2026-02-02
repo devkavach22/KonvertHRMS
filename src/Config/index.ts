@@ -1,7 +1,9 @@
 // const BASE_URL_ALL = "http://178.236.185.232:4000/";
 // const BASE_URL_ALL = "https://www.api.konverthr.com/";
 // const BASE_URL_ALL = "https://konverthrnode.onrender.com/";
-const BASE_URL_ALL = "https://staging.konverthr.com/";
+// const BASE_URL_ALL = "https://staging.konverthr.com/";
+const BASE_URL_ALL = "http://localhost:4000/";
+
 // const BASE_URL_LOGIN = "https://konverthrnode.onrender.com/";
 
 
