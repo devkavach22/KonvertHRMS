@@ -103,9 +103,28 @@ export const AttendancesApi = createAsyncThunk(
 //AttendancesGetApi
 export const AttendancesGetApi = createAsyncThunk(
   "AttendancesGetApi",
-  async (userdata, thunkAPI) => {
+  async (userdata: { 
+    employee_id?: string; 
+    date_from?: string; 
+    date_to?: string; 
+  } = {}, thunkAPI) => {
     console.log(userdata);
     try {
+      const params: any = { user_id };
+      
+      // Add employee_id parameter if provided
+      if (userdata.employee_id) {
+        params.employee_id = userdata.employee_id;
+      }
+      
+      // Add date range parameters if provided
+      if (userdata.date_from) {
+        params.date_from = userdata.date_from;
+      }
+      if (userdata.date_to) {
+        params.date_to = userdata.date_to;
+      }
+
       let result = await axios({
         method: "GET",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -114,7 +133,7 @@ export const AttendancesGetApi = createAsyncThunk(
           authorization: `${localStorage.getItem("authToken")}`,
         },
         url: `/api/admin/attendances`,
-        params: { user_id },
+        params,
       });
       if (result.data) {
         return result.data;
@@ -261,9 +280,32 @@ export const createRegCategory = createAsyncThunk(
 
 export const EmployeeAttendanceApi = createAsyncThunk(
   "EmployeeAttendanceApi",
-  async (userdata, thunkAPI) => {
+  async (userdata: { 
+    month?: number; 
+    year?: number; 
+    date_from?: string; 
+    date_to?: string; 
+  } = {}, thunkAPI) => {
     console.log(userdata);
     try {
+      const params: any = { user_id };
+      
+      // Add month and year parameters if provided
+      if (userdata.month) {
+        params.month = userdata.month;
+      }
+      if (userdata.year) {
+        params.year = userdata.year;
+      }
+      
+      // Add date range parameters if provided (for multi-month queries)
+      if (userdata.date_from) {
+        params.date_from = userdata.date_from;
+      }
+      if (userdata.date_to) {
+        params.date_to = userdata.date_to;
+      }
+
       let result = await axios({
         method: "GET",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -272,7 +314,7 @@ export const EmployeeAttendanceApi = createAsyncThunk(
           authorization: `${localStorage.getItem("authToken")}`,
         },
         url: `/api/employee/attendance`,
-        params: { user_id },
+        params,
       });
       // console.log(result.data)
       if (result.data) {
@@ -282,7 +324,7 @@ export const EmployeeAttendanceApi = createAsyncThunk(
       }
     } catch (error: any) {
       console.error(
-        "try catch [ AttendancesGetApi ] error.message >>",
+        "try catch [ EmployeeAttendanceApi ] error.message >>",
         error?.message,
       );
       return thunkAPI.rejectWithValue({ error: error?.response?.data?.errorMessage || error?.message || "API error" });
@@ -861,6 +903,41 @@ export const AdminAttendanceExportPdf = createAsyncThunk(
     }
   },
 );
+
+// Get Employees Basic Info
+export const getEmployeesBasicInfo = createAsyncThunk(
+  "getEmployeesBasicInfo",
+  async (userdata: { user_id?: number } = {}, thunkAPI) => {
+    console.log(userdata);
+    try {
+      const finalUserId = userdata.user_id || user_id;
+
+      let result = await axios({
+        method: "GET",
+        baseURL: CONFIG.BASE_URL_ALL,
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `${localStorage.getItem("authToken")}`,
+        },
+        url: `/employee/employees-basic-info`,
+        params: { user_id: finalUserId },
+      });
+      
+      if (result.data) {
+        return result.data;
+      } else {
+        return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
+      }
+    } catch (error: any) {
+      console.error(
+        "try catch [ getEmployeesBasicInfo ] error.message >>",
+        error?.message,
+      );
+      return thunkAPI.rejectWithValue({ error: error?.response?.data?.errorMessage || error?.message || "API error" });
+    }
+  },
+);
+
 export const TBSlice = createSlice({
   name: "TBSlice",
   initialState: {
@@ -970,6 +1047,11 @@ export const TBSlice = createSlice({
     isCheckinCheckout: false,
     isCheckinCheckoutFetching: false,
     CheckinCheckoutData: [],
+
+    // getEmployeesBasicInfo
+    isGetEmployeesBasicInfo: false,
+    isGetEmployeesBasicInfoFetching: false,
+    getEmployeesBasicInfoData: [],
 
     // getCurrentAttendanceStatus
     isGetCurrentAttendanceStatus: false,
@@ -1115,6 +1197,12 @@ export const TBSlice = createSlice({
         payload.isAdminAttendanceExportPdf !== undefined
           ? payload.isAdminAttendanceExportPdf
           : state.isAdminAttendanceExportPdf;
+
+      // getEmployeesBasicInfo
+      state.isGetEmployeesBasicInfo =
+        payload.isGetEmployeesBasicInfo !== undefined
+          ? payload.isGetEmployeesBasicInfo
+          : state.isGetEmployeesBasicInfo;
 
       state.isgetSalaryRules =
         payload.isgetSalaryRules !== undefined
@@ -2114,6 +2202,48 @@ export const TBSlice = createSlice({
     );
     builder.addCase(getRegularizationStatus.pending, (state) => {
       state.isGetRegularizationStatusFetching = true;
+    });
+
+    // getEmployeesBasicInfo reducers
+    builder.addCase(getEmployeesBasicInfo.fulfilled, (state, { payload }) => {
+      try {
+        state.getEmployeesBasicInfoData = payload;
+        state.isGetEmployeesBasicInfo = true;
+        state.isGetEmployeesBasicInfoFetching = false;
+        state.isSuccess = false;
+        state.successMessage = payload?.message || "";
+        state.isError = false;
+        state.errorMessage = "";
+        return state;
+      } catch (error) {
+        console.error(
+          "Error: getEmployeesBasicInfo.fulfilled try catch error >>",
+          error,
+        );
+      }
+    });
+    builder.addCase(
+      getEmployeesBasicInfo.rejected,
+      (state, { payload }: { payload: any }) => {
+        try {
+          state.isGetEmployeesBasicInfo = false;
+          state.isGetEmployeesBasicInfoFetching = false;
+          state.isError = true;
+          payload
+            ? (state.errorMessage = payload?.error?.message
+              ? payload?.error?.message || payload?.error
+              : payload?.error)
+            : (state.errorMessage = "API Response Invalid. Please Check API");
+        } catch (error) {
+          console.error(
+            "Error: [getEmployeesBasicInfo.rejected] try catch error >>",
+            error,
+          );
+        }
+      },
+    );
+    builder.addCase(getEmployeesBasicInfo.pending, (state) => {
+      state.isGetEmployeesBasicInfoFetching = true;
     });
   },
 });
