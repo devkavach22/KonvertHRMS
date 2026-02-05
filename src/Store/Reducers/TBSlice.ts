@@ -938,6 +938,163 @@ export const getEmployeesBasicInfo = createAsyncThunk(
   },
 );
 
+// Get Contracts API
+export const getContractsApi = createAsyncThunk(
+  "getContractsApi",
+  async (userdata, thunkAPI) => {
+    try {
+      let result = await axios({
+        method: "GET",
+        baseURL: CONFIG.BASE_URL_ALL,
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `${localStorage.getItem("authToken")}`,
+        },
+        url: `/api/contracts`,
+        params: { user_id },
+      });
+      
+      if (result.data) {
+        return result.data;
+      } else {
+        return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
+      }
+    } catch (error: any) {
+      console.error(
+        "try catch [ getContractsApi ] error.message >>",
+        error?.message,
+      );
+      return thunkAPI.rejectWithValue({ error: error?.response?.data?.errorMessage || error?.message || "API error" });
+    }
+  },
+);
+
+// Create Contract API
+export const createContractApi = createAsyncThunk(
+  "createContractApi",
+  async (contractData: any, thunkAPI) => {
+    try {
+      let result = await axios({
+        method: "POST",
+        baseURL: CONFIG.BASE_URL_ALL,
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `${localStorage.getItem("authToken")}`,
+        },
+        url: `/api/create/contracts`,
+        params: { user_id },
+        data: contractData,
+      });
+      
+      if (result.data) {
+        return result.data;
+      } else {
+        return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
+      }
+    } catch (error: any) {
+      console.error(
+        "try catch [ createContractApi ] error.message >>",
+        error?.message,
+      );
+      return thunkAPI.rejectWithValue({ error: error?.response?.data?.errorMessage || error?.message || "API error" });
+    }
+  },
+);
+
+// Update Contract API
+export const updateContractApi = createAsyncThunk(
+  "updateContractApi",
+  async (userdata: { contractId: string | number; payload: any }, thunkAPI) => {
+    try {
+      let result = await axios({
+        method: "PUT",
+        baseURL: CONFIG.BASE_URL_ALL,
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `${localStorage.getItem("authToken")}`,
+        },
+        url: `/api/contracts/${userdata.contractId}`,
+        params: { user_id },
+        data: userdata.payload,
+      });
+      
+      if (result.data) {
+        return result.data;
+      } else {
+        return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
+      }
+    } catch (error: any) {
+      console.error(
+        "try catch [ updateContractApi ] error.message >>",
+        error?.message,
+      );
+      return thunkAPI.rejectWithValue({ error: error?.response?.data?.errorMessage || error?.message || "API error" });
+    }
+  },
+);
+
+// Delete Contract API
+export const deleteContractApi = createAsyncThunk(
+  "deleteContractApi",
+  async (contractId: string | number, thunkAPI) => {
+    try {
+      let result = await axios({
+        method: "DELETE",
+        baseURL: CONFIG.BASE_URL_ALL,
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `${localStorage.getItem("authToken")}`,
+        },
+        url: `/api/contracts/${contractId}`,
+        params: { user_id },
+      });
+      
+      if (result.data) {
+        return result.data;
+      } else {
+        return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
+      }
+    } catch (error: any) {
+      console.error(
+        "try catch [ deleteContractApi ] error.message >>",
+        error?.message,
+      );
+      return thunkAPI.rejectWithValue({ error: error?.response?.data?.errorMessage || error?.message || "API error" });
+    }
+  },
+);
+
+// Get Departments API
+export const getDepartmentsApi = createAsyncThunk(
+  "getDepartmentsApi",
+  async (userdata, thunkAPI) => {
+    try {
+      let result = await axios({
+        method: "GET",
+        baseURL: CONFIG.BASE_URL_ALL,
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `${localStorage.getItem("authToken")}`,
+        },
+        url: `/api/department`,
+        params: { user_id },
+      });
+      
+      if (result.data) {
+        return result.data;
+      } else {
+        return thunkAPI.rejectWithValue({ error: result.data.errorMessage });
+      }
+    } catch (error: any) {
+      console.error(
+        "try catch [ getDepartmentsApi ] error.message >>",
+        error?.message,
+      );
+      return thunkAPI.rejectWithValue({ error: error?.response?.data?.errorMessage || error?.message || "API error" });
+    }
+  },
+);
+
 export const TBSlice = createSlice({
   name: "TBSlice",
   initialState: {
@@ -1052,6 +1209,28 @@ export const TBSlice = createSlice({
     isGetEmployeesBasicInfo: false,
     isGetEmployeesBasicInfoFetching: false,
     getEmployeesBasicInfoData: [],
+
+    // Contracts APIs
+    isGetContractsApi: false,
+    isGetContractsApiFetching: false,
+    getContractsApiData: [],
+
+    isCreateContractApi: false,
+    isCreateContractApiFetching: false,
+    createContractApiData: {},
+
+    isUpdateContractApi: false,
+    isUpdateContractApiFetching: false,
+    updateContractApiData: {},
+
+    isDeleteContractApi: false,
+    isDeleteContractApiFetching: false,
+    deleteContractApiData: {},
+
+    // getDepartmentsApi
+    isGetDepartmentsApi: false,
+    isGetDepartmentsApiFetching: false,
+    getDepartmentsApiData: [],
 
     // getCurrentAttendanceStatus
     isGetCurrentAttendanceStatus: false,
@@ -1203,6 +1382,33 @@ export const TBSlice = createSlice({
         payload.isGetEmployeesBasicInfo !== undefined
           ? payload.isGetEmployeesBasicInfo
           : state.isGetEmployeesBasicInfo;
+
+      // Contracts APIs
+      state.isGetContractsApi =
+        payload.isGetContractsApi !== undefined
+          ? payload.isGetContractsApi
+          : state.isGetContractsApi;
+
+      state.isCreateContractApi =
+        payload.isCreateContractApi !== undefined
+          ? payload.isCreateContractApi
+          : state.isCreateContractApi;
+
+      state.isUpdateContractApi =
+        payload.isUpdateContractApi !== undefined
+          ? payload.isUpdateContractApi
+          : state.isUpdateContractApi;
+
+      state.isDeleteContractApi =
+        payload.isDeleteContractApi !== undefined
+          ? payload.isDeleteContractApi
+          : state.isDeleteContractApi;
+
+      // getDepartmentsApi
+      state.isGetDepartmentsApi =
+        payload.isGetDepartmentsApi !== undefined
+          ? payload.isGetDepartmentsApi
+          : state.isGetDepartmentsApi;
 
       state.isgetSalaryRules =
         payload.isgetSalaryRules !== undefined
@@ -2244,6 +2450,159 @@ export const TBSlice = createSlice({
     );
     builder.addCase(getEmployeesBasicInfo.pending, (state) => {
       state.isGetEmployeesBasicInfoFetching = true;
+    });
+
+    // getContractsApi extraReducers
+    builder.addCase(getContractsApi.fulfilled, (state, { payload }) => {
+      try {
+        state.getContractsApiData = payload;
+        state.isGetContractsApi = true;
+        state.isGetContractsApiFetching = false;
+        state.isSuccess = false;
+        state.successMessage = payload?.message || "";
+        state.isError = false;
+        state.errorMessage = "";
+        return state;
+      } catch (error) {
+        console.error("Error: getContractsApi.fulfilled try catch error >>", error);
+      }
+    });
+    builder.addCase(getContractsApi.rejected, (state, { payload }: { payload: any }) => {
+      try {
+        state.isGetContractsApi = false;
+        state.isGetContractsApiFetching = false;
+        state.isError = true;
+        payload
+          ? (state.errorMessage = payload?.error?.message
+            ? payload?.error?.message || payload?.error
+            : payload?.error)
+          : (state.errorMessage = "API Response Invalid. Please Check API");
+      } catch (error) {
+        console.error("Error: [getContractsApi.rejected] try catch error >>", error);
+      }
+    });
+    builder.addCase(getContractsApi.pending, (state) => {
+      state.isGetContractsApiFetching = true;
+    });
+
+    // createContractApi extraReducers
+    builder.addCase(createContractApi.fulfilled, (state, { payload }) => {
+      try {
+        state.createContractApiData = payload;
+        state.isCreateContractApi = true;
+        state.isCreateContractApiFetching = false;
+        state.isSuccess = true;
+        state.successMessage = payload?.message || "Contract created successfully";
+        state.isError = false;
+        state.errorMessage = "";
+        return state;
+      } catch (error) {
+        console.error("Error: createContractApi.fulfilled try catch error >>", error);
+      }
+    });
+    builder.addCase(createContractApi.rejected, (state, { payload }: { payload: any }) => {
+      try {
+        state.isCreateContractApi = false;
+        state.isCreateContractApiFetching = false;
+        state.isError = true;
+        state.errorMessage = payload?.error || "Failed to create contract";
+      } catch (error) {
+        console.error("Error: [createContractApi.rejected] try catch error >>", error);
+      }
+    });
+    builder.addCase(createContractApi.pending, (state) => {
+      state.isCreateContractApiFetching = true;
+    });
+
+    // updateContractApi extraReducers
+    builder.addCase(updateContractApi.fulfilled, (state, { payload }) => {
+      try {
+        state.updateContractApiData = payload;
+        state.isUpdateContractApi = true;
+        state.isUpdateContractApiFetching = false;
+        state.isSuccess = true;
+        state.successMessage = payload?.message || "Contract updated successfully";
+        state.isError = false;
+        state.errorMessage = "";
+        return state;
+      } catch (error) {
+        console.error("Error: updateContractApi.fulfilled try catch error >>", error);
+      }
+    });
+    builder.addCase(updateContractApi.rejected, (state, { payload }: { payload: any }) => {
+      try {
+        state.isUpdateContractApi = false;
+        state.isUpdateContractApiFetching = false;
+        state.isError = true;
+        state.errorMessage = payload?.error || "Failed to update contract";
+      } catch (error) {
+        console.error("Error: [updateContractApi.rejected] try catch error >>", error);
+      }
+    });
+    builder.addCase(updateContractApi.pending, (state) => {
+      state.isUpdateContractApiFetching = true;
+    });
+
+    // deleteContractApi extraReducers
+    builder.addCase(deleteContractApi.fulfilled, (state, { payload }) => {
+      try {
+        state.deleteContractApiData = payload;
+        state.isDeleteContractApi = true;
+        state.isDeleteContractApiFetching = false;
+        state.isSuccess = true;
+        state.successMessage = payload?.message || "Contract deleted successfully";
+        state.isError = false;
+        state.errorMessage = "";
+        return state;
+      } catch (error) {
+        console.error("Error: deleteContractApi.fulfilled try catch error >>", error);
+      }
+    });
+    builder.addCase(deleteContractApi.rejected, (state, { payload }: { payload: any }) => {
+      try {
+        state.isDeleteContractApi = false;
+        state.isDeleteContractApiFetching = false;
+        state.isError = true;
+        state.errorMessage = payload?.error || "Failed to delete contract";
+      } catch (error) {
+        console.error("Error: [deleteContractApi.rejected] try catch error >>", error);
+      }
+    });
+    builder.addCase(deleteContractApi.pending, (state) => {
+      state.isDeleteContractApiFetching = true;
+    });
+
+    // getDepartmentsApi extraReducers
+    builder.addCase(getDepartmentsApi.fulfilled, (state, { payload }) => {
+      try {
+        state.getDepartmentsApiData = payload;
+        state.isGetDepartmentsApi = true;
+        state.isGetDepartmentsApiFetching = false;
+        state.isSuccess = false;
+        state.successMessage = payload?.message || "";
+        state.isError = false;
+        state.errorMessage = "";
+        return state;
+      } catch (error) {
+        console.error("Error: getDepartmentsApi.fulfilled try catch error >>", error);
+      }
+    });
+    builder.addCase(getDepartmentsApi.rejected, (state, { payload }: { payload: any }) => {
+      try {
+        state.isGetDepartmentsApi = false;
+        state.isGetDepartmentsApiFetching = false;
+        state.isError = true;
+        payload
+          ? (state.errorMessage = payload?.error?.message
+            ? payload?.error?.message || payload?.error
+            : payload?.error)
+          : (state.errorMessage = "API Response Invalid. Please Check API");
+      } catch (error) {
+        console.error("Error: [getDepartmentsApi.rejected] try catch error >>", error);
+      }
+    });
+    builder.addCase(getDepartmentsApi.pending, (state) => {
+      state.isGetDepartmentsApiFetching = true;
     });
   },
 });

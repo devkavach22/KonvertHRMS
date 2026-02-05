@@ -395,7 +395,7 @@ export const publicRoutes = [
   },
 
   {
-    path: routes.employeeContract,
+    path: routes.employeeContractKHR,
     element: <EmployeeContractKHR />,
     route: Route,
   },

@@ -68,7 +68,7 @@ const StatusCheckInPopup: React.FC = () => {
 
     if (status === "CheckedIn") {
       setCheckInTime(new Date(data?.check_in_time));
-      setOpen(true);
+      // setOpen(true);
 
       // Only show toast if this was triggered by user action
       if (isUserAction) {
@@ -80,7 +80,7 @@ const StatusCheckInPopup: React.FC = () => {
     if (status === "CheckedOut") {
       setCheckInTime(null);
       setTotalMinutes(0);
-      setOpen(true);
+      // setOpen(true);
 
       // Only show toast if this was triggered by user action
       if (isUserAction) {
@@ -99,6 +99,8 @@ const StatusCheckInPopup: React.FC = () => {
     const interval = setInterval(() => {
       const now = new Date();
       const diff = Math.floor((now.getTime() - checkInTime.getTime()) / 60000);
+      console.log(diff,"dddiiff");
+      
       setTotalMinutes(diff);
     }, 60000);
 
@@ -119,7 +121,7 @@ const StatusCheckInPopup: React.FC = () => {
       );
 
       setCheckInTime(checkInDate);
-      setOpen(true);
+      // setOpen(true);
     }
 
     if (getCurrentAttendanceStatusData?.status === "CheckedOut") {
