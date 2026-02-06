@@ -289,7 +289,7 @@ const Header = React.memo(() => {
                     {userName}
                   </span>
                 </div>
-
+{/* 
                 <div className="dropdown crm-dropdown">
                   <Link
                     to="#"
@@ -373,7 +373,7 @@ const Header = React.memo(() => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> */}
                 <Link to={routes.profilesettings} className="btn btn-menubar">
                   <i className="ti ti-settings-cog"></i>
                 </Link>
@@ -692,13 +692,13 @@ const Header = React.memo(() => {
                           <i className="ti ti-circle-arrow-up me-1"></i>My
                           Account
                         </Link>
-                        <Link
+                        {/* <Link
                           className="dropdown-item d-inline-flex align-items-center p-0 py-2"
                           to={routes.knowledgebase}
                         >
                           <i className="ti ti-question-mark me-1"></i>Knowledge
                           Base
-                        </Link>
+                        </Link> */}
                       </div>
                       <div className="card-footer">
                         <Link

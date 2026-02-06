@@ -11,6 +11,13 @@ import {
   RegCategory,
 } from "./RegCategoryService";
 
+interface GroupedData {
+  groupName: string;
+  items: RegCategory[];
+  count: number;
+  isGroup: boolean;
+}
+
 const RegCategoryKHR = () => {
   const routes = all_routes;
   const [data, setData] = useState<RegCategory[]>([]);
@@ -18,6 +25,11 @@ const RegCategoryKHR = () => {
   const [selectedCategory, setSelectedCategory] = useState<RegCategory | null>(
     null,
   );
+
+  // Group by functionality
+  const [groupBy, setGroupBy] = useState<string>('none');
+  const [groupedData, setGroupedData] = useState<GroupedData[]>([]);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   const fetchData = async () => {
     setLoading(true);
@@ -56,6 +68,190 @@ const RegCategoryKHR = () => {
         toast.error("Failed to delete category");
       }
     }
+  };
+
+  // Group by functionality
+  const groupByOptions = [
+    { value: 'none', label: 'No Grouping' },
+    { value: 'category_type', label: 'Group by Category Type' },
+  ];
+
+  const getFirstLetter = (text: string) => {
+    return text.charAt(0).toUpperCase();
+  };
+
+  const getCategoryType = (type: string) => {
+    const lowerType = type.toLowerCase();
+    if (lowerType.includes('leave') || lowerType.includes('vacation')) return 'Leave Related';
+    if (lowerType.includes('work') || lowerType.includes('office')) return 'Work Related';
+    if (lowerType.includes('medical') || lowerType.includes('health')) return 'Medical Related';
+    if (lowerType.includes('personal') || lowerType.includes('family')) return 'Personal Related';
+    if (lowerType.includes('late') || lowerType.includes('early')) return 'Time Related';
+    return 'General';
+  };
+
+
+
+  const groupDataByField = (data: RegCategory[], field: string): GroupedData[] => {
+    if (field === 'none') return [];
+
+    const grouped = data.reduce((acc: any, item) => {
+      let groupKey = '';
+
+      switch (field) {
+        case 'alphabetical':
+          groupKey = getFirstLetter(item.type);
+          break;
+        case 'category_type':
+          groupKey = getCategoryType(item.type);
+          break;
+        case 'word_count':
+          groupKey = getWordCount(item.type);
+          break;
+        case 'length':
+          groupKey = getNameLength(item.type);
+          break;
+        default:
+          groupKey = 'All Categories';
+      }
+
+      if (!acc[groupKey]) {
+        acc[groupKey] = [];
+      }
+      acc[groupKey].push(item);
+      return acc;
+    }, {});
+
+    // Sort groups alphabetically
+    return Object.entries(grouped)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([groupName, items]: [string, any]): GroupedData => ({
+        groupName,
+        items,
+        count: items.length,
+        isGroup: true
+      }));
+  };
+
+  const toggleGroupExpansion = (groupName: string) => {
+    const newExpanded = new Set(expandedGroups);
+    if (newExpanded.has(groupName)) {
+      newExpanded.delete(groupName);
+    } else {
+      newExpanded.add(groupName);
+    }
+    setExpandedGroups(newExpanded);
+  };
+
+  const toggleAllGroups = (expand: boolean) => {
+    if (expand) {
+      setExpandedGroups(new Set(groupedData.map(group => group.groupName)));
+    } else {
+      setExpandedGroups(new Set());
+    }
+  };
+
+  const handleGroupByChange = (value: string) => {
+    setGroupBy(value);
+    if (value === 'none') {
+      setGroupedData([]);
+      setExpandedGroups(new Set());
+    } else {
+      const grouped = groupDataByField(data, value);
+      setGroupedData(grouped);
+      // Expand first group by default
+      if (grouped.length > 0) {
+        setExpandedGroups(new Set([grouped[0].groupName]));
+      }
+    }
+  };
+
+  // Update grouped data when main data changes
+  useEffect(() => {
+    if (data.length > 0 && groupBy) {
+      handleGroupByChange(groupBy);
+    }
+  }, [data, groupBy]);
+
+  const renderGroupedTable = () => {
+    if (groupBy === 'none') {
+      return <DatatableKHR data={data} columns={columns} selection={true} textKey="type" />;
+    }
+
+    return (
+      <div className="grouped-table">
+        {groupedData.map((group: GroupedData, groupIndex: number) => (
+          <div
+            key={`group-${groupIndex}-${group.groupName}`}
+            className="group-section mb-4"
+            style={{
+              border: '1px solid #e9ecef',
+              borderRadius: '8px',
+              overflow: 'hidden'
+            }}
+          >
+            {/* Group Header */}
+            <div
+              className="group-header bg-light p-3 border rounded cursor-pointer d-flex justify-content-between align-items-center"
+              onClick={() => toggleGroupExpansion(group.groupName)}
+              style={{
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                border: '1px solid #e9ecef'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#f8f9fa';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#f8f9fa';
+              }}
+            >
+              <div className="d-flex align-items-center">
+                <i className={`ti ${expandedGroups.has(group.groupName) ? 'ti-chevron-down' : 'ti-chevron-right'} me-2`}></i>
+                <h6 className="mb-0 fw-bold">{group.groupName}</h6>
+                <span className="badge badge-primary ms-2">{group.count} categories</span>
+              </div>
+              <div className="group-stats">
+                <div className="d-flex gap-3">
+                  <small className="text-muted">
+                    <i className="ti ti-category me-1"></i>
+                    Total: <strong>{group.count}</strong>
+                  </small>
+                  {groupBy === 'length' && (
+                    <small className="text-info">
+                      <i className="ti ti-ruler me-1"></i>
+                      Avg Length: <strong>{Math.round(group.items.reduce((sum, item) => sum + item.type.length, 0) / group.count)} chars</strong>
+                    </small>
+                  )}
+                  {groupBy === 'word_count' && (
+                    <small className="text-success">
+                      <i className="ti ti-text-size me-1"></i>
+                      Avg Words: <strong>{Math.round(group.items.reduce((sum, item) => sum + item.type.split(/\s+/).length, 0) / group.count)}</strong>
+                    </small>
+                  )}
+                  <small className="text-warning">
+                    <i className="ti ti-list me-1"></i>
+                    Sample: <strong>{group.items[0]?.type.substring(0, 15)}{group.items[0]?.type.length > 15 ? '...' : ''}</strong>
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            {/* Group Content */}
+            {expandedGroups.has(group.groupName) && (
+              <div className="group-content mt-2" style={{ borderTop: '1px solid #e9ecef' }}>
+                <DatatableKHR
+                  data={group.items}
+                  columns={columns}
+                  selection={true}
+                  textKey="type"
+                />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
   };
 
   const columns = [
@@ -107,6 +303,33 @@ const RegCategoryKHR = () => {
               routes={routes}
               buttonText="Add Category"
               modalTarget="#add_reg_cat_modal"
+              rightActions={
+                <>
+                  {/* Group By Dropdown */}
+                  <div className="dropdown me-2">
+                    <button
+                      className="btn btn-outline-primary dropdown-toggle d-flex align-items-center"
+                      data-bs-toggle="dropdown"
+                    >
+                      <i className="ti ti-layout-grid me-1" />
+                      {groupByOptions.find(opt => opt.value === groupBy)?.label || 'Group By'}
+                    </button>
+                    <ul className="dropdown-menu dropdown-menu-end">
+                      {groupByOptions.map((option) => (
+                        <li key={option.value}>
+                          <button
+                            className={`dropdown-item ${groupBy === option.value ? 'active' : ''}`}
+                            onClick={() => handleGroupByChange(option.value)}
+                          >
+                            <i className={`ti ${groupBy === option.value ? 'ti-check' : 'ti-point'} me-2`} />
+                            {option.label}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </>
+              }
             />
           </div>
 
@@ -121,12 +344,43 @@ const RegCategoryKHR = () => {
                   <div className="mt-2">Fetching Categories...</div>
                 </div>
               ) : (
-                <DatatableKHR
-                  data={data}
-                  columns={columns}
-                  selection={true}
-                  textKey="type"
-                />
+                <>
+                  {/* Group By Info */}
+                  {groupBy !== 'none' && (
+                    <div className="alert alert-info m-3 mb-0 d-flex justify-content-between align-items-center">
+                      <div>
+                        <i className="ti ti-info-circle me-2"></i>
+                        <strong>Grouped by:</strong> {groupByOptions.find(opt => opt.value === groupBy)?.label}
+                        <span className="ms-2">
+                          ({groupedData.length} groups, {data.length} total categories)
+                        </span>
+                      </div>
+                      <div className="btn-group btn-group-sm">
+                        <button
+                          className="btn btn-outline-primary btn-sm"
+                          onClick={() => toggleAllGroups(true)}
+                          title="Expand All Groups"
+                        >
+                          <i className="ti ti-chevrons-down me-1"></i>
+                          Expand All
+                        </button>
+                        <button
+                          className="btn btn-outline-secondary btn-sm"
+                          onClick={() => toggleAllGroups(false)}
+                          title="Collapse All Groups"
+                        >
+                          <i className="ti ti-chevrons-up me-1"></i>
+                          Collapse All
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Render Table or Grouped Table */}
+                  <div className="p-3">
+                    {renderGroupedTable()}
+                  </div>
+                </>
               )}
             </div>
           </div>
