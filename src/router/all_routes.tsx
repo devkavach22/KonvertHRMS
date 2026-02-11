@@ -26,6 +26,7 @@ export const all_routes = {
   accruralPlanKHR: "/KHR-accrural-plan",
   //Employee Modules
   employeeKHR: "/KHR-employees",
+  employeeContractKHR: "/KHR-employee-contracts",
   expenseKHR: "/KHR-expense",
   employeeCalenderKHR: "/KHR-employee-Calender",
 

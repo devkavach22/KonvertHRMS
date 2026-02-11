@@ -74,6 +74,7 @@ const rawSidebarData = [
         roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only
         submenuItems: [
           { label: "Employees", link: routes.employeeKHR },
+          { label: "Employee Contracts", link: routes.employeeContractKHR },
           { label: "Expense", link: routes.expenseKHR },
           { label: "Employee Calander", link: routes.employeeCalenderKHR },
         ],

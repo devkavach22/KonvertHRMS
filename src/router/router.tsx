@@ -4,7 +4,7 @@ import { authRoutes, publicRoutes } from "./router.link";
 import { LoadingSpinner } from "../core/common/LoadingSpinner";
 import { ProtectedRoute, GuestRoute } from "./RouteGuards";
 import { useDispatch, useSelector } from "react-redux";
-import { TBSelector, updateState } from "@/Store/Reducers/TBSlice";
+import { getCurrentAttendanceStatus, TBSelector, updateState } from "@/Store/Reducers/TBSlice";
 import { useNotificationContext } from "@/createContextStore/NotificationContext";
 
 // Lazy load the main feature components
@@ -12,7 +12,7 @@ const LazyFeature = lazy(() => import("../feature-module/feature"));
 const LazyAuthFeature = lazy(() => import("../feature-module/authFeature"));
 
 const ALLRoutes: React.FC = () => {
-  const { isError, errorMessage, isSuccess, successMessage } =
+  const { isError, errorMessage, isSuccess, successMessage, isCheckinCheckout } =
     useSelector(TBSelector);
   const dispatch = useDispatch();
   const { openNotification } = useNotificationContext();
@@ -41,6 +41,18 @@ const ALLRoutes: React.FC = () => {
       dispatch(updateState({ isSuccess: false, successMessage: "" }));
     }
   }, [successMessage]);
+
+  React.useEffect(() => {
+    if (isCheckinCheckout) {
+      dispatch(getCurrentAttendanceStatus() as any);
+      dispatch(updateState({ isCheckinCheckout: false }));
+    }
+  }, [isCheckinCheckout])
+  React.useEffect(() => {
+    dispatch(getCurrentAttendanceStatus() as any);
+  }, [])
+
+
 
   return (
     <>

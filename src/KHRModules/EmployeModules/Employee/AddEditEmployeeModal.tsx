@@ -4769,10 +4769,11 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                   currency_id: e.target.value,
                                 })
                               }
+                              disabled={true}
                             >
                               <option value="INR">INR</option>
-                              <option value="USD">USD</option>
-                              <option value="EUR">EUR</option>
+                              {/* <option value="USD">USD</option>
+                              <option value="EUR">EUR</option> */}
                             </select>
                           </div>
                         </div>
