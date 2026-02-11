@@ -40,7 +40,8 @@ const rawSidebarData = [
           { label: "Regularization Category", link: routes.regCategoryKHR },
           { label: "Department", link: routes.departmentsKHR },
           { label: "Job Postions", link: routes.jobPositionsKHR },
-          { label: "Work Location", link: routes.workLocationKHR },
+          { label: "Branch", link: routes.branchKHR },
+          // { label: "Work Location", link: routes.workLocationKHR },
           { label: "Working Schedule", link: routes.workingScheduleKHR },
           { label: "Work Entry Type", link: routes.workEntryTypeKHR },
           { label: "Skills", link: routes.skillsKHR },
@@ -51,8 +52,6 @@ const rawSidebarData = [
           { label: "Geo Configurations", link: routes.geoKHR },
           { label: "Expense Category", link: routes.expenseCategoryKHR },
           { label: "Accrural Plan", link: routes.accruralPlanKHR },
-        
-
         ],
       },
     ],
@@ -136,12 +135,12 @@ const rawSidebarData = [
           {
             label: "Leaves (Employee)",
             link: routes.leaveEmployeeKHR,
-            roles: [ROLES.ADMIN], // 🔥 Employee Only
+            roles: [ROLES.ADMIN, ROLES.EMPLOYEE],
           },
           {
             label: "Leave Allocation",
             link: routes.leaveAllocationKHR,
-            roles: [ROLES.ADMIN],
+            roles: [ROLES.ADMIN, ROLES.EMPLOYEE],
           },
           {
             label: "Leave Request",
@@ -151,7 +150,7 @@ const rawSidebarData = [
           {
             label: "Leave Types",
             link: routes.leaveTypesKHR,
-            roles: [ROLES.ADMIN],
+            roles: [ROLES.ADMIN, ROLES.EMPLOYEE],
           },
           {
             label: "Public Holiday",
@@ -167,6 +166,7 @@ const rawSidebarData = [
       },
     ],
   },
+
   {
     tittle: "Finance & Accounts",
     icon: "payroll",
@@ -188,9 +188,13 @@ const rawSidebarData = [
             label: "Salary Structure Types",
             link: routes.salaryStructureTypeKHR,
           },
-            { label: "Salary Rule Category", link: routes.SalaryRuleCategoryKHR },
+          { label: "Salary Rule Category", link: routes.SalaryRuleCategoryKHR },
           { label: "Salary Structure", link: routes.salaryStructureKHR },
           { label: "Salary Rules", link: routes.SalaryRuleKHR },
+          {
+            label: "Payslip Other Input Type",
+            link: routes.payslipOtherInputTypeKHR,
+          },
         ],
       },
     ],
