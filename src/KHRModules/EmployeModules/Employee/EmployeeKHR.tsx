@@ -17,6 +17,7 @@ const EmployeeKHR = () => {
     setLoading(true);
     try {
       const data = await getEmployees();
+
       setEmployees(data);
     } catch (error) {
       console.error("Fetch Error:", error);

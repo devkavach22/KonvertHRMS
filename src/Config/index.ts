@@ -5,10 +5,8 @@ const BASE_URL_ALL = "https://staging.konverthr.com/";
 
 // const BASE_URL_LOGIN = "https://konverthrnode.onrender.com/";
 
-
-
 const CONFIG = {
-  BASE_URL_ALL
+  BASE_URL_ALL,
 };
 
 export default CONFIG;

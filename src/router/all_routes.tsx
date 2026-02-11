@@ -9,6 +9,7 @@ export const all_routes = {
   buisnessLocationKHR: "/KHR-business-location",
   buisnessTypeKHR: "/KHR-business-type",
   AttendancePolicyKHR: "/KHR-attedence-policy",
+  branchKHR: "/KHR-branch",
   workLocationKHR: "/KHR-work-location",
   workingScheduleKHR: "/KHR-working-schedule",
   workEntryTypeKHR: "/KHR-work-entry-type",
@@ -23,7 +24,6 @@ export const all_routes = {
   SalaryStructure: "/KHR-salary-structure",
   expenseCategoryKHR: "KHR-expense-category",
   accruralPlanKHR: "/KHR-accrural-plan",
-
   //Employee Modules
   employeeKHR: "/KHR-employees",
   employeeContractKHR: "/KHR-employee-contracts",
@@ -44,6 +44,8 @@ export const all_routes = {
 
   salaryStructureKHR: "/KHR-salary-structure",
   salaryStructureTypeKHR: "/KHR-salary-structure-types",
+  payslipOtherInputTypeKHR: "/KHR-payslip-other-input-type",
+
   // Approvals
   approvalKHR: "KHR-approval",
 

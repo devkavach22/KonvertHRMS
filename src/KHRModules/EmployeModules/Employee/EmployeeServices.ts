@@ -1,3 +1,4 @@
+import InstanceSecond from "@/api/axiosInstanceSecond";
 import Instance from "../../../api/axiosInstance";
 
 export interface Employee {
@@ -29,13 +30,65 @@ const getUserId = () => {
   return id ? Number(id) : null;
 };
 
+// export const getEmployees = async () => {
+//   try {
+//     const response = await Instance.get("/employee/employees", {
+//       params: { user_id: getUserId() },
+//     });
+//     return response.data.data || response.data || [];
+//   } catch (error) {
+//     return [];
+//   }
+// };
+
+// export const getEmployees = async () => {
+//   const userId = getUserId() || 3145; // fallback user ID
+
+//   try {
+//     const response = await axios.get(
+//       "http://178.236.185.232:9090/api/employees",
+//       {
+//         params: { user_id: userId },
+//       },
+//     );
+
+//     // Return response.data.data if exists, else response.data, else empty array
+//     return response.data?.data || response.data || [];
+//   } catch (error) {
+//     console.error("Error fetching employees:", error);
+//     return [];
+//   }
+// };
+
+// export const getEmployees = async () => {
+//   const userId = getUserId() || 3145;
+
+//   try {
+//     // We now use 'Instance' instead of raw 'axios'
+//     // The interceptor will automatically add headers.Authorization
+//     const response = await Instance.get("/employees", {
+//       params: { user_id: userId },
+//     });
+
+//     return response.data?.data || [];
+//   } catch (error) {
+//     console.error("Error fetching employees:", error);
+//     // Returning empty array so your .map() functions don't crash
+//     return [];
+//   }
+// };
+
 export const getEmployees = async () => {
+  const userId = getUserId() || 3145;
+
   try {
-    const response = await Instance.get("/employee/employees", {
-      params: { user_id: getUserId() },
+    const response = await InstanceSecond.get("api/employees", {
+      params: { user_id: userId },
     });
-    return response.data.data || response.data || [];
+
+    return response.data?.data || [];
   } catch (error) {
+    console.error("Error fetching employees:", error);
     return [];
   }
 };
@@ -104,10 +157,21 @@ export const getDepartments = async () => {
   return response.data.data || [];
 };
 
-export const getDesignations = async () => {
-  const response = await Instance.get("/api/job/list", {
-    params: { user_id: getUserId() },
-  });
+// export const getDesignations = async () => {
+//   const response = await Instance.get("/api/job/list", {
+//     params: { user_id: getUserId() },
+//   });
+//   return response.data.data || [];
+// };
+
+// Add or update this in EmployeeServices.ts
+export const getDesignations = async (departmentId?: string) => {
+  const params: any = { user_id: getUserId() }; // Use your current user_id logic
+  if (departmentId) {
+    params.department_id = departmentId;
+  }
+
+  const response = await Instance.get("/api/job/list", { params });
   return response.data.data || [];
 };
 
@@ -238,6 +302,7 @@ export const getDistricts = async (countryId: string, stateId: string) => {
     return [];
   }
 };
+
 export const getTimezones = async () => {
   try {
     const response = await Instance.get("/api/timezones");
@@ -249,11 +314,22 @@ export const getTimezones = async () => {
   }
 };
 
+// export const addEmployee = async (payload: any) => {
+//   const userId = getUserId() || 219;
+//   return await Instance.post(`/employee/create/employee`, payload, {
+//     params: { user_id: userId },
+//   });
+// };
+
+import axios from "axios";
+
 export const addEmployee = async (payload: any) => {
-  const userId = getUserId() || 219;
-  return await Instance.post(`/employee/create/employee`, payload, {
-    params: { user_id: userId },
-  });
+  const userId = getUserId() || 2;
+
+  return await axios.post(
+    "http://178.236.185.232:9090//api/employee/create",
+    payload,
+  );
 };
 
 export const updateEmployee = async (id: string, data: any) => {
