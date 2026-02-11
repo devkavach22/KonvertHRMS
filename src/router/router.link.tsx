@@ -317,6 +317,9 @@ import {
   SalaryRuleCategoryKHR,
   SalaryStructureType,
   SalaryStructureKHR,
+  PayslipOtherInputTypes,
+  BranchKHR,
+
   // BanksAccountKHR,
 } from "./lazyRoutes";
 
@@ -1613,6 +1616,11 @@ export const publicRoutes = [
     route: Route,
   },
   {
+    path: routes.branchKHR,
+    element: <BranchKHR />,
+    route: Route,
+  },
+  {
     path: routes.workLocationKHR,
     element: <WorkLocationKHR />,
     route: Route,
@@ -1717,6 +1725,11 @@ export const publicRoutes = [
     element: <SalaryRuleKHR />,
     route: Route,
   },
+  {
+    path: routes.payslipOtherInputTypeKHR,
+    element: <PayslipOtherInputTypes />,
+    route: Route,
+  },
   // {
   //   path: routes.SalaryStructure,
   //   element: <SalaryStructureType />,
@@ -1757,7 +1770,7 @@ export const publicRoutes = [
     element: <MendetoryDaysKHR />,
     route: Route,
   },
-   {
+  {
     path: routes.SalaryRuleCategoryKHR,
     element: <SalaryRuleCategoryKHR />,
     route: Route,
