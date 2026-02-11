@@ -3,7 +3,8 @@ import { RegularizationPayload } from "@/KHRModules/AttandanceModules/EmployeeAt
 import Service from "@/Service";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
-const { user_id, email } = Service.getAuthDetails();
+const user_id = localStorage.getItem("user_id");
+const email = localStorage.getItem("user_email");
 console.log(user_id, "uuuuu");
 
 // const authheader = () => {
@@ -74,7 +75,9 @@ export const AttendancesApi = createAsyncThunk(
   async (userdata, thunkAPI) => {
     console.log(userdata);
     try {
-      const { user_id } = Service.getAuthDetails();
+      const user_id = localStorage.getItem("user_id");
+      console.log(user_id,"user_id");
+      
 
       let result = await axios({
         method: "GET",
@@ -402,7 +405,8 @@ export const getCurrentAttendanceStatus = createAsyncThunk(
   "getCurrentAttendanceStatus",
   async (_, thunkAPI) => {
     try {
-      const { user_id, email } = Service.getAuthDetails();
+      const user_id = localStorage.getItem("user_id");
+      const email = localStorage.getItem("user_email");
 
       let result = await axios({
         method: "GET",
@@ -434,7 +438,8 @@ export const CheckinCheckout = createAsyncThunk(
   "CheckinCheckout",
   async (userdata: { Latitude: number; Longitude: number }, thunkAPI) => {
     try {
-      const { user_id, email } = Service.getAuthDetails();
+      const user_id = localStorage.getItem("user_id");
+      const email = localStorage.getItem("user_email");
 
       const payload = {
         ...userdata,
