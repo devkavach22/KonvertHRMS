@@ -64,6 +64,14 @@ const ALLRoutes: React.FC = () => {
     if (userId) {
       dispatch(getCurrentAttendanceStatus() as any);
     }
+  }, [isCheckinCheckout]);
+
+  React.useEffect(() => {
+    // Only call if user is logged in (check for user_id in localStorage)
+    const userId = localStorage.getItem("user_id");
+    if (userId) {
+      dispatch(getCurrentAttendanceStatus() as any);
+    }
   }, []);
 
   return (
