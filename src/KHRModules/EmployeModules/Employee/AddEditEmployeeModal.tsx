@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { DatePicker, Radio, Checkbox } from "antd";
+import { DatePicker, Radio, Slider, Checkbox } from "antd";
 import dayjs from "dayjs";
 import CommonSelect from "../../../core/common/commonSelect";
 import { toast } from "react-toastify";
@@ -186,6 +186,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     // 9. Setting
     pin: "",
   });
+  const todayStr = dayjs().format("YYYY-MM-DD");
 
   const initialFormData = {
     name: "",
@@ -230,6 +231,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     pin_code: "",
     district_id: "",
     state_id: "",
+    joining_date: todayStr,
     emergency_contact_name: "",
     emergency_contact_relation: "",
     emergency_contact_mobile: "",
@@ -240,7 +242,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     bank_iafc_code: "",
     bank_swift_code: "",
     currency_id: "INR",
-
+    attendance_capture_mode: "mobile",
     department_id: "",
     job_id: "",
     employment_type: "permanent",
@@ -865,7 +867,17 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     //   }
     // });
 
-    // Hold logic
+    // Department Validation
+    if (!formData.department_id) {
+      tempErrors.department_id = "Department is required.";
+      isValid = false;
+    }
+    // Designation Validation
+    if (!formData.job_id) {
+      tempErrors.job_id = "Designation is required.";
+      isValid = false;
+    }
+
     if (formData.hold_status && !formData.hold_remarks?.trim()) {
       tempErrors.hold_remarks =
         "Please provide a reason for placing the employee on hold.";
@@ -873,6 +885,10 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     }
     if (!formData.employee_password?.trim()) {
       tempErrors.employee_password = "Login Password is required.";
+      isValid = false;
+    }
+    if (!formData.joining_date) {
+      tempErrors.joining_date = "Joining Date is required.";
       isValid = false;
     }
     setErrors((prev: any) => ({ ...prev, ...tempErrors }));
@@ -1040,16 +1056,21 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     const fetchBranchData = async () => {
       try {
         const data = await getBranches();
-        // Map API data to { value, label } format
         const branchList = Array.isArray(data) ? data : [];
 
-        setBranches(
-          branchList.map((b: any) => ({
-            value: b.id.toString(),
-            // Combine RegisteredCompany and address with a separator
-            label: `${b.RegisteredCompnany} | ${b.address}`,
-          })),
-        );
+        const formattedBranches = branchList.map((b: any) => ({
+          value: b.id.toString(),
+          label: `${b.RegisteredCompnany} | ${b.address}`,
+        }));
+
+        setBranches(formattedBranches);
+        // ✅ NEW: Set the first branch as default if we are adding a NEW employee
+        if (!data && formattedBranches.length > 0 && !formData.name_of_client) {
+          setFormData((prev: any) => ({
+            ...prev,
+            name_of_client: formattedBranches[0].value,
+          }));
+        }
       } catch (error) {
         console.error("Error fetching branches:", error);
       }
@@ -2274,6 +2295,12 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             defaultValue={branches.find(
                               (b) => b.value === formData.name_of_client,
                             )}
+                            // value={
+                            //   branches.find(
+                            //     (b) =>
+                            //       b.value === String(formData.name_of_client),
+                            //   ) || null
+                            // }
                             formatOptionLabel={(option: any) => {
                               // Split the combined label back into Company and Address
                               const [company, address] =
@@ -2372,7 +2399,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                         />
                       </div>
 
-                      <div className="col-md-4">
+                      {/* <div className="col-md-4">
                         <label className="form-label fs-13">
                           Experience (Years)
                         </label>
@@ -2387,6 +2414,61 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             })
                           }
                         />
+                      </div> */}
+                      <div className="col-md-4">
+                        <div className="d-flex justify-content-between align-items-center mb-2">
+                          <label className="form-label fs-13 fw-bold text-dark">
+                            Experience (Years)
+                          </label>
+                          {/* Dynamic Badge with better styling */}
+                          <span
+                            className="badge rounded-pill px-3 py-2"
+                            style={{
+                              backgroundColor: "rgba(228, 33, 40, 0.1)",
+                              color: "#E42128",
+                              fontSize: "12px",
+                              border: "1px solid rgba(228, 33, 40, 0.2)",
+                            }}
+                          >
+                            {formData.total_experiance || 0} Years
+                          </span>
+                        </div>
+
+                        <div className="px-2" style={{ height: "50px" }}>
+                          <Slider
+                            min={0}
+                            max={30}
+                            step={1}
+                            // Marks add a professional scale look
+                            marks={{
+                              0: "0",
+                              10: "10",
+                              20: "20",
+                              30: "30+",
+                            }}
+                            tooltip={{
+                              formatter: (value) => `${value} Years`,
+                              open: true, // Keep tooltip visible for better UX
+                            }}
+                            value={Number(formData.total_experiance) || 0}
+                            onChange={(val) =>
+                              setFormData({
+                                ...formData,
+                                total_experiance: val.toString(),
+                              })
+                            }
+                            styles={{
+                              track: { backgroundColor: "#E42128" },
+                              handle: {
+                                borderColor: "#E42128",
+                                backgroundColor: "#fff",
+                                width: "16px",
+                                height: "16px",
+                                marginTop: "-6px",
+                              },
+                            }}
+                          />
+                        </div>
                       </div>
 
                       {/* 7. Shift Roster - OPTIONAL */}
@@ -3188,7 +3270,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                   </div>
                                 )}
                               </div>
-                              <div className="col-md-4 animate__animated animate__fadeInDown">
+                              <div className="col-md-2 animate__animated animate__fadeInDown">
                                 <label className="form-label fs-13">
                                   Date of Marriage{" "}
                                   <span className="text-danger">*</span>
@@ -3405,6 +3487,81 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                 )
                               }
                             />
+                          </div>
+                          <div className="col-md-3">
+                            <label className="form-label fs-12 mb-1 text-truncate">
+                              CV / Resume Attachment
+                            </label>
+                            <div className="d-flex align-items-center gap-1">
+                              {/* Minimalist Upload Button */}
+                              <div className="position-relative">
+                                <label
+                                  className={`btn btn-icon btn-xs mb-0 ${formData.cv_file ? "btn-soft-success" : "btn-soft-primary"} border-dashed`}
+                                  style={{
+                                    width: "32px",
+                                    height: "32px",
+                                    borderRadius: "6px",
+                                  }}
+                                  title="Upload CV"
+                                >
+                                  <i
+                                    className={`ti ${formData.cv_file ? "ti-file-text" : "ti-upload"} fs-16`}
+                                  ></i>
+                                  <input
+                                    type="file"
+                                    accept=".pdf,.doc,.docx"
+                                    className="position-absolute opacity-0 w-100 h-100 start-0 top-0"
+                                    style={{ cursor: "pointer" }}
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0] || null;
+                                      setFormData({
+                                        ...formData,
+                                        cv_file: file,
+                                      });
+                                    }}
+                                  />
+                                </label>
+                              </div>
+
+                              {/* File Status Indicator */}
+                              {formData.cv_file && (
+                                <div className="d-flex align-items-center animate__animated animate__fadeIn">
+                                  {/* If it's a new local file */}
+                                  {formData.cv_file instanceof File && (
+                                    <div
+                                      className="ms-1 d-flex align-items-center"
+                                      title={formData.cv_file.name}
+                                    >
+                                      <i className="ti ti-circle-check-filled text-success fs-16 me-1"></i>
+                                      <span
+                                        className="fs-10 text-muted text-truncate"
+                                        style={{ maxWidth: "80px" }}
+                                      >
+                                        {formData.cv_file.name}
+                                      </span>
+                                    </div>
+                                  )}
+
+                                  {/* If it's an existing URL (for Edit mode) */}
+                                  {typeof formData.cv_file === "string" && (
+                                    <a
+                                      href={formData.cv_file}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="btn btn-icon btn-xs btn-ghost-info"
+                                      title="View Current CV"
+                                    >
+                                      <i className="ti ti-eye fs-16"></i>
+                                    </a>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            <div className="mt-1">
+                              <span className="fs-10 text-muted">
+                                Supports PDF, DOCX (Max 5MB)
+                              </span>
+                            </div>
                           </div>
                           {/* <div className="col-md-4">
                             <label className="form-label fs-13">
@@ -4105,7 +4262,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           {/* Department - OPTIONAL */}
                           <div className="col-md-2">
                             <label className="form-label fs-13">
-                              Department
+                              Department <span className="text-danger">*</span>
                             </label>
                             <div>
                               <CommonSelect
@@ -4137,12 +4294,18 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                 }}
                               />
                             </div>
+                            {isSubmitted && errors.department_id && (
+                              <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                                <i className="ti ti-info-circle me-1"></i>
+                                {errors.department_id}
+                              </div>
+                            )}
                           </div>
 
                           {/* Designation - OPTIONAL */}
                           <div className="col-md-3">
                             <label className="form-label fs-13">
-                              Designation
+                              Designation <span className="text-danger">*</span>
                             </label>
                             <div>
                               <CommonSelect
@@ -4165,8 +4328,14 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                 }}
                               />
                             </div>
+                            {isSubmitted && errors.job_id && (
+                              <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                                <i className="ti ti-info-circle me-1"></i>
+                                {errors.job_id}
+                              </div>
+                            )}
                           </div>
-
+                          {/* 
                           <div className="col-md-2">
                             <label className="form-label fs-13">
                               Employment Type
@@ -4192,7 +4361,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                 })
                               }
                             />
-                          </div>
+                          </div> */}
                           {/* Employee Password - MANDATORY */}
                           <div className="col-md-3">
                             <label className="form-label fs-13">
@@ -4251,7 +4420,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             )}
                           </div>
 
-                          <div className="col-md-2">
+                          {/* <div className="col-md-2">
                             <label className="form-label fs-13">
                               Grade / Band
                             </label>
@@ -4267,7 +4436,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                 })
                               }
                             />
-                          </div>
+                          </div> */}
                         </div>
                       </div>
 
@@ -4283,10 +4452,15 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           {/* Joining Date - OPTIONAL */}
                           <div className="col-md-3">
                             <label className="form-label fs-13">
-                              Joining Date
+                              Joining Date{" "}
+                              <span className="text-danger">*</span>
                             </label>
                             <DatePicker
-                              className="w-100 form-control"
+                              className={`w-100 form-control ${
+                                isSubmitted && errors.joining_date
+                                  ? "is-invalid"
+                                  : ""
+                              }`}
                               value={
                                 formData.joining_date
                                   ? dayjs(formData.joining_date)
@@ -4297,8 +4471,21 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                   ...formData,
                                   joining_date: dateStr,
                                 });
+                                // Clear error as soon as a date is picked
+                                if (errors.joining_date) {
+                                  setErrors((prev: any) => ({
+                                    ...prev,
+                                    joining_date: "",
+                                  }));
+                                }
                               }}
                             />
+                            {isSubmitted && errors.joining_date && (
+                              <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                                <i className="ti ti-info-circle me-1"></i>
+                                {errors.joining_date}
+                              </div>
+                            )}
                           </div>
 
                           {/* <div className="col-md-3">
@@ -4381,6 +4568,29 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             )}
                           </div> */}
 
+                          <div className="col-md-2 d-flex align-items-center pt-4">
+                            <div className="form-check">
+                              <input
+                                type="checkbox"
+                                className="form-check-input"
+                                id="probCheck"
+                                checked={formData.in_probation}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    in_probation: e.target.checked,
+                                  })
+                                }
+                              />
+                              <label
+                                className="form-check-label fs-13 ms-1"
+                                htmlFor="probCheck"
+                              >
+                                In Probation
+                              </label>
+                            </div>
+                          </div>
+
                           <div className="col-md-2">
                             <label className="form-label fs-13">
                               Probation (Months)
@@ -4409,29 +4619,6 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                               disabled
                               placeholder="Auto-calculated"
                             />
-                          </div>
-
-                          <div className="col-md-2 d-flex align-items-center pt-4">
-                            <div className="form-check">
-                              <input
-                                type="checkbox"
-                                className="form-check-input"
-                                id="probCheck"
-                                checked={formData.in_probation}
-                                onChange={(e) =>
-                                  setFormData({
-                                    ...formData,
-                                    in_probation: e.target.checked,
-                                  })
-                                }
-                              />
-                              <label
-                                className="form-check-label fs-13 ms-1"
-                                htmlFor="probCheck"
-                              >
-                                In Probation
-                              </label>
-                            </div>
                           </div>
                         </div>
                       </div>
@@ -4499,6 +4686,11 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                 { value: "biometric", label: "BIOMETRIC" },
                                 { value: "mobile", label: "MobileAPP" },
                               ]}
+                              defaultValue={{
+                                value: "mobile",
+                                label: "MobileAPP",
+                              }}
+                              disabled={true}
                               placeholder="Capture Mode"
                               onChange={(opt) =>
                                 setFormData({
@@ -4536,7 +4728,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             </div>
                           </div>
 
-                          <div className="col-md-2">
+                          {/* <div className="col-md-2">
                             <label className="form-label fs-13">Week Off</label>
                             <input
                               type="text"
@@ -4553,7 +4745,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                 handleAlphaOnlyChange(e, "week_off")
                               }
                             />
-                          </div>
+                          </div> */}
 
                           <div className="col-md-2 d-flex align-items-center pt-4">
                             <div className="form-check">
@@ -4853,7 +5045,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           {/* Platform & Version */}
                           <div className="col-md-3">
                             <label className="form-label fs-13">
-                              Mobile OS Version
+                              Mobile OS Version Type
                             </label>
                             <input
                               type="text"
@@ -4871,7 +5063,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
 
                           <div className="col-md-3">
                             <label className="form-label fs-13">
-                              Mobile OS Version{" "}
+                              Mobile OS Version number{" "}
                             </label>
                             <input
                               type="text"
@@ -4888,7 +5080,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           </div>
 
                           {/* IP Address */}
-                          <div className="col-md-3">
+                          {/* <div className="col-md-3">
                             <label className="form-label fs-13">
                               IP Address
                             </label>
@@ -4904,7 +5096,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                 })
                               }
                             />
-                          </div>
+                          </div> */}
 
                           {/* Random Registration Code */}
                           <div className="col-md-3">
