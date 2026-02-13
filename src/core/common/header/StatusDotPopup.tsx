@@ -72,7 +72,6 @@ const StatusCheckInPopup: React.FC = () => {
 
       // Only show toast if this was triggered by user action
       if (isUserAction) {
-        toast.success("Checked in successfully");
         setIsUserAction(false); // Reset the flag
       }
     }
@@ -84,7 +83,6 @@ const StatusCheckInPopup: React.FC = () => {
 
       // Only show toast if this was triggered by user action
       if (isUserAction) {
-        toast.success("Checked out successfully");
         setIsUserAction(false); // Reset the flag
       }
     }
