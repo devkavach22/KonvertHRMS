@@ -25,16 +25,15 @@ const Header = React.memo(() => {
   const routes = all_routes;
   const dispatch = useDispatch<AppDispatch>();
   const dataLayout = useSelector(
-    (state: RootState) => state.themeSetting.dataLayout
+    (state: RootState) => state.themeSetting.dataLayout,
   );
   const Location = useLocation();
-  const userName = localStorage.getItem("full_name");
+  const userName = localStorage.getItem("company_name") || "Admin";
   const userEmail = localStorage.getItem("user_email") || "Admin";
-  console.log(userName,"userName");
-  
+  console.log(userName, "userName");
 
   const avatarSrc = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-    userName
+    userName,
   )}&background=ff6600&color=fff`;
 
   const [subOpen, setSubopen] = useState<string>("");
@@ -50,7 +49,7 @@ const Header = React.memo(() => {
         setSubopen(title);
       }
     },
-    [subOpen]
+    [subOpen],
   );
 
   // Memoize the toggle subsidebar function
@@ -62,11 +61,11 @@ const Header = React.memo(() => {
         setSubsidebar(subitem);
       }
     },
-    [subsidebar]
+    [subsidebar],
   );
 
   const mobileSidebar = useSelector(
-    (state: RootState) => state.sidebarSlice.mobileSidebar
+    (state: RootState) => state.sidebarSlice.mobileSidebar,
   );
 
   // Memoize the toggle mobile sidebar function
@@ -194,18 +193,18 @@ const Header = React.memo(() => {
                                       ""}
                                   </Link>
                                 </li>
-                              )
+                              ),
                             )}
                           </ul>
                         )}
                       </li>
-                    )
+                    ),
                   )}
                 </ul>
               </li>
             ))}
           </React.Fragment>
-        )
+        ),
       ),
     [
       HorizontalSidebarData,
@@ -214,7 +213,7 @@ const Header = React.memo(() => {
       subsidebar,
       toggleSidebar,
       toggleSubsidebar,
-    ]
+    ],
   );
 
   return (
@@ -289,7 +288,7 @@ const Header = React.memo(() => {
                     {userName}
                   </span>
                 </div>
-{/* 
+                {/* 
                 <div className="dropdown crm-dropdown">
                   <Link
                     to="#"
@@ -744,8 +743,8 @@ const Header = React.memo(() => {
                     />
                   </span>
                   <div>
-                  <h6 className="mb-0">{userName}</h6>
-                            <p className="fs-12 fw-medium mb-0">{userEmail}</p>
+                    <h6 className="mb-0">{userName}</h6>
+                    <p className="fs-12 fw-medium mb-0">{userEmail}</p>
                   </div>
                 </div>
               </div>
