@@ -103,7 +103,8 @@ const Login = () => {
           localStorage.setItem("plan_start_date", data.plan_start_date);
         if (data.plan_end_date)
           localStorage.setItem("plan_end_date", data.plan_end_date);
-
+        if (data.company_name)
+          localStorage.setItem("company_name", data.company_name);
         // Product Details
         if (Array.isArray(data.product_id) && data.product_id.length > 0) {
           localStorage.setItem("product_id", data.product_id[0].toString());
