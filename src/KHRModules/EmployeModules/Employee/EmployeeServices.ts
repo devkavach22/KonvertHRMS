@@ -326,10 +326,7 @@ import axios from "axios";
 export const addEmployee = async (payload: any) => {
   const userId = getUserId() || 2;
 
-  return await axios.post(
-    "http://178.236.185.232:9090//api/employee/create",
-    payload,
-  );
+  return await InstanceSecond.post("/api/employee/create", payload);
 };
 
 export const updateEmployee = async (id: string, data: any) => {

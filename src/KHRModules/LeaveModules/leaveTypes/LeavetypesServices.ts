@@ -85,13 +85,13 @@ export const createLeaveType = async (data: LeaveTypePayload) => {
     const response = await Instance.post(
       "/api/create/leave-type",
       data,
-      config
+      config,
     );
     return response.data;
   } catch (error: any) {
     console.error(
       "Error creating leave type:",
-      error.response?.data ?? error.message ?? error
+      error.response?.data ?? error.message ?? error,
     );
     throw error;
   }
@@ -118,7 +118,7 @@ export const updateLeaveType = async (id: number, data: any) => {
   try {
     const response = await Instance.put(
       `/api/leave-type/${id}?user_id=${user_id}`,
-      data
+      data,
     );
     return response.data;
   } catch (error: any) {
@@ -138,7 +138,7 @@ export const getAllLeaveTypes = async () => {
 export const deleteLeaveType = async (id: number) => {
   let user_id = localStorage.getItem("user_id");
   const response = await Instance.delete(
-    `/api/leave-type/${id}?user_id=${user_id}`
+    `/api/leave-type/${id}?user_id=${user_id}`,
   );
   return response.data;
 };
