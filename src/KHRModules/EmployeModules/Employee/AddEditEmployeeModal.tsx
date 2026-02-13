@@ -2067,7 +2067,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
         ip_address: formData.ip_address,
         random_code_for_reg: formData.random_code_for_reg,
         system_version: formData.system_version,
-        client_user_id: getCurrentUserId(),
+        // client_user_id: getCurrentUserId(),
         // group_id: groupAccessLines.map((line) =>
         //   line.group_id ? Number(line.group_id) : 0,
         // ),

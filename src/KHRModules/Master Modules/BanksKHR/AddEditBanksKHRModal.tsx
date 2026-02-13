@@ -11,7 +11,7 @@ import CommonSelect from "../../../core/common/commonSelect";
 interface Props {
   onSuccess: () => void;
   data: Bank | null;
-  onClose: () => void; // <--- NEW PROP
+  onClose: () => void;
 }
 
 const AddEditBanksKHRModal: React.FC<Props> = ({
@@ -37,61 +37,76 @@ const AddEditBanksKHRModal: React.FC<Props> = ({
     email: "",
     street: "",
     street2: "",
-    city: "",
-    state: "",
+    city: "", // This will store the District ID
+    state: "", // This will store the State ID
     zip: "",
-    country: "",
+    country: "104", // Default to India (104) if applicable
   };
 
   const [formData, setFormData] = useState<any>(initialFormState);
 
-  // 1. BOOTSTRAP EVENT LISTENER - Ensures form clears on any close action
+  // --- HELPER FUNCTIONS FOR DEPENDENT DROPDOWNS ---
+  const loadStates = async (countryId: string) => {
+    try {
+      const stateData = await getStates(countryId);
+      setStates(
+        stateData.map((s: any) => ({ value: String(s.id), label: s.name })),
+      );
+    } catch (err) {
+      console.error("Failed to load states", err);
+      setStates([]);
+    }
+  };
+
+  const loadDistricts = async (countryId: string, stateId: string) => {
+    try {
+      const districtData = await getDistricts(countryId, stateId);
+      setDistricts(
+        districtData.map((d: any) => ({ value: String(d.id), label: d.name })),
+      );
+    } catch (err) {
+      console.error("Failed to load districts", err);
+      setDistricts([]);
+    }
+  };
+
+  // 1. BOOTSTRAP EVENT LISTENER
   useEffect(() => {
     const modalElement = document.getElementById("add_bank_modal");
-
     const handleModalHidden = () => {
       resetForm();
-      onClose(); // <--- CALL PARENT TO RESET STATE
+      onClose();
     };
-
     modalElement?.addEventListener("hidden.bs.modal", handleModalHidden);
-
     return () => {
       modalElement?.removeEventListener("hidden.bs.modal", handleModalHidden);
     };
   }, [onClose]);
 
-  // 2. Fetch Address Dropdown Data
+  // 2. INITIAL FETCH - Countries Only (and default India states)
   useEffect(() => {
-    const fetchAddressData = async () => {
+    const fetchInitialData = async () => {
       try {
-        const [countryData, stateData, districtData] = await Promise.all([
-          getCountries(),
-          getStates(),
-          getDistricts(),
-        ]);
+        const countryData = await getCountries();
         setCountries(
           countryData.map((c: any) => ({ value: String(c.id), label: c.name })),
         );
-        setStates(
-          stateData.map((s: any) => ({ value: String(s.id), label: s.name })),
-        );
-        setDistricts(
-          districtData.map((d: any) => ({
-            value: String(d.id),
-            label: d.name,
-          })),
-        );
+
+        // Optional: Pre-load states for India (104) for a smoother UX if creating new
+        if (!data) {
+          loadStates("104");
+        }
       } catch (error) {
-        console.error("Error fetching address dropdowns", error);
+        console.error("Error fetching initial data", error);
       }
     };
-    fetchAddressData();
+    fetchInitialData();
   }, []);
 
-  // 3. Populate form on Edit
+  // 3. POPULATE FORM ON EDIT & LOAD DEPENDENCIES
   useEffect(() => {
     if (data) {
+      // 1. Set form data
       setFormData({
         name: data.name || "",
         bic: data.bic || "",
@@ -100,14 +115,27 @@ const AddEditBanksKHRModal: React.FC<Props> = ({
         phone: data.phone || "",
         email: data.email || "",
         street: data.street || "",
-        street2: data.street || "", // Adjust if street2 exists in your type
-        city: data.city || "", // Ensure data has city/state/country IDs or names depending on API
-        state: data.state || "",
-        zip: data.zip || "", // Adjust if zip exists
-        country: data.country || "",
+        street2: data.street2 || "", // Fixed key mapping if needed
+        city: data.city ? String(data.city) : "",
+        state: data.state ? String(data.state) : "",
+        zip: data.zip || "",
+        country: data.country ? String(data.country) : "104",
       });
+
+      // 2. Load Dependent Dropdowns based on the existing data
+      const cId = data.country ? String(data.country) : "104";
+      const sId = data.state ? String(data.state) : "";
+
+      loadStates(cId); // Load States for the saved Country
+
+      if (sId) {
+        loadDistricts(cId, sId); // Load Cities for the saved State
+      }
     } else {
       resetForm();
+      // Reset dropdowns for "New" mode
+      loadStates("104");
+      setDistricts([]);
     }
   }, [data]);
 
@@ -118,18 +146,14 @@ const AddEditBanksKHRModal: React.FC<Props> = ({
     setIsSubmitting(false);
   };
 
-  // Real-time validation removal logic
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-
-    // Special handling for Phone: Numbers only, max 10 chars
     if (name === "phone") {
       const numericValue = value.replace(/\D/g, "").slice(0, 10);
       setFormData({ ...formData, [name]: numericValue });
     } else {
       setFormData({ ...formData, [name]: value });
     }
-
     if (errors[name]) {
       const newErrors = { ...errors };
       delete newErrors[name];
@@ -139,29 +163,15 @@ const AddEditBanksKHRModal: React.FC<Props> = ({
 
   const validate = () => {
     let tempErrors: any = {};
-
-    // Required Fields
     if (!formData.name?.trim()) tempErrors.name = "Bank Name is required";
     if (!formData.bic?.trim()) tempErrors.bic = "BIC is required";
-
-    // Phone Validation: Must be exactly 10 digits
     if (formData.phone && formData.phone.length !== 10) {
       tempErrors.phone = "Phone number must be exactly 10 digits";
     }
-
-    // 3. Email Validation (Strict Format)
-    // Regex explanation:
-    // ^[a-zA-Z0-9._%+-]+  : Start with letters, numbers, dots, underscores, etc.
-    // @                   : Must have @ symbol
-    // [a-zA-Z0-9.-]+      : Domain name (e.g. 'gmail', 'yahoo')
-    // \.                  : Must have a dot
-    // [a-zA-Z]{2,}$       : Domain extension must be at least 2 letters (e.g. 'com', 'in')
     const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
     if (formData.email && !emailPattern.test(formData.email)) {
-      tempErrors.email = "Invalid email format (e.g. example@mail.com)";
+      tempErrors.email = "Invalid email format";
     }
-
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
   };
@@ -287,7 +297,7 @@ const AddEditBanksKHRModal: React.FC<Props> = ({
               </div>
 
               <div className="row g-4">
-                {/* --- Re-organized Bank Address Layout --- */}
+                {/* --- Bank Address Layout --- */}
                 <div className="col-md-7">
                   <h6 className="fw-bold text-primary mb-3 pb-2 border-bottom fs-14">
                     Bank Address
@@ -311,48 +321,81 @@ const AddEditBanksKHRModal: React.FC<Props> = ({
                         onChange={handleInputChange}
                       />
                     </div>
-                    {/* Shared row: City and State */}
+
+                    {/* COUNTRY SELECT */}
+                    <div className="col-md-6">
+                      <label className="form-label fs-12 mb-1">Country</label>
+                      <CommonSelect
+                        options={countries}
+                        placeholder="Select Country"
+                        defaultValue={countries.find(
+                          (c) => String(c.value) === String(formData.country),
+                        )}
+                        onChange={(opt) => {
+                          const newCountry = opt?.value || "104";
+                          setFormData({
+                            ...formData,
+                            country: newCountry,
+                            state: "", // Reset State
+                            city: "", // Reset District
+                          });
+                          // Load states for new country
+                          loadStates(newCountry);
+                          // Clear districts
+                          setDistricts([]);
+                        }}
+                      />
+                    </div>
+
+                    {/* STATE SELECT */}
                     <div className="col-md-6 mb-2">
+                      <label className="form-label fs-12 mb-1">State</label>
+                      <CommonSelect
+                        options={states}
+                        placeholder="Select State"
+                        // Force re-render when country changes using key
+                        key={`state-select-${formData.country}`}
+                        defaultValue={states.find(
+                          (s) => String(s.value) === String(formData.state),
+                        )}
+                        onChange={(opt) => {
+                          const newState = opt?.value || "";
+                          setFormData({
+                            ...formData,
+                            state: newState,
+                            city: "", // Reset District
+                          });
+                          // Load districts for new state
+                          if (newState) {
+                            loadDistricts(formData.country, newState);
+                          } else {
+                            setDistricts([]);
+                          }
+                        }}
+                      />
+                    </div>
+
+                    {/* DISTRICT/CITY SELECT */}
+                    <div className="col-md-6 mb-2">
+                      <label className="form-label fs-12 mb-1">
+                        District / City
+                      </label>
                       <CommonSelect
                         options={districts}
                         placeholder="Select City"
+                        // Force re-render when state changes using key
+                        key={`dist-select-${formData.state}`}
                         defaultValue={districts.find(
-                          (d) => d.value === String(formData.city),
+                          (d) => String(d.value) === String(formData.city),
                         )}
                         onChange={(opt) =>
                           setFormData({ ...formData, city: opt?.value || "" })
                         }
                       />
                     </div>
-                    <div className="col-md-6 mb-2">
-                      <CommonSelect
-                        options={states}
-                        placeholder="Select State"
-                        defaultValue={states.find(
-                          (s) => s.value === String(formData.state),
-                        )}
-                        onChange={(opt) =>
-                          setFormData({ ...formData, state: opt?.value || "" })
-                        }
-                      />
-                    </div>
-                    {/* Shared row: Country and ZIP */}
+
                     <div className="col-md-6">
-                      <CommonSelect
-                        options={countries}
-                        placeholder="Select Country"
-                        defaultValue={countries.find(
-                          (c) => c.value === String(formData.country),
-                        )}
-                        onChange={(opt) =>
-                          setFormData({
-                            ...formData,
-                            country: opt?.value || "",
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="col-md-6">
+                      <label className="form-label fs-12 mb-1">Zip Code</label>
                       <input
                         type="text"
                         name="zip"
@@ -381,13 +424,9 @@ const AddEditBanksKHRModal: React.FC<Props> = ({
                       <input
                         type="text"
                         name="phone"
-                        maxLength={10} // HTML5 Limit
+                        maxLength={10}
                         className={`form-control ${
-                          isSubmitted && errors.phone
-                            ? "is-invalid"
-                            : formData.phone && !errors.phone
-                              ? "is-valid"
-                              : ""
+                          isSubmitted && errors.phone ? "is-invalid" : ""
                         }`}
                         value={formData.phone}
                         onChange={handleInputChange}
@@ -412,11 +451,7 @@ const AddEditBanksKHRModal: React.FC<Props> = ({
                         type="email"
                         name="email"
                         className={`form-control ${
-                          isSubmitted && errors.email
-                            ? "is-invalid"
-                            : formData.email && !errors.email
-                              ? "is-valid"
-                              : ""
+                          isSubmitted && errors.email ? "is-invalid" : ""
                         }`}
                         value={formData.email}
                         onChange={handleInputChange}
@@ -432,7 +467,7 @@ const AddEditBanksKHRModal: React.FC<Props> = ({
                 </div>
               </div>
 
-              {/* Submit Buttons with Spinner */}
+              {/* Submit Buttons */}
               <div className="modal-footer border-0 px-0 mt-4 pb-0">
                 <button
                   type="button"
@@ -449,11 +484,7 @@ const AddEditBanksKHRModal: React.FC<Props> = ({
                 >
                   {isSubmitting ? (
                     <>
-                      <span
-                        className="spinner-border spinner-border-sm me-2"
-                        role="status"
-                        aria-hidden="true"
-                      ></span>
+                      <span className="spinner-border spinner-border-sm me-2"></span>
                       Saving...
                     </>
                   ) : data ? (
@@ -479,17 +510,21 @@ export default AddEditBanksKHRModal;
 //   getCountries,
 //   getStates,
 //   getDistricts,
-// } from "@/KHRModules/EmployeModules/Employee/EmployeeServices"; //
+// } from "@/KHRModules/EmployeModules/Employee/EmployeeServices";
 // import { toast } from "react-toastify";
-// import { all_routes } from "../../../router/all_routes";
 // import CommonSelect from "../../../core/common/commonSelect";
 
 // interface Props {
 //   onSuccess: () => void;
 //   data: Bank | null;
+//   onClose: () => void; // <--- NEW PROP
 // }
 
-// const AddEditBanksKHRModal: React.FC<Props> = ({ onSuccess, data }) => {
+// const AddEditBanksKHRModal: React.FC<Props> = ({
+//   onSuccess,
+//   data,
+//   onClose,
+// }) => {
 //   const [isSubmitting, setIsSubmitting] = useState(false);
 //   const [isSubmitted, setIsSubmitted] = useState(false);
 //   const [errors, setErrors] = useState<any>({});
@@ -499,7 +534,7 @@ export default AddEditBanksKHRModal;
 //   const [states, setStates] = useState<any[]>([]);
 //   const [districts, setDistricts] = useState<any[]>([]);
 
-//   const [formData, setFormData] = useState<any>({
+//   const initialFormState = {
 //     name: "",
 //     bic: "",
 //     swift_code: "",
@@ -512,7 +547,9 @@ export default AddEditBanksKHRModal;
 //     state: "",
 //     zip: "",
 //     country: "",
-//   });
+//   };
+
+//   const [formData, setFormData] = useState<any>(initialFormState);
 
 //   // 1. BOOTSTRAP EVENT LISTENER - Ensures form clears on any close action
 //   useEffect(() => {
@@ -520,6 +557,7 @@ export default AddEditBanksKHRModal;
 
 //     const handleModalHidden = () => {
 //       resetForm();
+//       onClose(); // <--- CALL PARENT TO RESET STATE
 //     };
 
 //     modalElement?.addEventListener("hidden.bs.modal", handleModalHidden);
@@ -527,7 +565,7 @@ export default AddEditBanksKHRModal;
 //     return () => {
 //       modalElement?.removeEventListener("hidden.bs.modal", handleModalHidden);
 //     };
-//   }, []);
+//   }, [onClose]);
 
 //   // 2. Fetch Address Dropdown Data
 //   useEffect(() => {
@@ -539,13 +577,16 @@ export default AddEditBanksKHRModal;
 //           getDistricts(),
 //         ]);
 //         setCountries(
-//           countryData.map((c: any) => ({ value: String(c.id), label: c.name }))
+//           countryData.map((c: any) => ({ value: String(c.id), label: c.name })),
 //         );
 //         setStates(
-//           stateData.map((s: any) => ({ value: String(s.id), label: s.name }))
+//           stateData.map((s: any) => ({ value: String(s.id), label: s.name })),
 //         );
 //         setDistricts(
-//           districtData.map((d: any) => ({ value: String(d.id), label: d.name }))
+//           districtData.map((d: any) => ({
+//             value: String(d.id),
+//             label: d.name,
+//           })),
 //         );
 //       } catch (error) {
 //         console.error("Error fetching address dropdowns", error);
@@ -557,27 +598,27 @@ export default AddEditBanksKHRModal;
 //   // 3. Populate form on Edit
 //   useEffect(() => {
 //     if (data) {
-//       setFormData({ ...data });
+//       setFormData({
+//         name: data.name || "",
+//         bic: data.bic || "",
+//         swift_code: data.swift_code || "",
+//         micr_code: data.micr_code || "",
+//         phone: data.phone || "",
+//         email: data.email || "",
+//         street: data.street || "",
+//         street2: data.street || "", // Adjust if street2 exists in your type
+//         city: data.city || "", // Ensure data has city/state/country IDs or names depending on API
+//         state: data.state || "",
+//         zip: data.zip || "", // Adjust if zip exists
+//         country: data.country || "",
+//       });
 //     } else {
 //       resetForm();
 //     }
 //   }, [data]);
 
 //   const resetForm = () => {
-//     setFormData({
-//       name: "",
-//       bic: "",
-//       swift_code: "",
-//       micr_code: "",
-//       phone: "",
-//       email: "",
-//       street: "",
-//       street2: "",
-//       city: "",
-//       state: "",
-//       zip: "",
-//       country: "",
-//     });
+//     setFormData(initialFormState);
 //     setErrors({});
 //     setIsSubmitted(false);
 //     setIsSubmitting(false);
@@ -586,7 +627,14 @@ export default AddEditBanksKHRModal;
 //   // Real-time validation removal logic
 //   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 //     const { name, value } = e.target;
-//     setFormData({ ...formData, [name]: value });
+
+//     // Special handling for Phone: Numbers only, max 10 chars
+//     if (name === "phone") {
+//       const numericValue = value.replace(/\D/g, "").slice(0, 10);
+//       setFormData({ ...formData, [name]: numericValue });
+//     } else {
+//       setFormData({ ...formData, [name]: value });
+//     }
 
 //     if (errors[name]) {
 //       const newErrors = { ...errors };
@@ -597,18 +645,27 @@ export default AddEditBanksKHRModal;
 
 //   const validate = () => {
 //     let tempErrors: any = {};
+
+//     // Required Fields
 //     if (!formData.name?.trim()) tempErrors.name = "Bank Name is required";
 //     if (!formData.bic?.trim()) tempErrors.bic = "BIC is required";
 
-//     // Dynamic validation for Phone/Email
-//     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-//       tempErrors.email = "Invalid email format";
+//     // Phone Validation: Must be exactly 10 digits
+//     if (formData.phone && formData.phone.length !== 10) {
+//       tempErrors.phone = "Phone number must be exactly 10 digits";
 //     }
-//     if (
-//       formData.phone &&
-//       !/^[0-9]{10,12}$/.test(formData.phone.replace(/\D/g, ""))
-//     ) {
-//       tempErrors.phone = "Invalid phone number";
+
+//     // 3. Email Validation (Strict Format)
+//     // Regex explanation:
+//     // ^[a-zA-Z0-9._%+-]+  : Start with letters, numbers, dots, underscores, etc.
+//     // @                   : Must have @ symbol
+//     // [a-zA-Z0-9.-]+      : Domain name (e.g. 'gmail', 'yahoo')
+//     // \.                  : Must have a dot
+//     // [a-zA-Z]{2,}$       : Domain extension must be at least 2 letters (e.g. 'com', 'in')
+//     const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+//     if (formData.email && !emailPattern.test(formData.email)) {
+//       tempErrors.email = "Invalid email format (e.g. example@mail.com)";
 //     }
 
 //     setErrors(tempErrors);
@@ -652,6 +709,7 @@ export default AddEditBanksKHRModal;
 //               className="btn-close"
 //               data-bs-dismiss="modal"
 //               id="close-btn-bank"
+//               onClick={resetForm}
 //             ></button>
 //           </div>
 
@@ -674,8 +732,8 @@ export default AddEditBanksKHRModal;
 //                         isSubmitted && errors.name
 //                           ? "is-invalid"
 //                           : formData.name
-//                           ? "is-valid"
-//                           : ""
+//                             ? "is-valid"
+//                             : ""
 //                       }`}
 //                       value={formData.name}
 //                       onChange={handleInputChange}
@@ -697,8 +755,8 @@ export default AddEditBanksKHRModal;
 //                         isSubmitted && errors.bic
 //                           ? "is-invalid"
 //                           : formData.bic
-//                           ? "is-valid"
-//                           : ""
+//                             ? "is-valid"
+//                             : ""
 //                       }`}
 //                       value={formData.bic}
 //                       onChange={handleInputChange}
@@ -765,7 +823,7 @@ export default AddEditBanksKHRModal;
 //                         options={districts}
 //                         placeholder="Select City"
 //                         defaultValue={districts.find(
-//                           (d) => d.value === String(formData.city)
+//                           (d) => d.value === String(formData.city),
 //                         )}
 //                         onChange={(opt) =>
 //                           setFormData({ ...formData, city: opt?.value || "" })
@@ -777,7 +835,7 @@ export default AddEditBanksKHRModal;
 //                         options={states}
 //                         placeholder="Select State"
 //                         defaultValue={states.find(
-//                           (s) => s.value === String(formData.state)
+//                           (s) => s.value === String(formData.state),
 //                         )}
 //                         onChange={(opt) =>
 //                           setFormData({ ...formData, state: opt?.value || "" })
@@ -790,7 +848,7 @@ export default AddEditBanksKHRModal;
 //                         options={countries}
 //                         placeholder="Select Country"
 //                         defaultValue={countries.find(
-//                           (c) => c.value === String(formData.country)
+//                           (c) => c.value === String(formData.country),
 //                         )}
 //                         onChange={(opt) =>
 //                           setFormData({
@@ -829,16 +887,17 @@ export default AddEditBanksKHRModal;
 //                       <input
 //                         type="text"
 //                         name="phone"
+//                         maxLength={10} // HTML5 Limit
 //                         className={`form-control ${
 //                           isSubmitted && errors.phone
 //                             ? "is-invalid"
 //                             : formData.phone && !errors.phone
-//                             ? "is-valid"
-//                             : ""
+//                               ? "is-valid"
+//                               : ""
 //                         }`}
 //                         value={formData.phone}
 //                         onChange={handleInputChange}
-//                         placeholder="Optional"
+//                         placeholder="10-digit mobile"
 //                       />
 //                       {isSubmitted && errors.phone && (
 //                         <div className="invalid-feedback fs-11">
@@ -862,12 +921,12 @@ export default AddEditBanksKHRModal;
 //                           isSubmitted && errors.email
 //                             ? "is-invalid"
 //                             : formData.email && !errors.email
-//                             ? "is-valid"
-//                             : ""
+//                               ? "is-valid"
+//                               : ""
 //                         }`}
 //                         value={formData.email}
 //                         onChange={handleInputChange}
-//                         placeholder="Optional"
+//                         placeholder="e.g. accounts@bank.com"
 //                       />
 //                       {isSubmitted && errors.email && (
 //                         <div className="invalid-feedback fs-11">
@@ -885,6 +944,7 @@ export default AddEditBanksKHRModal;
 //                   type="button"
 //                   className="btn btn-outline-secondary px-4 me-2"
 //                   data-bs-dismiss="modal"
+//                   onClick={resetForm}
 //                 >
 //                   Discard
 //                 </button>
