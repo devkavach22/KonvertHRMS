@@ -3,9 +3,6 @@ import { RegularizationPayload } from "@/KHRModules/AttandanceModules/EmployeeAt
 import Service from "@/Service";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
-const user_id = localStorage.getItem("user_id");
-const email = localStorage.getItem("user_email");
-console.log(user_id, "uuuuu");
 
 // const authheader = () => {
 //   const token = localStorage.getItem("token");
@@ -113,6 +110,7 @@ export const AttendancesGetApi = createAsyncThunk(
   } = {}, thunkAPI) => {
     console.log(userdata);
     try {
+      const user_id = localStorage.getItem("user_id");
       const params: any = { user_id };
       
       // Add employee_id parameter if provided
@@ -161,6 +159,7 @@ export const UpdateAdminAttendanceApi = createAsyncThunk(
   ) => {
     console.log(userdata);
     try {
+      const user_id = localStorage.getItem("user_id");
       let result = await axios({
         method: "PUT",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -191,6 +190,7 @@ export const AdminWorkingHours = createAsyncThunk(
   async (userdata, thunkAPI) => {
     console.log(userdata);
     try {
+      const user_id = localStorage.getItem("user_id");
       let result = await axios({
         method: "GET",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -222,6 +222,7 @@ export const EmployeeRegcategories = createAsyncThunk(
   async (userdata, thunkAPI) => {
     console.log(userdata);
     try {
+      const user_id = localStorage.getItem("user_id");
       let result = await axios({
         method: "GET",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -253,6 +254,7 @@ export const createRegCategory = createAsyncThunk(
   "createRegCategory",
   async (userdata: { type: string }, thunkAPI) => {
     try {
+      const user_id = localStorage.getItem("user_id");
       let result = await axios({
         method: "POST",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -291,6 +293,7 @@ export const EmployeeAttendanceApi = createAsyncThunk(
   } = {}, thunkAPI) => {
     console.log(userdata);
     try {
+      const user_id = localStorage.getItem("user_id");
       const params: any = { user_id };
       
       // Add month and year parameters if provided
@@ -340,6 +343,7 @@ export const Employeeregularization = createAsyncThunk(
   async (userdata: RegularizationPayload, thunkAPI) => {
     console.log(userdata, "userdata");
     try {
+      const user_id = localStorage.getItem("user_id");
       let result = await axios({
         method: "POST",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -376,6 +380,7 @@ export const getRegularizationStatus = createAsyncThunk(
   "getRegularizationStatus",
   async (userdata, thunkAPI) => {
     try {
+      const user_id = localStorage.getItem("user_id");
       let result = await axios({
         method: "GET",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -480,6 +485,7 @@ export const GetStructureTypes = createAsyncThunk(
   async (userdata, thunkAPI) => {
     console.log(userdata);
     try {
+      const user_id = localStorage.getItem("user_id");
       let result = await axios({
         method: "GET",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -511,6 +517,7 @@ export const getCountries = createAsyncThunk(
   async (userdata, thunkAPI) => {
     console.log(userdata);
     try {
+      const user_id = localStorage.getItem("user_id");
       let result = await axios({
         method: "GET",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -542,6 +549,7 @@ export const getWorkingSchedules = createAsyncThunk(
   async (userdata, thunkAPI) => {
     console.log(userdata);
     try {
+      const user_id = localStorage.getItem("user_id");
       let result = await axios({
         method: "GET",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -573,6 +581,7 @@ export const getRegularPayStructure = createAsyncThunk(
   async (userdata, thunkAPI) => {
     console.log(userdata);
     try {
+      const user_id = localStorage.getItem("user_id");
       let result = await axios({
         method: "GET",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -604,6 +613,7 @@ export const getWorkEntryType = createAsyncThunk(
   async (userdata, thunkAPI) => {
     console.log(userdata);
     try {
+      const user_id = localStorage.getItem("user_id");
       let result = await axios({
         method: "GET",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -635,6 +645,7 @@ export const getSalaryRules = createAsyncThunk(
   async (userdata, thunkAPI) => {
     console.log(userdata);
     try {
+      const user_id = localStorage.getItem("user_id");
       let result = await axios({
         method: "GET",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -666,6 +677,7 @@ export const getSalaryStructure = createAsyncThunk(
   async (userdata, thunkAPI) => {
     console.log(userdata);
     try {
+      const user_id = localStorage.getItem("user_id");
       let result = await axios({
         method: "GET",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -697,6 +709,7 @@ export const getDashboadrdCount = createAsyncThunk(
   async (userdata, thunkAPI) => {
     console.log(userdata);
     try {
+      const user_id = localStorage.getItem("user_id");
       let result = await axios({
         method: "GET",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -728,6 +741,7 @@ export const EmployeeAttendanceExportExcel = createAsyncThunk(
   "EmployeeAttendanceExportExcel",
   async (userdata: { date_from: string; date_to: string }, thunkAPI) => {
     try {
+      const user_id = localStorage.getItem("user_id");
       const result = await axios({
         method: "GET",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -775,6 +789,7 @@ export const EmployeeAttendanceExportPdf = createAsyncThunk(
   "EmployeeAttendanceExportPdf",
   async (userdata: { date_from: string; date_to: string }, thunkAPI) => {
     try {
+      const user_id = localStorage.getItem("user_id");
       const result = await axios({
         method: "GET",
         baseURL: "http://10.221.59.471:4000",
@@ -822,6 +837,7 @@ export const AdminAttendanceExportExcel = createAsyncThunk(
   "AdminAttendanceExportExcel",
   async (userdata: { date_from: string; date_to: string }, thunkAPI) => {
     try {
+      const user_id = localStorage.getItem("user_id");
       const result = await axios({
         method: "GET",
         baseURL: "http://10.221.59.471:4000",
@@ -868,6 +884,7 @@ export const AdminAttendanceExportPdf = createAsyncThunk(
   "AdminAttendanceExportPdf",
   async (userdata: { date_from: string; date_to: string }, thunkAPI) => {
     try {
+      const user_id = localStorage.getItem("user_id");
       const result = await axios({
         method: "GET",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -915,6 +932,7 @@ export const getEmployeesBasicInfo = createAsyncThunk(
   async (userdata: { user_id?: number } = {}, thunkAPI) => {
     console.log(userdata);
     try {
+      const user_id = localStorage.getItem("user_id");
       const finalUserId = userdata.user_id || user_id;
 
       let result = await axios({
@@ -948,6 +966,7 @@ export const getContractsApi = createAsyncThunk(
   "getContractsApi",
   async (userdata, thunkAPI) => {
     try {
+      const user_id = localStorage.getItem("user_id");
       let result = await axios({
         method: "GET",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -979,6 +998,7 @@ export const createContractApi = createAsyncThunk(
   "createContractApi",
   async (contractData: any, thunkAPI) => {
     try {
+      const user_id = localStorage.getItem("user_id");
       let result = await axios({
         method: "POST",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -1011,6 +1031,7 @@ export const updateContractApi = createAsyncThunk(
   "updateContractApi",
   async (userdata: { contractId: string | number; payload: any }, thunkAPI) => {
     try {
+      const user_id = localStorage.getItem("user_id");
       let result = await axios({
         method: "PUT",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -1043,6 +1064,7 @@ export const deleteContractApi = createAsyncThunk(
   "deleteContractApi",
   async (contractId: string | number, thunkAPI) => {
     try {
+      const user_id = localStorage.getItem("user_id");
       let result = await axios({
         method: "DELETE",
         baseURL: CONFIG.BASE_URL_ALL,
@@ -1074,6 +1096,7 @@ export const getDepartmentsApi = createAsyncThunk(
   "getDepartmentsApi",
   async (userdata, thunkAPI) => {
     try {
+      const user_id = localStorage.getItem("user_id");
       let result = await axios({
         method: "GET",
         baseURL: CONFIG.BASE_URL_ALL,
