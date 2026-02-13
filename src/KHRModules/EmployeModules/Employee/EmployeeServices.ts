@@ -30,16 +30,16 @@ const getUserId = () => {
   return id ? Number(id) : null;
 };
 
-// export const getEmployees = async () => {
-//   try {
-//     const response = await Instance.get("/employee/employees", {
-//       params: { user_id: getUserId() },
-//     });
-//     return response.data.data || response.data || [];
-//   } catch (error) {
-//     return [];
-//   }
-// };
+export const getEmployees = async () => {
+  try {
+    const response = await Instance.get("/employee/employees", {
+      params: { user_id: getUserId() },
+    });
+    return response.data.data || response.data || [];
+  } catch (error) {
+    return [];
+  }
+};
 
 // export const getEmployees = async () => {
 //   const userId = getUserId() || 3145; // fallback user ID
@@ -78,20 +78,21 @@ const getUserId = () => {
 //   }
 // };
 
-export const getEmployees = async () => {
-  const userId = getUserId() || 3145;
+// export const getEmployees = async () => {
+//   const userId = getUserId() || 3145;
 
-  try {
-    const response = await InstanceSecond.get("api/employees", {
-      params: { user_id: userId },
-    });
+//   try {
+//     const response = await InstanceSecond.get("api/employees", {
+//       params: { user_id: userId },
+//     });
 
-    return response.data?.data || [];
-  } catch (error) {
-    console.error("Error fetching employees:", error);
-    return [];
-  }
-};
+//     return response.data?.data || [];
+//   } catch (error: any) {
+//     console.error("Error fetching employees:", error);
+//     toast.error(error.response?.data?.message || "Failed to load departments");
+//     return [];
+//   }
+// };
 
 export const getEmployeesBasicInfo = async () => {
   try {
@@ -314,23 +315,20 @@ export const getTimezones = async () => {
   }
 };
 
-// export const addEmployee = async (payload: any) => {
-//   const userId = getUserId() || 219;
-//   return await Instance.post(`/employee/create/employee`, payload, {
-//     params: { user_id: userId },
-//   });
-// };
+export const addEmployee = async (payload: any) => {
+  const userId = getUserId() || 219;
+  return await Instance.post(`/employee/create/employee`, payload, {
+    params: { user_id: userId },
+  });
+};
 
 import axios from "axios";
+import { toast } from "react-toastify";
 
-export const addEmployee = async (payload: any) => {
-  const userId = getUserId() || 2;
-
-  return await axios.post(
-    "http://178.236.185.232:9090//api/employee/create",
-    payload,
-  );
-};
+// export const addEmployee = async (payload: any) => {
+//   const userId = getUserId() || 2;
+//   return await InstanceSecond.post("/api/employee/create", payload);
+// };
 
 export const updateEmployee = async (id: string, data: any) => {
   const payload = { ...data }; // your request body

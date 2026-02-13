@@ -5,11 +5,7 @@ import DatatableKHR from "../../../CommonComponent/DataTableKHR/DatatableKHR";
 import CommonHeader from "../../../CommonComponent/HeaderKHR/HeaderKHR";
 import AddEditJobPositionModal from "./AddEditJobPosition";
 // Service Imports
-import {
-  getJobs,
-  deleteJob,
-  JobPosition as JobType,
-} from "./jobService";
+import { getJobs, deleteJob, JobPosition as JobType } from "./jobService";
 import { toast } from "react-toastify";
 
 // Extended interface for the component with mapped display properties
@@ -33,10 +29,12 @@ const JobPosition = () => {
 
   const [data, setData] = useState<JobPositionDisplay[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [selectedJob, setSelectedJob] = useState<JobPositionDisplay | null>(null);
+  const [selectedJob, setSelectedJob] = useState<JobPositionDisplay | null>(
+    null,
+  );
 
   // Group by functionality
-  const [groupBy, setGroupBy] = useState<string>('none');
+  const [groupBy, setGroupBy] = useState<string>("none");
   const [groupedData, setGroupedData] = useState<GroupedData[]>([]);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
@@ -80,23 +78,27 @@ const JobPosition = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this job position?")) {
       try {
-        await deleteJob(id);
-        toast.success("Job position deleted successfully");
+        const response = await deleteJob(id);
+        const successMessage =
+          response.data?.message || "Job position deleted successfully";
+        toast.success(successMessage);
+
         fetchData();
-      } catch (error) {
-        toast.error("Delete failed");
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || "Delete failed";
+        toast.error(errorMessage);
+        console.error("Delete failed:", error);
       }
     }
   };
-
   // Group by functionality
   const groupByOptions = [
-    { value: 'none', label: 'No Grouping' },
-    { value: 'department', label: 'Group by Department' },
-    { value: 'industry', label: 'Group by Industry' },
-    { value: 'contract_type', label: 'Group by Contract Type' },
-    { value: 'openings_range', label: 'Group by Openings Range' },
-    { value: 'alphabetical', label: 'Group by First Letter' }
+    { value: "none", label: "No Grouping" },
+    { value: "department", label: "Group by Department" },
+    { value: "industry", label: "Group by Industry" },
+    { value: "contract_type", label: "Group by Contract Type" },
+    { value: "openings_range", label: "Group by Openings Range" },
+    { value: "alphabetical", label: "Group by First Letter" },
   ];
 
   const getFirstLetter = (text: string) => {
@@ -105,54 +107,105 @@ const JobPosition = () => {
 
   const getJobCategory = (name: string) => {
     const lowerName = name.toLowerCase();
-    if (lowerName.includes('manager') || lowerName.includes('director') || lowerName.includes('head') || lowerName.includes('lead')) return 'Management';
-    if (lowerName.includes('developer') || lowerName.includes('engineer') || lowerName.includes('programmer') || lowerName.includes('tech')) return 'Technology';
-    if (lowerName.includes('sales') || lowerName.includes('marketing') || lowerName.includes('business')) return 'Sales & Marketing';
-    if (lowerName.includes('hr') || lowerName.includes('human') || lowerName.includes('recruiter')) return 'Human Resources';
-    if (lowerName.includes('finance') || lowerName.includes('accounting') || lowerName.includes('analyst')) return 'Finance';
-    if (lowerName.includes('designer') || lowerName.includes('creative') || lowerName.includes('ui') || lowerName.includes('ux')) return 'Design & Creative';
-    if (lowerName.includes('support') || lowerName.includes('service') || lowerName.includes('help')) return 'Support';
-    if (lowerName.includes('admin') || lowerName.includes('assistant') || lowerName.includes('coordinator')) return 'Administrative';
-    if (lowerName.includes('intern') || lowerName.includes('trainee') || lowerName.includes('junior')) return 'Entry Level';
-    return 'General';
+    if (
+      lowerName.includes("manager") ||
+      lowerName.includes("director") ||
+      lowerName.includes("head") ||
+      lowerName.includes("lead")
+    )
+      return "Management";
+    if (
+      lowerName.includes("developer") ||
+      lowerName.includes("engineer") ||
+      lowerName.includes("programmer") ||
+      lowerName.includes("tech")
+    )
+      return "Technology";
+    if (
+      lowerName.includes("sales") ||
+      lowerName.includes("marketing") ||
+      lowerName.includes("business")
+    )
+      return "Sales & Marketing";
+    if (
+      lowerName.includes("hr") ||
+      lowerName.includes("human") ||
+      lowerName.includes("recruiter")
+    )
+      return "Human Resources";
+    if (
+      lowerName.includes("finance") ||
+      lowerName.includes("accounting") ||
+      lowerName.includes("analyst")
+    )
+      return "Finance";
+    if (
+      lowerName.includes("designer") ||
+      lowerName.includes("creative") ||
+      lowerName.includes("ui") ||
+      lowerName.includes("ux")
+    )
+      return "Design & Creative";
+    if (
+      lowerName.includes("support") ||
+      lowerName.includes("service") ||
+      lowerName.includes("help")
+    )
+      return "Support";
+    if (
+      lowerName.includes("admin") ||
+      lowerName.includes("assistant") ||
+      lowerName.includes("coordinator")
+    )
+      return "Administrative";
+    if (
+      lowerName.includes("intern") ||
+      lowerName.includes("trainee") ||
+      lowerName.includes("junior")
+    )
+      return "Entry Level";
+    return "General";
   };
 
   const getOpeningsRange = (openings: number) => {
-    if (openings === 0) return 'No Openings';
-    if (openings === 1) return 'Single Opening';
-    if (openings <= 5) return 'Small Team (2-5)';
-    if (openings <= 15) return 'Medium Team (6-15)';
-    if (openings <= 50) return 'Large Team (16-50)';
-    return 'Mass Hiring (50+)';
+    if (openings === 0) return "No Openings";
+    if (openings === 1) return "Single Opening";
+    if (openings <= 5) return "Small Team (2-5)";
+    if (openings <= 15) return "Medium Team (6-15)";
+    if (openings <= 50) return "Large Team (16-50)";
+    return "Mass Hiring (50+)";
   };
 
-  const groupDataByField = (data: JobPositionDisplay[], field: string): GroupedData[] => {
-    if (field === 'none') return [];
+  const groupDataByField = (
+    data: JobPositionDisplay[],
+    field: string,
+  ): GroupedData[] => {
+    if (field === "none") return [];
 
     const grouped = data.reduce((acc: any, item) => {
-      let groupKey = '';
-      
+      let groupKey = "";
+
       switch (field) {
-        case 'department':
-          groupKey = item.department_name || 'No Department';
+        case "department":
+          groupKey = item.department_name || "No Department";
           break;
-        case 'industry':
-          groupKey = item.industry_name || 'No Industry';
+        case "industry":
+          groupKey = item.industry_name || "No Industry";
           break;
-        case 'contract_type':
-          groupKey = item.contract_type_name || 'Not Set';
+        case "contract_type":
+          groupKey = item.contract_type_name || "Not Set";
           break;
-        case 'openings_range':
+        case "openings_range":
           groupKey = getOpeningsRange(item.no_of_recruitment);
           break;
-        case 'alphabetical':
+        case "alphabetical":
           groupKey = getFirstLetter(item.name);
           break;
-        case 'job_category':
+        case "job_category":
           groupKey = getJobCategory(item.name);
           break;
         default:
-          groupKey = 'All Jobs';
+          groupKey = "All Jobs";
       }
 
       if (!acc[groupKey]) {
@@ -165,12 +218,14 @@ const JobPosition = () => {
     // Sort groups alphabetically
     return Object.entries(grouped)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([groupName, items]: [string, any]): GroupedData => ({
-        groupName,
-        items,
-        count: items.length,
-        isGroup: true
-      }));
+      .map(
+        ([groupName, items]: [string, any]): GroupedData => ({
+          groupName,
+          items,
+          count: items.length,
+          isGroup: true,
+        }),
+      );
   };
 
   const toggleGroupExpansion = (groupName: string) => {
@@ -185,7 +240,7 @@ const JobPosition = () => {
 
   const toggleAllGroups = (expand: boolean) => {
     if (expand) {
-      setExpandedGroups(new Set(groupedData.map(group => group.groupName)));
+      setExpandedGroups(new Set(groupedData.map((group) => group.groupName)));
     } else {
       setExpandedGroups(new Set());
     }
@@ -193,7 +248,7 @@ const JobPosition = () => {
 
   const handleGroupByChange = (value: string) => {
     setGroupBy(value);
-    if (value === 'none') {
+    if (value === "none") {
       setGroupedData([]);
       setExpandedGroups(new Set());
     } else {
@@ -208,48 +263,52 @@ const JobPosition = () => {
 
   // Update grouped data when main data changes
   useEffect(() => {
-    if (data.length > 0 && groupBy !== 'none') {
+    if (data.length > 0 && groupBy !== "none") {
       handleGroupByChange(groupBy);
     }
   }, [data]);
 
   const renderGroupedTable = () => {
-    if (groupBy === 'none') {
+    if (groupBy === "none") {
       return <DatatableKHR data={data} columns={columns} selection={true} />;
     }
 
     return (
       <div className="grouped-table">
         {groupedData.map((group: GroupedData, groupIndex: number) => (
-          <div 
-            key={`group-${groupIndex}-${group.groupName}`} 
-            className="group-section mb-4" 
+          <div
+            key={`group-${groupIndex}-${group.groupName}`}
+            className="group-section mb-4"
             style={{
-              border: '1px solid #e9ecef',
-              borderRadius: '8px',
-              overflow: 'hidden'
+              border: "1px solid #e9ecef",
+              borderRadius: "8px",
+              overflow: "hidden",
             }}
           >
             {/* Group Header */}
-            <div 
+            <div
               className="group-header bg-light p-3 border rounded cursor-pointer d-flex justify-content-between align-items-center"
               onClick={() => toggleGroupExpansion(group.groupName)}
-              style={{ 
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                border: '1px solid #e9ecef'
+              style={{
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+                border: "1px solid #e9ecef",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#f8f9fa';
+                e.currentTarget.style.backgroundColor = "#f8f9fa";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#f8f9fa';
+                e.currentTarget.style.backgroundColor = "#f8f9fa";
               }}
             >
               <div className="d-flex align-items-center">
-                <i className={`ti ${expandedGroups.has(group.groupName) ? 'ti-chevron-down' : 'ti-chevron-right'} me-2`}></i>
+                <i
+                  className={`ti ${expandedGroups.has(group.groupName) ? "ti-chevron-down" : "ti-chevron-right"} me-2`}
+                ></i>
                 <h6 className="mb-0 fw-bold">{group.groupName}</h6>
-                <span className="badge badge-primary ms-2">{group.count} positions</span>
+                <span className="badge badge-primary ms-2">
+                  {group.count} positions
+                </span>
               </div>
               <div className="group-stats">
                 <div className="d-flex gap-3">
@@ -257,21 +316,39 @@ const JobPosition = () => {
                     <i className="ti ti-briefcase me-1"></i>
                     Total: <strong>{group.count}</strong>
                   </small>
-                  {groupBy === 'openings_range' && (
+                  {groupBy === "openings_range" && (
                     <small className="text-info">
                       <i className="ti ti-users me-1"></i>
-                      Total Openings: <strong>{group.items.reduce((sum, item) => sum + item.no_of_recruitment, 0)}</strong>
+                      Total Openings:{" "}
+                      <strong>
+                        {group.items.reduce(
+                          (sum, item) => sum + item.no_of_recruitment,
+                          0,
+                        )}
+                      </strong>
                     </small>
                   )}
-                  {groupBy === 'contract_type' && (
+                  {groupBy === "contract_type" && (
                     <small className="text-success">
                       <i className="ti ti-file-text me-1"></i>
-                      Avg Openings: <strong>{Math.round(group.items.reduce((sum, item) => sum + item.no_of_recruitment, 0) / group.count)}</strong>
+                      Avg Openings:{" "}
+                      <strong>
+                        {Math.round(
+                          group.items.reduce(
+                            (sum, item) => sum + item.no_of_recruitment,
+                            0,
+                          ) / group.count,
+                        )}
+                      </strong>
                     </small>
                   )}
                   <small className="text-warning">
                     <i className="ti ti-list me-1"></i>
-                    Sample: <strong>{group.items[0]?.name.substring(0, 20)}{group.items[0]?.name.length > 20 ? '...' : ''}</strong>
+                    Sample:{" "}
+                    <strong>
+                      {group.items[0]?.name.substring(0, 20)}
+                      {group.items[0]?.name.length > 20 ? "..." : ""}
+                    </strong>
                   </small>
                 </div>
               </div>
@@ -279,10 +356,13 @@ const JobPosition = () => {
 
             {/* Group Content */}
             {expandedGroups.has(group.groupName) && (
-              <div className="group-content mt-2" style={{ borderTop: '1px solid #e9ecef' }}>
-                <DatatableKHR 
-                  data={group.items} 
-                  columns={columns} 
+              <div
+                className="group-content mt-2"
+                style={{ borderTop: "1px solid #e9ecef" }}
+              >
+                <DatatableKHR
+                  data={group.items}
+                  columns={columns}
                   selection={true}
                 />
               </div>
@@ -298,7 +378,8 @@ const JobPosition = () => {
       title: "Job Name",
       dataIndex: "name",
       key: "name",
-      sorter: (a: JobPositionDisplay, b: JobPositionDisplay) => a.name.localeCompare(b.name),
+      sorter: (a: JobPositionDisplay, b: JobPositionDisplay) =>
+        a.name.localeCompare(b.name),
       render: (text: string) => (
         <span className="fw-bold text-dark">{text}</span>
       ),
@@ -308,7 +389,7 @@ const JobPosition = () => {
       dataIndex: "department_name",
       key: "department_name",
       sorter: (a: JobPositionDisplay, b: JobPositionDisplay) =>
-        (a.department_name || '').localeCompare(b.department_name || ''),
+        (a.department_name || "").localeCompare(b.department_name || ""),
     },
     {
       title: "Industry",
@@ -399,16 +480,19 @@ const JobPosition = () => {
                     data-bs-toggle="dropdown"
                   >
                     <i className="ti ti-layout-grid me-1" />
-                    {groupByOptions.find(opt => opt.value === groupBy)?.label || 'Group By'}
+                    {groupByOptions.find((opt) => opt.value === groupBy)
+                      ?.label || "Group By"}
                   </button>
                   <ul className="dropdown-menu dropdown-menu-end">
                     {groupByOptions.map((option) => (
                       <li key={option.value}>
                         <button
-                          className={`dropdown-item ${groupBy === option.value ? 'active' : ''}`}
+                          className={`dropdown-item ${groupBy === option.value ? "active" : ""}`}
                           onClick={() => handleGroupByChange(option.value)}
                         >
-                          <i className={`ti ${groupBy === option.value ? 'ti-check' : 'ti-point'} me-2`} />
+                          <i
+                            className={`ti ${groupBy === option.value ? "ti-check" : "ti-point"} me-2`}
+                          />
                           {option.label}
                         </button>
                       </li>
@@ -430,17 +514,22 @@ const JobPosition = () => {
             ) : (
               <>
                 {/* Group By Info */}
-                {groupBy !== 'none' && (
+                {groupBy !== "none" && (
                   <div className="alert alert-info mb-3 d-flex justify-content-between align-items-center">
                     <div>
                       <i className="ti ti-info-circle me-2"></i>
-                      <strong>Grouped by:</strong> {groupByOptions.find(opt => opt.value === groupBy)?.label}
+                      <strong>Grouped by:</strong>{" "}
+                      {
+                        groupByOptions.find((opt) => opt.value === groupBy)
+                          ?.label
+                      }
                       <span className="ms-2">
-                        ({groupedData.length} groups, {data.length} total positions)
+                        ({groupedData.length} groups, {data.length} total
+                        positions)
                       </span>
                     </div>
                     <div className="btn-group btn-group-sm">
-                      <button 
+                      <button
                         className="btn btn-outline-primary btn-sm"
                         onClick={() => toggleAllGroups(true)}
                         title="Expand All Groups"
@@ -448,7 +537,7 @@ const JobPosition = () => {
                         <i className="ti ti-chevrons-down me-1"></i>
                         Expand All
                       </button>
-                      <button 
+                      <button
                         className="btn btn-outline-secondary btn-sm"
                         onClick={() => toggleAllGroups(false)}
                         title="Collapse All Groups"
@@ -459,7 +548,7 @@ const JobPosition = () => {
                     </div>
                   </div>
                 )}
-                
+
                 {/* Render Table or Grouped Table */}
                 {renderGroupedTable()}
               </>

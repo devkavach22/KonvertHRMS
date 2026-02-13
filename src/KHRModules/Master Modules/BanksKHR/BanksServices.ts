@@ -12,6 +12,7 @@ export interface Bank {
   micr_code: string;
   phone: string;
   street: string;
+  street2: string;
   email: string;
   key?: string; // For Datatable
 }

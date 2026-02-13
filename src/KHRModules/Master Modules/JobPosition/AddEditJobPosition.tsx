@@ -185,6 +185,7 @@ const AddEditJobPositionModal: React.FC<Props> = ({
 
     setIsSubmitting(true);
     try {
+      let response;
       const payload: Partial<JobPosition> = {
         name: formData.name,
         department_id: Number(formData.department_id),
@@ -199,11 +200,15 @@ const AddEditJobPositionModal: React.FC<Props> = ({
       };
 
       if (data?.id) {
-        await updateJob(data.id, payload);
-        toast.success("Job Position updated successfully");
+        response = await updateJob(data.id, payload);
+        toast.success(
+          response.data?.message || "Job Position updated successfully",
+        );
       } else {
-        await addJob(payload);
-        toast.success("Job Position created successfully");
+        response = await addJob(payload);
+        toast.success(
+          response.data?.message || "Job Position created successfully",
+        );
       }
       onSuccess();
       document.getElementById("close-job-modal")?.click();

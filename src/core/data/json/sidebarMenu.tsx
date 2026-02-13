@@ -36,7 +36,7 @@ const rawSidebarData = [
         materialicons: "start",
         dot: false,
         submenuItems: [
-          { label: "Attendence Policy", link: routes.AttendancePolicyKHR },
+          // { label: "Attendence Policy", link: routes.AttendancePolicyKHR },
           { label: "Regularization Category", link: routes.regCategoryKHR },
           { label: "Department", link: routes.departmentsKHR },
           { label: "Job Postions", link: routes.jobPositionsKHR },
@@ -47,7 +47,7 @@ const rawSidebarData = [
           { label: "Skills", link: routes.skillsKHR },
           { label: "Industries", link: routes.industriesKHR },
           { label: "Bank", link: routes.banksKHR },
-          { label: "Bank Account", link: routes.banksAccountKHR },
+          // { label: "Bank Account", link: routes.banksAccountKHR },
           { label: "HR Contract Type ", link: routes.hrContractTypeKHR },
           { label: "Geo Configurations", link: routes.geoKHR },
           { label: "Expense Category", link: routes.expenseCategoryKHR },

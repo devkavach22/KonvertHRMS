@@ -1,4 +1,5 @@
 import Instance from "../../../api/axiosInstance";
+import { toast } from "react-toastify";
 
 // jobService.ts
 export interface JobPosition {
@@ -24,8 +25,11 @@ export const getJobs = async () => {
       params: { user_id: getUserId() },
     });
     return response.data.data || response.data || [];
-  } catch (error) {
+  } catch (error: any) {
     console.error("Fetch Error:", error);
+    const errorMessage =
+      error.response?.data?.message || "Failed to load categories";
+    toast.error(errorMessage);
     return [];
   }
 };
@@ -37,8 +41,11 @@ export const getContractTypes = async () => {
       params: { user_id },
     });
     return response.data.data || response.data || [];
-  } catch (error) {
+  } catch (error: any) {
     console.error("Fetch Contract Types Error:", error);
+    const errorMessage =
+      error.response?.data?.message || "Failed to load contract types";
+    toast.error(errorMessage);
     return [];
   }
 };

@@ -1,4 +1,5 @@
 import Instance from "../../../api/axiosInstance";
+import { toast } from "react-toastify";
 
 export interface Department {
   id?: string;
@@ -34,8 +35,9 @@ export const getDepartments = async (): Promise<APIDepartment[]> => {
       params: { user_id },
     });
     return response.data.data || response.data || [];
-  } catch (error) {
+  } catch (error: any) {
     console.error("Fetch Error:", error);
+    toast.error(error.response?.data?.message || "Failed to load departments");
     return [];
   }
 };
