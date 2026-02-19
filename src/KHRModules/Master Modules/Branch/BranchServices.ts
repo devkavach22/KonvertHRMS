@@ -1,4 +1,5 @@
 import Instance from "@/api/axiosInstance";
+import InstanceSecond from "@/api/axiosInstanceSecond";
 import axios from "axios";
 
 export interface Branch {
@@ -26,6 +27,15 @@ export const createBranch = async (payload: any) => {
   );
 };
 
+// export const createBranch = async (payload: any) => {
+//   const userId = getUserId() || 2;
+
+//   // Using InstanceSecond ensures your base URL and auth headers are applied automatically
+//   return await InstanceSecond.post("/api/res_branch/create", payload, {
+//     params: { user_id: userId },
+//   });
+// };
+
 // Updated Update function to use PUT and correct user_id param
 export const UpdateBrnach = async (payload: any) => {
   const userId = getUserId() || 3145;
@@ -36,16 +46,33 @@ export const UpdateBrnach = async (payload: any) => {
   );
 };
 
+// export const getBranches = async () => {
+//   const userId = getUserId() || 3145; // fallback user ID
+
+//   try {
+//     const response = await axios.get(
+//       "http://178.236.185.232:9090//api/branches",
+//       {
+//         params: { user_id: userId },
+//       },
+//     );
+//     return response.data?.data || response.data || [];
+//   } catch (error) {
+//     console.error("Error fetching Branches:", error);
+//     return [];
+//   }
+// };
+
 export const getBranches = async () => {
   const userId = getUserId() || 3145; // fallback user ID
 
   try {
-    const response = await axios.get(
-      "http://178.236.185.232:9090//api/branches",
-      {
-        params: { user_id: userId },
-      },
-    );
+    // Using InstanceSecond instead of raw axios
+    const response = await InstanceSecond.get("/api/branches", {
+      params: { user_id: userId },
+    });
+
+    // Return the appropriate data array from the response
     return response.data?.data || response.data || [];
   } catch (error) {
     console.error("Error fetching Branches:", error);

@@ -158,7 +158,7 @@ const Sidebar = React.memo(() => {
   return (
     <>
       <div
-        className="sidebar"
+        className="sidebar d-flex flex-column"
         id="sidebar"
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
@@ -472,6 +472,74 @@ const Sidebar = React.memo(() => {
                   ),
                 )}
               </ul>
+            </div>
+          </div>
+        </div>
+
+        <div className="sidebar-bottom p-3 mt-auto flex-shrink-0">
+          <div
+            className="version-card p-3 rounded-3"
+            style={{
+              background: "#fcfcfc",
+              border: "1px dashed #e5e7eb",
+              transition: "all 0.3s ease",
+            }}
+          >
+            {/* Top Row: Label and History Link */}
+            <div className="d-flex align-items-start justify-content-between mb-2">
+              <div className="d-flex align-items-center">
+                <div
+                  className="bg-primary-transparent rounded-circle d-flex align-items-center justify-content-center me-2"
+                  style={{ width: "24px", height: "24px" }}
+                >
+                  <i className="ti ti-git-branch fs-12 text-primary"></i>
+                </div>
+                <div>
+                  <p
+                    className="fs-10 fw-bold text-uppercase text-muted mb-0"
+                    style={{ letterSpacing: "1px" }}
+                  >
+                    Environment
+                  </p>
+                  <h6 className="fs-12 fw-bold mb-0 text-dark">
+                    v{import.meta.env.VITE_APP_VERSION}
+                  </h6>
+                </div>
+              </div>
+              <Link
+                to={all_routes.adminDashboard}
+                className="text-muted hover-primary"
+                title="View Changelog"
+              >
+                <i className="ti ti-history fs-16"></i>
+              </Link>
+            </div>
+
+            {/* Middle Row: Git Hash & Status Badge */}
+            <div
+              className="d-flex align-items-center justify-content-between bg-white rounded-2 p-1 border shadow-sm mb-2"
+              style={{ cursor: "pointer" }}
+              title="Click to copy commit hash"
+              onClick={() => {
+                navigator.clipboard.writeText(import.meta.env.VITE_GIT_HASH);
+                alert("Hash Copied!");
+              }}
+            >
+              <code className="fs-10 text-dark fw-bold px-1">
+                #{import.meta.env.VITE_GIT_HASH}
+              </code>
+              <span className="badge bg-success-transparent text-success fs-9 fw-extrabold px-1 py-0">
+                LIVE
+              </span>
+            </div>
+
+            {/* Bottom Row: Build Date */}
+            <div className="d-flex align-items-center justify-content-between opacity-75">
+              <span className="fs-9 text-muted d-flex align-items-center">
+                <i className="ti ti-calendar-check me-1"></i>
+                Sync: {import.meta.env.VITE_BUILD_DATE}
+              </span>
+              <span className="fs-9 text-muted fw-bold">PROD</span>
             </div>
           </div>
         </div>

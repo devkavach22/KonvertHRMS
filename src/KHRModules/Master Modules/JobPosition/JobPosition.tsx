@@ -465,11 +465,11 @@ const JobPosition = () => {
       <div className="content">
         <div onClick={() => setSelectedJob(null)}>
           <CommonHeader
-            title="Job Positions"
+            title="Designation"
             parentMenu="Master's"
-            activeMenu="Job Positions"
+            activeMenu="Designation"
             routes={routes}
-            buttonText="Add Job Position"
+            buttonText="Add Designation"
             modalTarget="#add_job_modal"
             rightActions={
               <>

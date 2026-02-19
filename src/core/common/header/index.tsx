@@ -27,10 +27,12 @@ const Header = React.memo(() => {
   const dataLayout = useSelector(
     (state: RootState) => state.themeSetting.dataLayout,
   );
+  
   const Location = useLocation();
-  const userName = localStorage.getItem("company_name") || "Admin";
-  const userEmail = localStorage.getItem("user_email") || "Admin";
-  console.log(userName, "userName");
+
+  const userCompanyName = localStorage.getItem("company_name") || "N/A";
+  const userName = localStorage.getItem("full_name") || "N/A";
+  const userEmail = localStorage.getItem("user_email") || "N/A";
 
   const avatarSrc = `https://ui-avatars.com/api/?name=${encodeURIComponent(
     userName,
@@ -285,7 +287,7 @@ const Header = React.memo(() => {
                       color: "#333",
                     }}
                   >
-                    {userName}
+                    {userCompanyName}
                   </span>
                 </div>
                 {/* 
