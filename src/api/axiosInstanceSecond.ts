@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const InstanceSecond = axios.create({
-  baseURL: "http://178.236.185.232:9090/",
+  baseURL: "https://odooapi.konverthr.com/",
   headers: {
     "Content-Type": "application/json",
   },
@@ -13,9 +13,12 @@ const getFreshTokenSecond = async () => {
       "🔄 [Instance 2] Attempting Auth at: http://178.236.185.232:9090/api/auth",
     );
 
-    const response = await axios.post("http://178.236.185.232:9090/api/auth", {
-      user_name: "john",
-    });
+    const response = await axios.post(
+      "https://odooapi.konverthr.com//api/auth",
+      {
+        user_name: "john",
+      },
+    );
 
     // Check if response exists and has a token
     const newToken = response.data?.token;

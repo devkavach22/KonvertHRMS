@@ -394,8 +394,8 @@ const RegCategoryKHR = () => {
             />
           </div>
 
-          <div className="card">
-            <div className="card-body p-0">
+          <div className="">
+            <div className="">
               {loading ? (
                 <div className="text-center p-5">
                   <div

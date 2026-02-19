@@ -20,14 +20,15 @@ const currentUserRole = getUserRole();
 // 3. Define the Full Menu with Role Tags
 const rawSidebarData = [
   {
-    tittle: "Administrative",
+    tittle: "Main Menu",
     icon: "airplay",
     showAsTab: true,
     separateRoute: false,
     roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only Section
+    dot: true,
     submenuItems: [
       {
-        label: "Master",
+        label: "Dashboard",
         link: "index",
         submenu: true,
         showSubRoute: false,
@@ -35,6 +36,20 @@ const rawSidebarData = [
         base: "dashboard",
         materialicons: "start",
         dot: false,
+        submenuItems: [
+          // { label: "Attendence Policy", link: routes.AttendancePolicyKHR },
+          { label: "Admin Dashboard", link: routes.adminDashboard },
+          { label: "Employee Dashboard", link: routes.employeeDashboard },
+        ],
+      },
+      {
+        label: "Masters",
+        link: "apps",
+        submenu: true,
+        showSubRoute: false,
+        icon: "layout-grid-add",
+        base: "application",
+        materialicons: "dashboard",
         submenuItems: [
           // { label: "Attendence Policy", link: routes.AttendancePolicyKHR },
           { label: "Regularization Category", link: routes.regCategoryKHR },
@@ -49,40 +64,20 @@ const rawSidebarData = [
           { label: "Bank", link: routes.banksKHR },
           // { label: "Bank Account", link: routes.banksAccountKHR },
           { label: "HR Contract Type ", link: routes.hrContractTypeKHR },
-          // { label: "Expense Category", link: routes.expenseCategoryKHR },
+          { label: "Expense Category", link: routes.expenseCategoryKHR },
           // { label: "Accrural Plan", link: routes.accruralPlanKHR },
         ],
       },
     ],
   },
   {
-    tittle: "Work Site Management",
+    tittle: "HRM",
     icon: "airplay",
     showAsTab: true,
     separateRoute: false,
     submenuItems: [
       {
-        label: "Work Site Setup",
-        link: "index",
-        submenu: true,
-        showSubRoute: false,
-        icon: "location-pin",
-        base: "dashboard",
-        materialicons: "start",
-        dot: false,
-        roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only
-        submenuItems: [{ label: "Geo Configurations", link: routes.geoKHR }],
-      },
-    ],
-  },
-  {
-    tittle: "HRMS",
-    icon: "airplay",
-    showAsTab: true,
-    separateRoute: false,
-    submenuItems: [
-      {
-        label: "Employee Management",
+        label: "Employee ",
         link: "index",
         submenu: true,
         showSubRoute: false,
@@ -93,21 +88,13 @@ const rawSidebarData = [
         roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only
         submenuItems: [
           { label: "Employees", link: routes.employeeKHR },
-          { label: "Employee Contracts", link: routes.employeeContractKHR },
+          { label: "Contracts", link: routes.employeeContractKHR },
           { label: "Expense", link: routes.expenseKHR },
-          { label: "Employee Calander", link: routes.employeeCalenderKHR },
+          // { label: "Calander", link: routes.employeeCalenderKHR },
         ],
       },
-    ],
-  },
-  {
-    tittle: "HRMS", // Attendance Section
-    icon: "airplay",
-    showAsTab: true,
-    separateRoute: false,
-    submenuItems: [
       {
-        label: "Attandance Management",
+        label: "Attandance ",
         link: "index",
         submenu: true,
         showSubRoute: false,
@@ -115,6 +102,7 @@ const rawSidebarData = [
         base: "dashboard",
         materialicons: "start",
         dot: false,
+        roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only
         submenuItems: [
           {
             label: "Admin Attendance",
@@ -128,14 +116,6 @@ const rawSidebarData = [
           },
         ],
       },
-    ],
-  },
-  {
-    tittle: "Leave Management",
-    icon: "airplay",
-    showAsTab: true,
-    separateRoute: false,
-    submenuItems: [
       {
         label: "Leaves",
         link: "index",
@@ -183,16 +163,6 @@ const rawSidebarData = [
           },
         ],
       },
-    ],
-  },
-
-  {
-    tittle: "Finance & Accounts",
-    icon: "payroll",
-    showAsTab: true,
-    separateRoute: false,
-    roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only Section
-    submenuItems: [
       {
         label: "Payroll",
         link: "index",
@@ -214,19 +184,24 @@ const rawSidebarData = [
             label: "Payslip Other Input Type",
             link: routes.payslipOtherInputTypeKHR,
           },
+          {
+            label: "Payslip",
+            link: routes.payslipKHR,
+          },
         ],
       },
-    ],
-  },
-  {
-    label: "Approval",
-    customSubmenuTwo: true,
-    base: "Approval",
-    icon: "Approval",
-    submenu: true,
-    showSubRoute: false,
-    roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // Both
-    submenuItems: [
+      {
+        label: "Work Site Setup",
+        link: "index",
+        submenu: true,
+        showSubRoute: false,
+        icon: "location-pin",
+        base: "dashboard",
+        materialicons: "start",
+        dot: false,
+        roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only
+        submenuItems: [{ label: "Geo Configurations", link: routes.geoKHR }],
+      },
       {
         label: "Approval",
         link: routes.approvalKHR,
@@ -236,6 +211,234 @@ const rawSidebarData = [
       },
     ],
   },
+  {
+    tittle: "Calender",
+    icon: "airplay",
+    showAsTab: true,
+    separateRoute: false,
+    submenuItems: [
+      {
+        label: "Calender",
+        link: routes.employeeCalenderKHR,
+        submenu: false,
+        icon: "calendar",
+        showSubRoute: false,
+        roles: [ROLES.ADMIN, ROLES.EMPLOYEE],
+        base: "form-horizontal",
+      },
+    ],
+  },
+  // {
+  //   tittle: "Version History",
+  //   icon: "file",
+  //   showAsTab: false,
+  //   separateRoute: false,
+  //   submenuItems: [
+  //     {
+  //       label: "Change Log",
+  //       changeLogVersion: true,
+  //       submenu: false,
+  //       showSubRoute: false,
+  //       icon: "exchange",
+  //       base: "1",
+  //       materialicons: "sync_alt",
+  //       submenuItems: [],
+  //     },
+  //   ],
+  // },
+  // {
+  //   // tittle: "Administrative",
+  //   icon: "airplay",
+  //   showAsTab: true,
+  //   separateRoute: false,
+  //   roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only Section
+  //   submenuItems: [
+  //     {
+  //       label: "Master",
+  //       link: "index",
+  //       submenu: true,
+  //       showSubRoute: false,
+  //       icon: "smart-home",
+  //       base: "dashboard",
+  //       materialicons: "start",
+  //       dot: false,
+  //       submenuItems: [
+  //         // { label: "Attendence Policy", link: routes.AttendancePolicyKHR },
+  //         { label: "Regularization Category", link: routes.regCategoryKHR },
+  //         { label: "Department", link: routes.departmentsKHR },
+  //         { label: "Designation", link: routes.jobPositionsKHR },
+  //         { label: "Branch", link: routes.branchKHR },
+  //         // { label: "Work Location", link: routes.workLocationKHR },
+  //         { label: "Working Schedule", link: routes.workingScheduleKHR },
+  //         // { label: "Work Entry Type", link: routes.workEntryTypeKHR },
+  //         { label: "Skills", link: routes.skillsKHR },
+  //         { label: "Industries", link: routes.industriesKHR },
+  //         { label: "Bank", link: routes.banksKHR },
+  //         // { label: "Bank Account", link: routes.banksAccountKHR },
+  //         { label: "HR Contract Type ", link: routes.hrContractTypeKHR },
+  //         // { label: "Expense Category", link: routes.expenseCategoryKHR },
+  //         // { label: "Accrural Plan", link: routes.accruralPlanKHR },
+  //       ],
+  //     },
+  //   ],
+  // },
+  // {
+  //   tittle: "Work Site Management",
+  //   icon: "airplay",
+  //   showAsTab: true,
+  //   separateRoute: false,
+  //   submenuItems: [
+  //     {
+  //       label: "Work Site Setup",
+  //       link: "index",
+  //       submenu: true,
+  //       showSubRoute: false,
+  //       icon: "location-pin",
+  //       base: "dashboard",
+  //       materialicons: "start",
+  //       dot: false,
+  //       roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only
+  //       submenuItems: [{ label: "Geo Configurations", link: routes.geoKHR }],
+  //     },
+  //   ],
+  // },
+
+  // {
+  //   tittle: "HRMS", // Attendance Section
+  //   icon: "airplay",
+  //   showAsTab: true,
+  //   separateRoute: false,
+  //   submenuItems: [
+  //     {
+  //       label: "Attandance Management",
+  //       link: "index",
+  //       submenu: true,
+  //       showSubRoute: false,
+  //       icon: "settings-2",
+  //       base: "dashboard",
+  //       materialicons: "start",
+  //       dot: false,
+  //       submenuItems: [
+  //         {
+  //           label: "Admin Attendance",
+  //           link: routes.attendanceAdminKHR,
+  //           roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only
+  //         },
+  //         {
+  //           label: "Employees Attendance",
+  //           link: routes.attendaceEmployeeKHR,
+  //           roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // Both
+  //         },
+  //       ],
+  //     },
+  //   ],
+  // },
+  // {
+  //   tittle: "Leave Management",
+  //   icon: "airplay",
+  //   showAsTab: true,
+  //   separateRoute: false,
+  //   submenuItems: [
+  //     {
+  //       label: "Leaves",
+  //       link: "index",
+  //       submenu: true,
+  //       showSubRoute: false,
+  //       icon: "users",
+  //       base: "dashboard",
+  //       materialicons: "start",
+  //       dot: false,
+  //       submenuItems: [
+  //         {
+  //           label: "Leaves (Admin)",
+  //           link: routes.leaveAdminKHR,
+  //           roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only
+  //         },
+  //         {
+  //           label: "Leaves (Employee)",
+  //           link: routes.leaveEmployeeKHR,
+  //           roles: [ROLES.ADMIN, ROLES.EMPLOYEE],
+  //         },
+  //         {
+  //           label: "Leave Allocation",
+  //           link: routes.leaveAllocationKHR,
+  //           roles: [ROLES.ADMIN, ROLES.EMPLOYEE],
+  //         },
+  //         {
+  //           label: "Leave Request",
+  //           link: routes.leaveRequestKHR,
+  //           roles: [ROLES.ADMIN, ROLES.EMPLOYEE],
+  //         },
+  //         {
+  //           label: "Leave Types",
+  //           link: routes.leaveTypesKHR,
+  //           roles: [ROLES.ADMIN, ROLES.EMPLOYEE],
+  //         },
+  //         {
+  //           label: "Public Holiday",
+  //           link: routes.publicHolidayKHR,
+  //           roles: [ROLES.ADMIN, ROLES.EMPLOYEE],
+  //         },
+  //         {
+  //           label: "Mandatory Days",
+  //           link: routes.mendetoryDaysKHR,
+  //           roles: [ROLES.ADMIN, ROLES.EMPLOYEE],
+  //         },
+  //       ],
+  //     },
+  //   ],
+  // },
+
+  // {
+  //   tittle: "Finance & Accounts",
+  //   icon: "payroll",
+  //   showAsTab: true,
+  //   separateRoute: false,
+  //   roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only Section
+  //   submenuItems: [
+  //     {
+  //       label: "Payroll",
+  //       link: "index",
+  //       submenu: true,
+  //       showSubRoute: false,
+  //       icon: "users",
+  //       base: "dashboard",
+  //       materialicons: "start",
+  //       dot: false,
+  //       submenuItems: [
+  //         {
+  //           label: "Salary Structure Types",
+  //           link: routes.salaryStructureTypeKHR,
+  //         },
+  //         { label: "Salary Rule Category", link: routes.SalaryRuleCategoryKHR },
+  //         { label: "Salary Structure", link: routes.salaryStructureKHR },
+  //         { label: "Salary Rules", link: routes.SalaryRuleKHR },
+  //         {
+  //           label: "Payslip Other Input Type",
+  //           link: routes.payslipOtherInputTypeKHR,
+  //         },
+  //       ],
+  //     },
+  //   ],
+  // },
+  // {
+  //   label: "Approval",
+  //   customSubmenuTwo: true,
+  //   base: "Approval",
+  //   icon: "Approval",
+  //   submenu: true,
+  //   showSubRoute: false,
+  //   roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // Both
+  //   submenuItems: [
+  //     {
+  //       label: "Approval",
+  //       link: routes.approvalKHR,
+  //       submenu: false,
+  //       showSubRoute: false,
+  //       base: "form-horizontal",
+  //     },
+  //   ],
+  // },
 ];
 
 // 4. Filtering Logic (Internal)
