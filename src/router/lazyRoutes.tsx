@@ -468,6 +468,9 @@ export const PayslipOtherInputTypes = createLazyComponent(
     import("../KHRModules/payRollModules/PayslipOtherInputTypes/PayslipOtherInputTypes"),
 );
 
+export const PayslipKHR = createLazyComponent(
+  () => import("../KHRModules/payRollModules/Payslip/PayslipKHR"),
+);
 export const BanksKHR = createLazyComponent(
   () => import("../KHRModules/Master Modules/BanksKHR/BanksKHR"),
 );

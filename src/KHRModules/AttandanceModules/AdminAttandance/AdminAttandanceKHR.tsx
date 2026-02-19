@@ -5,7 +5,10 @@ import { useEffect, useState } from "react";
 import DatatableKHR from "@/CommonComponent/DataTableKHR/DatatableKHR";
 import CommonHeader from "@/CommonComponent/HeaderKHR/HeaderKHR";
 
-import { exportAttendanceToExcel, exportAttendanceToPdf } from "./AdminAttandanceServices";
+import {
+  exportAttendanceToExcel,
+  exportAttendanceToPdf,
+} from "./AdminAttandanceServices";
 // import { toast } from "react-toastify";
 import Link from "antd/es/typography/Link";
 import CommonAttendanceStatus from "@/CommonComponent/CommonAttendanceStatus/CommonAttendanceStatus";
@@ -69,15 +72,15 @@ const AdminAttandanceKHR = () => {
   // const [data, setData] = useState<EmployeeAttendance[]>([]);
   const [data, setData] = useState<AttendanceAdminData[]>([]);
   const [attendanceCards, setAttendanceCards] = useState<any[]>([]);
-  
+
   // Group by functionality
-  const [groupBy, setGroupBy] = useState<string>('none');
+  const [groupBy, setGroupBy] = useState<string>("none");
   const [groupedData, setGroupedData] = useState<GroupedData[]>([]);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-  
+
   // Employee selector
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
-  
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>("");
+
   const {
     isAttendancesGetApi,
     isAttendancesGetApiFetching,
@@ -96,16 +99,16 @@ const AdminAttandanceKHR = () => {
 
   // Group by functionality
   const groupByOptions = [
-    { value: 'none', label: 'No Grouping' },
-    { value: 'status', label: 'Group by Status' },
-    { value: 'role', label: 'Group by Role' },
-    { value: 'department', label: 'Group by Department' },
-    { value: 'date', label: 'Group by Date' },
-    { value: 'late', label: 'Group by Late Status' },
-    { value: 'production_hours', label: 'Group by Production Hours' },
-    { value: 'last_month', label: 'Last Month Only' },
-    { value: 'last_3_months', label: 'Last 3 Months' },
-    { value: 'last_6_months', label: 'Last 6 Months' }
+    { value: "none", label: "No Grouping" },
+    { value: "status", label: "Group by Status" },
+    { value: "role", label: "Group by Role" },
+    { value: "department", label: "Group by Department" },
+    { value: "date", label: "Group by Date" },
+    { value: "late", label: "Group by Late Status" },
+    { value: "production_hours", label: "Group by Production Hours" },
+    { value: "last_month", label: "Last Month Only" },
+    { value: "last_3_months", label: "Last 3 Months" },
+    { value: "last_6_months", label: "Last 6 Months" },
   ];
 
   // Helper functions for time-based filtering
@@ -113,11 +116,14 @@ const AdminAttandanceKHR = () => {
     const now = new Date();
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const lastDayOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-    
+
     return {
-      date_from: lastMonth.toISOString().split('T')[0],
-      date_to: lastDayOfLastMonth.toISOString().split('T')[0],
-      label: lastMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+      date_from: lastMonth.toISOString().split("T")[0],
+      date_to: lastDayOfLastMonth.toISOString().split("T")[0],
+      label: lastMonth.toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      }),
     };
   };
 
@@ -125,11 +131,11 @@ const AdminAttandanceKHR = () => {
     const now = new Date();
     const startMonth = new Date(now.getFullYear(), now.getMonth() - n, 1);
     const endMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-    
+
     return {
-      date_from: startMonth.toISOString().split('T')[0],
-      date_to: endMonth.toISOString().split('T')[0],
-      label: `${startMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} to ${endMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
+      date_from: startMonth.toISOString().split("T")[0],
+      date_to: endMonth.toISOString().split("T")[0],
+      label: `${startMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })} to ${endMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}`,
     };
   };
 
@@ -139,13 +145,14 @@ const AdminAttandanceKHR = () => {
   };
 
   // Get employees from Redux state
-  const employees: Employee[] = getEmployeesBasicInfoData?.data?.map((emp: any) => ({
-    id: emp.id,
-    name: emp.name || emp.employee_name || 'Unknown',
-    email: emp.email || '',
-    department: emp.department || '',
-    designation: emp.designation || emp.job_title || ''
-  })) || [];
+  const employees: Employee[] =
+    getEmployeesBasicInfoData?.data?.map((emp: any) => ({
+      id: emp.id,
+      name: emp.name || emp.employee_name || "Unknown",
+      email: emp.email || "",
+      department: emp.department || "",
+      designation: emp.designation || emp.job_title || "",
+    })) || [];
 
   // Function to fetch attendance with employee filter
   const fetchAttendanceWithEmployee = (employeeId?: string) => {
@@ -157,56 +164,65 @@ const AdminAttandanceKHR = () => {
   };
 
   // Function to fetch attendance for date range
-  const fetchAttendanceForDateRange = async (date_from: string, date_to: string, employeeId?: string) => {
+  const fetchAttendanceForDateRange = async (
+    date_from: string,
+    date_to: string,
+    employeeId?: string,
+  ) => {
     try {
-      console.log(`Fetching attendance data from ${date_from} to ${date_to}${employeeId ? ` for employee ${employeeId}` : ''}`);
+      console.log(
+        `Fetching attendance data from ${date_from} to ${date_to}${employeeId ? ` for employee ${employeeId}` : ""}`,
+      );
       const params: any = { date_from, date_to };
       if (employeeId) {
         params.employee_id = employeeId;
       }
       dispatch(AttendancesGetApi(params) as any);
     } catch (error) {
-      console.error('Error fetching attendance data:', error);
+      console.error("Error fetching attendance data:", error);
     }
   };
 
   // Group data by field
-  const groupDataByField = (data: AttendanceAdminData[], field: string): GroupedData[] => {
-    if (field === 'none') return [];
+  const groupDataByField = (
+    data: AttendanceAdminData[],
+    field: string,
+  ): GroupedData[] => {
+    if (field === "none") return [];
 
     const grouped = data.reduce((acc: any, item) => {
-      let groupKey = '';
-      
+      let groupKey = "";
+
       switch (field) {
-        case 'status':
+        case "status":
           groupKey = item.Status;
           break;
-        case 'role':
+        case "role":
           groupKey = item.Role;
           break;
-        case 'department':
+        case "department":
           groupKey = item.Role; // Using Role as department for now
           break;
-        case 'date':
+        case "date":
           groupKey = item.Date;
           break;
-        case 'late':
-          groupKey = item.Late === 'Yes' ? 'Late Arrivals' : 'On Time';
+        case "late":
+          groupKey = item.Late === "Yes" ? "Late Arrivals" : "On Time";
           break;
-        case 'production_hours':
+        case "production_hours":
           const hours = parseFloat(item.ProductionHours);
-          if (hours < 4) groupKey = 'Under 4 Hours';
-          else if (hours < 8) groupKey = '4-8 Hours';
-          else if (hours <= 9) groupKey = '8-9 Hours';
-          else groupKey = 'Over 9 Hours';
+          if (hours < 4) groupKey = "Under 4 Hours";
+          else if (hours < 8) groupKey = "4-8 Hours";
+          else if (hours <= 9) groupKey = "8-9 Hours";
+          else groupKey = "Over 9 Hours";
           break;
-        case 'last_month':
-        case 'last_3_months':
-        case 'last_6_months':
+        case "last_month":
+        case "last_3_months":
+        case "last_6_months":
           groupKey = item.Status; // Group by status for time-based filters
           break;
         default:
-          groupKey = 'All Records';
+          groupKey = "All Records";
       }
 
       if (!acc[groupKey]) {
@@ -216,12 +232,14 @@ const AdminAttandanceKHR = () => {
       return acc;
     }, {});
 
-    return Object.entries(grouped).map(([groupName, items]: [string, any]): GroupedData => ({
-      groupName,
-      items,
-      count: items.length,
-      isGroup: true
-    }));
+    return Object.entries(grouped).map(
+      ([groupName, items]: [string, any]): GroupedData => ({
+        groupName,
+        items,
+        count: items.length,
+        isGroup: true,
+      }),
+    );
   };
 
   // Toggle group expansion
@@ -238,7 +256,7 @@ const AdminAttandanceKHR = () => {
   // Toggle all groups
   const toggleAllGroups = (expand: boolean) => {
     if (expand) {
-      setExpandedGroups(new Set(groupedData.map(group => group.groupName)));
+      setExpandedGroups(new Set(groupedData.map((group) => group.groupName)));
     } else {
       setExpandedGroups(new Set());
     }
@@ -247,8 +265,8 @@ const AdminAttandanceKHR = () => {
   // Handle group by change
   const handleGroupByChange = async (value: string) => {
     setGroupBy(value);
-    
-    if (value === 'none') {
+
+    if (value === "none") {
       setGroupedData([]);
       setExpandedGroups(new Set());
       // Fetch current data without date filters
@@ -257,37 +275,49 @@ const AdminAttandanceKHR = () => {
     }
 
     // Handle time-based grouping options
-    if (['last_month', 'last_3_months', 'last_6_months'].includes(value)) {
+    if (["last_month", "last_3_months", "last_6_months"].includes(value)) {
       try {
         switch (value) {
-          case 'last_month':
+          case "last_month":
             const lastMonthRange = getLastMonthDateRange();
-            console.log('Fetching last month data:', lastMonthRange.label);
-            await fetchAttendanceForDateRange(lastMonthRange.date_from, lastMonthRange.date_to, selectedEmployeeId);
+            console.log("Fetching last month data:", lastMonthRange.label);
+            await fetchAttendanceForDateRange(
+              lastMonthRange.date_from,
+              lastMonthRange.date_to,
+              selectedEmployeeId,
+            );
             break;
-          
-          case 'last_3_months':
+
+          case "last_3_months":
             const last3MonthsRange = getLastNMonthsDateRange(3);
             console.log(`Fetching last 3 months: ${last3MonthsRange.label}`);
-            await fetchAttendanceForDateRange(last3MonthsRange.date_from, last3MonthsRange.date_to, selectedEmployeeId);
+            await fetchAttendanceForDateRange(
+              last3MonthsRange.date_from,
+              last3MonthsRange.date_to,
+              selectedEmployeeId,
+            );
             break;
-          
-          case 'last_6_months':
+
+          case "last_6_months":
             const last6MonthsRange = getLastNMonthsDateRange(6);
             console.log(`Fetching last 6 months: ${last6MonthsRange.label}`);
-            await fetchAttendanceForDateRange(last6MonthsRange.date_from, last6MonthsRange.date_to, selectedEmployeeId);
+            await fetchAttendanceForDateRange(
+              last6MonthsRange.date_from,
+              last6MonthsRange.date_to,
+              selectedEmployeeId,
+            );
             break;
         }
         return;
       } catch (error) {
-        console.error('Error fetching time-based data:', error);
+        console.error("Error fetching time-based data:", error);
       }
     }
 
     // Handle regular grouping (non-time-based)
     const grouped = groupDataByField(data, value);
     setGroupedData(grouped);
-    
+
     // Expand first group by default
     if (grouped.length > 0) {
       setExpandedGroups(new Set([grouped[0].groupName]));
@@ -297,56 +327,60 @@ const AdminAttandanceKHR = () => {
   // Handle employee selection
   const handleEmployeeChange = (employeeId: string) => {
     setSelectedEmployeeId(employeeId);
-    
+
     // Reset grouping when employee changes
-    if (groupBy !== 'none') {
-      setGroupBy('none');
+    if (groupBy !== "none") {
+      setGroupBy("none");
       setGroupedData([]);
       setExpandedGroups(new Set());
     }
-    
+
     // Fetch attendance for selected employee
     fetchAttendanceWithEmployee(employeeId);
   };
 
   // Render grouped table
   const renderGroupedTable = () => {
-    if (groupBy === 'none') {
+    if (groupBy === "none") {
       return <DatatableKHR data={data} columns={columns} selection={true} />;
     }
 
     return (
       <div className="grouped-table">
         {groupedData.map((group: GroupedData, groupIndex: number) => (
-          <div 
-            key={`group-${groupIndex}-${group.groupName}`} 
-            className="group-section mb-4" 
+          <div
+            key={`group-${groupIndex}-${group.groupName}`}
+            className="group-section mb-4"
             style={{
-              border: '1px solid #e9ecef',
-              borderRadius: '8px',
-              overflow: 'hidden'
+              border: "1px solid #e9ecef",
+              borderRadius: "8px",
+              overflow: "hidden",
             }}
           >
             {/* Group Header */}
-            <div 
+            <div
               className="group-header bg-light p-3 border rounded cursor-pointer d-flex justify-content-between align-items-center"
               onClick={() => toggleGroupExpansion(group.groupName)}
-              style={{ 
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                border: '1px solid #e9ecef'
+              style={{
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+                border: "1px solid #e9ecef",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#f8f9fa';
+                e.currentTarget.style.backgroundColor = "#f8f9fa";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#f8f9fa';
+                e.currentTarget.style.backgroundColor = "#f8f9fa";
               }}
             >
               <div className="d-flex align-items-center">
-                <i className={`ti ${expandedGroups.has(group.groupName) ? 'ti-chevron-down' : 'ti-chevron-right'} me-2`}></i>
+                <i
+                  className={`ti ${expandedGroups.has(group.groupName) ? "ti-chevron-down" : "ti-chevron-right"} me-2`}
+                ></i>
                 <h6 className="mb-0 fw-bold">{group.groupName}</h6>
-                <span className="badge badge-primary ms-2">{group.count} records</span>
+                <span className="badge badge-primary ms-2">
+                  {group.count} records
+                </span>
               </div>
               <div className="group-stats">
                 <div className="d-flex gap-3">
@@ -356,15 +390,38 @@ const AdminAttandanceKHR = () => {
                   </small>
                   <small className="text-success">
                     <i className="ti ti-check me-1"></i>
-                    Present: <strong>{group.items.filter((item: AttendanceAdminData) => item.Status === 'Present').length}</strong>
+                    Present:{" "}
+                    <strong>
+                      {
+                        group.items.filter(
+                          (item: AttendanceAdminData) =>
+                            item.Status === "Present",
+                        ).length
+                      }
+                    </strong>
                   </small>
                   <small className="text-danger">
                     <i className="ti ti-x me-1"></i>
-                    Absent: <strong>{group.items.filter((item: AttendanceAdminData) => item.Status === 'Absent').length}</strong>
+                    Absent:{" "}
+                    <strong>
+                      {
+                        group.items.filter(
+                          (item: AttendanceAdminData) =>
+                            item.Status === "Absent",
+                        ).length
+                      }
+                    </strong>
                   </small>
                   <small className="text-warning">
                     <i className="ti ti-clock me-1"></i>
-                    Late: <strong>{group.items.filter((item: AttendanceAdminData) => item.Late === 'Yes').length}</strong>
+                    Late:{" "}
+                    <strong>
+                      {
+                        group.items.filter(
+                          (item: AttendanceAdminData) => item.Late === "Yes",
+                        ).length
+                      }
+                    </strong>
                   </small>
                 </div>
               </div>
@@ -372,10 +429,13 @@ const AdminAttandanceKHR = () => {
 
             {/* Group Content */}
             {expandedGroups.has(group.groupName) && (
-              <div className="group-content mt-2" style={{ borderTop: '1px solid #e9ecef' }}>
-                <DatatableKHR 
-                  data={group.items} 
-                  columns={columns} 
+              <div
+                className="group-content mt-2"
+                style={{ borderTop: "1px solid #e9ecef" }}
+              >
+                <DatatableKHR
+                  data={group.items}
+                  columns={columns}
                   selection={true}
                 />
               </div>
@@ -391,7 +451,7 @@ const AdminAttandanceKHR = () => {
     const today = new Date();
     const weekAgo = new Date();
     weekAgo.setDate(today.getDate() - 7);
-    
+
     const formatDate = (date: Date) => date.toISOString().split("T")[0];
     return {
       dateFrom: formatDate(weekAgo),
@@ -436,10 +496,10 @@ const AdminAttandanceKHR = () => {
   const formatDate = (dateTime: string | false) => {
     if (!dateTime) return "-";
     const date = new Date(dateTime.replace(" ", "T"));
-    return date.toLocaleDateString([], { 
-      year: 'numeric', 
-      month: 'short', 
-      day: '2-digit' 
+    return date.toLocaleDateString([], {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
     });
   };
 
@@ -679,16 +739,14 @@ const AdminAttandanceKHR = () => {
     }
   }, [isAttendancesGetApi, isAttendancesGetApiFetching]);
 
-  useEffect(() => {
+  useEffect(() => {}, []);
 
-  }, []);
-  
   // Update grouped data when main data changes
   useEffect(() => {
-    if (data.length > 0 && groupBy !== 'none') {
+    if (data.length > 0 && groupBy !== "none") {
       const grouped = groupDataByField(data, groupBy);
       setGroupedData(grouped);
-      
+
       // Expand first group by default
       if (grouped.length > 0) {
         setExpandedGroups(new Set([grouped[0].groupName]));
@@ -704,7 +762,7 @@ const AdminAttandanceKHR = () => {
   // Handle employee data loading
   useEffect(() => {
     if (isGetEmployeesBasicInfo) {
-      console.log('Employees loaded:', getEmployeesBasicInfoData);
+      console.log("Employees loaded:", getEmployeesBasicInfoData);
       dispatch(updateState({ isGetEmployeesBasicInfo: false }));
     }
   }, [isGetEmployeesBasicInfo, getEmployeesBasicInfoData, dispatch]);
@@ -712,13 +770,12 @@ const AdminAttandanceKHR = () => {
     // fetchData();
     if (isApiAuth) {
       dispatch(AttendancesGetApi({}) as any);
-      dispatch(updateState({ isApiAuth: false }))
+      dispatch(updateState({ isApiAuth: false }));
     }
   }, [dispatch, isApiAuth]);
   useEffect(() => {
     // fetchData();
     dispatch(ApiAuth());
-
   }, [dispatch]);
   const columns = [
     {
@@ -749,10 +806,11 @@ const AdminAttandanceKHR = () => {
       dataIndex: "Status",
       render: (text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge ${text === "Present"
-            ? "badge-success-transparent"
-            : "badge-danger-transparent"
-            } d-inline-flex align-items-center`}
+          className={`badge ${
+            text === "Present"
+              ? "badge-success-transparent"
+              : "badge-danger-transparent"
+          } d-inline-flex align-items-center`}
         >
           <i className="ti ti-point-filled me-1" />
           {record.Status}
@@ -773,12 +831,12 @@ const AdminAttandanceKHR = () => {
       sorter: (a: AttendanceAdminData, b: AttendanceAdminData) =>
         a.CheckOut.length - b.CheckOut.length,
     },
-    {
-      title: "Break",
-      dataIndex: "Break",
-      sorter: (a: AttendanceAdminData, b: AttendanceAdminData) =>
-        a.Break.length - b.Break.length,
-    },
+    // {
+    //   title: "Break",
+    //   dataIndex: "Break",
+    //   sorter: (a: AttendanceAdminData, b: AttendanceAdminData) =>
+    //     a.Break.length - b.Break.length,
+    // },
     {
       title: "Late",
       dataIndex: "Late",
@@ -790,13 +848,14 @@ const AdminAttandanceKHR = () => {
       dataIndex: "ProductionHours",
       render: (_text: string, record: AttendanceAdminData) => (
         <span
-          className={`badge d-inline-flex align-items-center badge-sm ${parseFloat(record.ProductionHours) < 8
-            ? "badge-danger"
-            : parseFloat(record.ProductionHours) >= 8 &&
-              parseFloat(record.ProductionHours) <= 9
-              ? "badge-success"
-              : "badge-info"
-            }`}
+          className={`badge d-inline-flex align-items-center badge-sm ${
+            parseFloat(record.ProductionHours) < 8
+              ? "badge-danger"
+              : parseFloat(record.ProductionHours) >= 8 &&
+                  parseFloat(record.ProductionHours) <= 9
+                ? "badge-success"
+                : "badge-info"
+          }`}
         >
           <i className="ti ti-clock-hour-11 me-1"></i>
           {record.ProductionHours}
@@ -856,26 +915,35 @@ const AdminAttandanceKHR = () => {
                       data-bs-toggle="dropdown"
                     >
                       <i className="ti ti-user me-1" />
-                      {selectedEmployeeId ? 
-                        employees.find(emp => emp.id.toString() === selectedEmployeeId)?.name || 'Select Employee'
-                        : 'All Employees'
-                      }
+                      {selectedEmployeeId
+                        ? employees.find(
+                            (emp) => emp.id.toString() === selectedEmployeeId,
+                          )?.name || "Select Employee"
+                        : "All Employees"}
                     </button>
-                    <ul className="dropdown-menu dropdown-menu-end" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                    <ul
+                      className="dropdown-menu dropdown-menu-end"
+                      style={{ maxHeight: "300px", overflowY: "auto" }}
+                    >
                       <li>
                         <button
-                          className={`dropdown-item ${selectedEmployeeId === '' ? 'active' : ''}`}
-                          onClick={() => handleEmployeeChange('')}
+                          className={`dropdown-item ${selectedEmployeeId === "" ? "active" : ""}`}
+                          onClick={() => handleEmployeeChange("")}
                         >
                           <i className="ti ti-users me-2" />
                           All Employees
                         </button>
                       </li>
-                      <li><hr className="dropdown-divider" /></li>
+                      <li>
+                        <hr className="dropdown-divider" />
+                      </li>
                       {isGetEmployeesBasicInfoFetching ? (
                         <li className="dropdown-item-text">
                           <div className="d-flex align-items-center">
-                            <div className="spinner-border spinner-border-sm me-2" role="status"></div>
+                            <div
+                              className="spinner-border spinner-border-sm me-2"
+                              role="status"
+                            ></div>
                             Loading employees...
                           </div>
                         </li>
@@ -888,14 +956,18 @@ const AdminAttandanceKHR = () => {
                         employees.map((employee) => (
                           <li key={employee.id}>
                             <button
-                              className={`dropdown-item ${selectedEmployeeId === employee.id.toString() ? 'active' : ''}`}
-                              onClick={() => handleEmployeeChange(employee.id.toString())}
+                              className={`dropdown-item ${selectedEmployeeId === employee.id.toString() ? "active" : ""}`}
+                              onClick={() =>
+                                handleEmployeeChange(employee.id.toString())
+                              }
                             >
                               <i className="ti ti-user me-2" />
                               <div>
                                 <div>{employee.name}</div>
                                 {employee.designation && (
-                                  <small className="text-muted">{employee.designation}</small>
+                                  <small className="text-muted">
+                                    {employee.designation}
+                                  </small>
                                 )}
                               </div>
                             </button>
@@ -912,16 +984,19 @@ const AdminAttandanceKHR = () => {
                       data-bs-toggle="dropdown"
                     >
                       <i className="ti ti-layout-grid me-1" />
-                      {groupByOptions.find(opt => opt.value === groupBy)?.label || 'Group By'}
+                      {groupByOptions.find((opt) => opt.value === groupBy)
+                        ?.label || "Group By"}
                     </button>
                     <ul className="dropdown-menu dropdown-menu-end">
                       {groupByOptions.map((option) => (
                         <li key={option.value}>
                           <button
-                            className={`dropdown-item ${groupBy === option.value ? 'active' : ''}`}
+                            className={`dropdown-item ${groupBy === option.value ? "active" : ""}`}
                             onClick={() => handleGroupByChange(option.value)}
                           >
-                            <i className={`ti ${groupBy === option.value ? 'ti-check' : 'ti-point'} me-2`} />
+                            <i
+                              className={`ti ${groupBy === option.value ? "ti-check" : "ti-point"} me-2`}
+                            />
                             {option.label}
                           </button>
                         </li>
@@ -955,22 +1030,22 @@ const AdminAttandanceKHR = () => {
                     </button>
                     <ul className="dropdown-menu dropdown-menu-end p-3">
                       <li>
-                        <button 
+                        <button
                           className="dropdown-item"
                           onClick={handleExportPdf}
                           disabled={isExporting}
                         >
-                          <i className="ti ti-file-type-pdf me-1" /> 
+                          <i className="ti ti-file-type-pdf me-1" />
                           {isExporting ? "Exporting..." : "PDF"}
                         </button>
                       </li>
                       <li>
-                        <button 
+                        <button
                           className="dropdown-item"
                           onClick={handleExportExcel}
                           disabled={isExporting}
                         >
-                          <i className="ti ti-file-type-xls me-1" /> 
+                          <i className="ti ti-file-type-xls me-1" />
                           {isExporting ? "Exporting..." : "Excel"}
                         </button>
                       </li>
@@ -996,30 +1071,33 @@ const AdminAttandanceKHR = () => {
                 <div className="col-md-5">
                   <div className="mb-3 mb-md-0">
                     <h4 className="mb-1">
-                      Attendance Details 
+                      Attendance Details
                       {selectedEmployeeId ? (
                         <span className="text-primary">
-                          - {employees.find(emp => emp.id.toString() === selectedEmployeeId)?.name}
+                          -{" "}
+                          {
+                            employees.find(
+                              (emp) => emp.id.toString() === selectedEmployeeId,
+                            )?.name
+                          }
                         </span>
                       ) : (
-                        ' Today'
+                        " Today"
                       )}
                     </h4>
                     <p>
-                      {selectedEmployeeId 
+                      {selectedEmployeeId
                         ? `Individual employee attendance data`
-                        : `Data from the 800+ total no of employees`
-                      }
+                        : `Data from the 800+ total no of employees`}
                     </p>
                   </div>
                 </div>
                 <div className="col-md-7">
                   <div className="d-flex align-items-center justify-content-md-end">
                     <h6>
-                      {selectedEmployeeId 
-                        ? 'Employee Status'
-                        : 'Total Absenties today'
-                      }
+                      {selectedEmployeeId
+                        ? "Employee Status"
+                        : "Total Absenties today"}
                     </h6>
                     {!selectedEmployeeId && (
                       <div className="avatar-list-stacked avatar-group-sm ms-4">
@@ -1060,7 +1138,7 @@ const AdminAttandanceKHR = () => {
                         </span>
                         <Link
                           className="avatar bg-primary avatar-rounded text-fixed-white fs-12"
-                        // to="#"
+                          // to="#"
                         >
                           +1
                         </Link>
@@ -1093,31 +1171,46 @@ const AdminAttandanceKHR = () => {
               ) : (
                 <>
                   {/* Group By Info */}
-                  {groupBy !== 'none' && (
+                  {groupBy !== "none" && (
                     <div className="alert alert-info m-3 mb-0 d-flex justify-content-between align-items-center">
                       <div>
                         <i className="ti ti-info-circle me-2"></i>
-                        <strong>Grouped by:</strong> {groupByOptions.find(opt => opt.value === groupBy)?.label}
+                        <strong>Grouped by:</strong>{" "}
+                        {
+                          groupByOptions.find((opt) => opt.value === groupBy)
+                            ?.label
+                        }
                         <span className="ms-2">
-                          ({groupedData.length} groups, {data.length} total records)
+                          ({groupedData.length} groups, {data.length} total
+                          records)
                         </span>
                         {selectedEmployeeId && (
                           <span className="ms-2 badge badge-secondary">
                             <i className="ti ti-user me-1"></i>
-                            Employee: {employees.find(emp => emp.id.toString() === selectedEmployeeId)?.name}
+                            Employee:{" "}
+                            {
+                              employees.find(
+                                (emp) =>
+                                  emp.id.toString() === selectedEmployeeId,
+                              )?.name
+                            }
                           </span>
                         )}
-                        {['last_month', 'last_3_months', 'last_6_months'].includes(groupBy) && (
+                        {[
+                          "last_month",
+                          "last_3_months",
+                          "last_6_months",
+                        ].includes(groupBy) && (
                           <span className="ms-2 badge badge-info">
                             <i className="ti ti-calendar me-1"></i>
-                            {groupBy === 'last_month' && 'Previous Month Only'}
-                            {groupBy === 'last_3_months' && 'Previous 3 Months'}
-                            {groupBy === 'last_6_months' && 'Previous 6 Months'}
+                            {groupBy === "last_month" && "Previous Month Only"}
+                            {groupBy === "last_3_months" && "Previous 3 Months"}
+                            {groupBy === "last_6_months" && "Previous 6 Months"}
                           </span>
                         )}
                       </div>
                       <div className="btn-group btn-group-sm">
-                        <button 
+                        <button
                           className="btn btn-outline-primary btn-sm"
                           onClick={() => toggleAllGroups(true)}
                           title="Expand All Groups"
@@ -1125,7 +1218,7 @@ const AdminAttandanceKHR = () => {
                           <i className="ti ti-chevrons-down me-1"></i>
                           Expand All
                         </button>
-                        <button 
+                        <button
                           className="btn btn-outline-secondary btn-sm"
                           onClick={() => toggleAllGroups(false)}
                           title="Collapse All Groups"
@@ -1136,11 +1229,9 @@ const AdminAttandanceKHR = () => {
                       </div>
                     </div>
                   )}
-                  
+
                   {/* Render Table or Grouped Table */}
-                  <div className="p-3">
-                    {renderGroupedTable()}
-                  </div>
+                  <div className="p-3">{renderGroupedTable()}</div>
                 </>
               )}
             </div>

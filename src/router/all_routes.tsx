@@ -45,6 +45,7 @@ export const all_routes = {
   salaryStructureKHR: "/KHR-salary-structure",
   salaryStructureTypeKHR: "/KHR-salary-structure-types",
   payslipOtherInputTypeKHR: "/KHR-payslip-other-input-type",
+  payslipKHR: "/KHR-payslip",
 
   // Approvals
   approvalKHR: "KHR-approval",

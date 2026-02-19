@@ -3955,24 +3955,6 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           Details
                         </h6>
                         <div className="row g-3">
-                          {/* Pin Code - OPTIONAL */}
-                          <div className="col-md-3">
-                            <label className="form-label fs-13">Pin Code</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              maxLength={6}
-                              placeholder="6-Digits"
-                              value={formData.pin_code}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  pin_code: e.target.value.replace(/\D/g, ""),
-                                })
-                              }
-                            />
-                          </div>
-
                           {/* Country - OPTIONAL */}
                           <div className="col-md-3">
                             <label className="form-label fs-13">Country</label>
@@ -4055,6 +4037,24 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                 setFormData({
                                   ...formData,
                                   district_id: opt?.value || "",
+                                })
+                              }
+                            />
+                          </div>
+
+                          {/* Pin Code - OPTIONAL */}
+                          <div className="col-md-3">
+                            <label className="form-label fs-13">Pin Code</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              maxLength={6}
+                              placeholder="6-Digits"
+                              value={formData.pin_code}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  pin_code: e.target.value.replace(/\D/g, ""),
                                 })
                               }
                             />

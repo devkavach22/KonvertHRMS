@@ -319,6 +319,7 @@ import {
   SalaryStructureKHR,
   PayslipOtherInputTypes,
   BranchKHR,
+  PayslipKHR,
 
   // BanksAccountKHR,
 } from "./lazyRoutes";
@@ -1728,6 +1729,11 @@ export const publicRoutes = [
   {
     path: routes.payslipOtherInputTypeKHR,
     element: <PayslipOtherInputTypes />,
+    route: Route,
+  },
+  {
+    path: routes.payslipKHR,
+    element: <PayslipKHR />,
     route: Route,
   },
   // {
