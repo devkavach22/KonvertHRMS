@@ -111,12 +111,12 @@ const Login = () => {
 
         toast.success(data.message || "Login Successful!");
 
-        // 6. Navigation
+        // 6. Navigation with page refresh
         setTimeout(() => {
           if (role === "REGISTER_ADMIN" || role === "ADMIN") {
-            navigation(routes.adminDashboard);
+            window.location.href = routes.adminDashboard;
           } else {
-            navigation(routes.employeeDashboard);
+            window.location.href = routes.employeeDashboard;
           }
         }, 1000);
       } else {
