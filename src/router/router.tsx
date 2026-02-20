@@ -26,6 +26,15 @@ const ALLRoutes: React.FC = () => {
   const dispatch = useDispatch();
   const { openNotification } = useNotificationContext();
 
+  // Call ApiAuth once on app initialization to get authToken
+  React.useEffect(() => {
+    const authToken = localStorage.getItem("authToken");
+    // Only call ApiAuth if no token exists
+    if (!authToken || authToken === "undefined") {
+      dispatch(ApiAuth() as any);
+    }
+  }, [dispatch]);
+
   React.useEffect(() => {
     if (isError) {
       openNotification(

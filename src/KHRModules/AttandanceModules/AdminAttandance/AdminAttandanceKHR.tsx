@@ -766,8 +766,8 @@ const AdminAttandanceKHR = () => {
       dispatch(updateState({ isGetEmployeesBasicInfo: false }));
     }
   }, [isGetEmployeesBasicInfo, getEmployeesBasicInfoData, dispatch]);
+
   useEffect(() => {
-    // fetchData();
     if (isApiAuth) {
       dispatch(AttendancesGetApi({}) as any);
       dispatch(updateState({ isApiAuth: false }));
@@ -777,6 +777,7 @@ const AdminAttandanceKHR = () => {
     // fetchData();
     dispatch(ApiAuth());
   }, [dispatch]);
+
   const columns = [
     {
       title: "Employee",
