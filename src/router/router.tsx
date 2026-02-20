@@ -5,6 +5,7 @@ import { LoadingSpinner } from "../core/common/LoadingSpinner";
 import { ProtectedRoute, GuestRoute } from "./RouteGuards";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  ApiAuth,
   getCurrentAttendanceStatus,
   TBSelector,
   updateState,
