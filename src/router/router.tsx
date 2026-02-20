@@ -63,20 +63,34 @@ const ALLRoutes: React.FC = () => {
     }
   }, [successMessage]);
 
-  // React.useEffect(() => {
-  // if (isCheckinCheckout) {
-  // dispatch(getCurrentAttendanceStatus() as any);
-  // dispatch(updateState({ isCheckinCheckout: false }));
-  // }
-  // }, [isCheckinCheckout]);
-
   React.useEffect(() => {
-    // Only call if user is logged in (check for user_id in localStorage)
-    const userId = localStorage.getItem("user_id");
-    if (userId) {
-      dispatch(getCurrentAttendanceStatus() as any);
+    if (isCheckinCheckout) {
+      // Check if both user_id and authToken are available before calling
+      const userId = localStorage.getItem("user_id");
+      const authToken = localStorage.getItem("authToken");
+      
+      if (userId && authToken && authToken !== "undefined" && authToken !== "null") {
+        console.log("✅ Calling getCurrentAttendanceStatus after check-in/out");
+        dispatch(getCurrentAttendanceStatus() as any);
+      } else {
+        console.log("⚠️ Skipping getCurrentAttendanceStatus - missing credentials");
+      }
+      dispatch(updateState({ isCheckinCheckout: false }));
     }
   }, [isCheckinCheckout]);
+
+  React.useEffect(() => {
+    // Only call if user is logged in and has valid authToken
+    const userId = localStorage.getItem("user_id");
+    const authToken = localStorage.getItem("authToken");
+    
+    if (userId && authToken && authToken !== "undefined" && authToken !== "null") {
+      console.log("✅ Calling getCurrentAttendanceStatus on app load");
+      dispatch(getCurrentAttendanceStatus() as any);
+    } else {
+      console.log("⚠️ Skipping getCurrentAttendanceStatus - missing userId or authToken");
+    }
+  }, [dispatch]);
 
   React.useEffect(() => {
     // Only call if user is logged in (check for user_id in localStorage)

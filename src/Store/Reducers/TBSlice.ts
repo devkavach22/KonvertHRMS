@@ -412,13 +412,25 @@ export const getCurrentAttendanceStatus = createAsyncThunk(
     try {
       const user_id = localStorage.getItem("user_id");
       const email = localStorage.getItem("user_email");
+      const authToken = localStorage.getItem("authToken");
+
+      // Validate required data before making API call
+      if (!user_id || !email) {
+        console.error("❌ Missing user_id or email for getCurrentAttendanceStatus");
+        return thunkAPI.rejectWithValue({ error: "Missing user credentials" });
+      }
+
+      if (!authToken || authToken === "undefined" || authToken === "null") {
+        console.error("❌ Missing or invalid authToken for getCurrentAttendanceStatus");
+        return thunkAPI.rejectWithValue({ error: "Missing authentication token" });
+      }
 
       let result = await axios({
         method: "GET",
         baseURL: CONFIG.BASE_URL_ALL,
         headers: {
           "Content-Type": "application/json",
-          authorization: `${localStorage.getItem("authToken")}`,
+          authorization: `${authToken}`,
         },
         url: `/api/checkin_checkout_status`,
         params: { user_id, email },
