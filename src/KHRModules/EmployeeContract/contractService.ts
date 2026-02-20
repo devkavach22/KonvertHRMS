@@ -11,6 +11,7 @@ export interface Contract {
   employee_id: number;
   job_id: number;
   date_start: string;
+  date_end: string;
   work_entry_source: string;
   resource_calendar_id: number;
   structure_type_id: number;
@@ -74,12 +75,16 @@ export const getContracts = async (): Promise<Contract[]> => {
     return response.data?.data || response.data || [];
   } catch (error: any) {
     console.error("Error fetching contracts:", error);
-    throw new Error(error?.response?.data?.message || "Failed to fetch contracts");
+    throw new Error(
+      error?.response?.data?.message || "Failed to fetch contracts",
+    );
   }
 };
 
 // Create new contract
-export const createContract = async (contractData: Omit<Contract, 'id'>): Promise<Contract> => {
+export const createContract = async (
+  contractData: Omit<Contract, "id">,
+): Promise<Contract> => {
   try {
     const response = await axios({
       method: "POST",
@@ -88,7 +93,7 @@ export const createContract = async (contractData: Omit<Contract, 'id'>): Promis
         "Content-Type": "application/json",
         authorization: `${localStorage.getItem("authToken")}`,
       },
-      url: `/api/employee/contracts`,
+      url: `/api/employee/Contracts`,
       params: { user_id },
       data: contractData,
     });
@@ -96,12 +101,17 @@ export const createContract = async (contractData: Omit<Contract, 'id'>): Promis
     return response.data?.data || response.data;
   } catch (error: any) {
     console.error("Error creating contract:", error);
-    throw new Error(error?.response?.data?.message || "Failed to create contract");
+    throw new Error(
+      error?.response?.data?.message || "Failed to create contract",
+    );
   }
 };
 
 // Update contract
-export const updateContract = async (id: string, contractData: Partial<Contract>): Promise<Contract> => {
+export const updateContract = async (
+  id: string,
+  contractData: Partial<Contract>,
+): Promise<Contract> => {
   try {
     const response = await axios({
       method: "PUT",
@@ -118,7 +128,9 @@ export const updateContract = async (id: string, contractData: Partial<Contract>
     return response.data?.data || response.data;
   } catch (error: any) {
     console.error("Error updating contract:", error);
-    throw new Error(error?.response?.data?.message || "Failed to update contract");
+    throw new Error(
+      error?.response?.data?.message || "Failed to update contract",
+    );
   }
 };
 
@@ -137,7 +149,9 @@ export const deleteContract = async (id: string): Promise<void> => {
     });
   } catch (error: any) {
     console.error("Error deleting contract:", error);
-    throw new Error(error?.response?.data?.message || "Failed to delete contract");
+    throw new Error(
+      error?.response?.data?.message || "Failed to delete contract",
+    );
   }
 };
 
@@ -158,7 +172,9 @@ export const getEmployees = async (): Promise<Employee[]> => {
     return response.data?.data || response.data || [];
   } catch (error: any) {
     console.error("Error fetching employees:", error);
-    throw new Error(error?.response?.data?.message || "Failed to fetch employees");
+    throw new Error(
+      error?.response?.data?.message || "Failed to fetch employees",
+    );
   }
 };
 
@@ -179,7 +195,9 @@ export const getWorkingSchedules = async (): Promise<WorkingSchedule[]> => {
     return response.data?.data || response.data || [];
   } catch (error: any) {
     console.error("Error fetching working schedules:", error);
-    throw new Error(error?.response?.data?.message || "Failed to fetch working schedules");
+    throw new Error(
+      error?.response?.data?.message || "Failed to fetch working schedules",
+    );
   }
 };
 
@@ -200,6 +218,8 @@ export const getDepartments = async (): Promise<Department[]> => {
     return response.data?.data || response.data || [];
   } catch (error: any) {
     console.error("Error fetching departments:", error);
-    throw new Error(error?.response?.data?.message || "Failed to fetch departments");
+    throw new Error(
+      error?.response?.data?.message || "Failed to fetch departments",
+    );
   }
 };

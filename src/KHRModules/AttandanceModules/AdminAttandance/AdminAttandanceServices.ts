@@ -53,12 +53,12 @@ export const getAdminAttendance = async (): Promise<APIAdminAttendance[]> => {
 
 export const updateAdminAttendance = async (
   attendanceId: number,
-  payload: UpdateAttendancePayload
+  payload: UpdateAttendancePayload,
 ) => {
   try {
     const response = await Instance.put(
       `/api/admin/updateattendances/${attendanceId}`,
-      payload
+      payload,
     );
 
     return response.data;
@@ -71,7 +71,7 @@ export const updateAdminAttendance = async (
 // Export attendance to Excel
 export const exportAttendanceToExcel = async (
   dateFrom: string,
-  dateTo: string
+  dateTo: string,
 ): Promise<void> => {
   try {
     const { user_id } = getAuthDetails();
@@ -89,7 +89,7 @@ export const exportAttendanceToExcel = async (
         headers: {
           Authorization: token || "",
         },
-      }
+      },
     );
 
     // Create download link
@@ -113,7 +113,7 @@ export const exportAttendanceToExcel = async (
 // Export attendance to PDF
 export const exportAttendanceToPdf = async (
   dateFrom: string,
-  dateTo: string
+  dateTo: string,
 ): Promise<void> => {
   try {
     const { user_id } = getAuthDetails();
@@ -131,7 +131,7 @@ export const exportAttendanceToPdf = async (
         headers: {
           Authorization: token || "",
         },
-      }
+      },
     );
 
     // Create download link

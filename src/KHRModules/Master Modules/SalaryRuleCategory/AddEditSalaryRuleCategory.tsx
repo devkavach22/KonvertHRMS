@@ -21,7 +21,9 @@ const AddEditSalaryRuleCategory: React.FC<Props> = ({ onSuccess, data }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<any>({});
-  const [parentCategories, setParentCategories] = useState<CategoryOption[]>([]);
+  const [parentCategories, setParentCategories] = useState<CategoryOption[]>(
+    [],
+  );
   const [loadingParents, setLoadingParents] = useState(false);
 
   const [formData, setFormData] = useState<any>({
@@ -85,24 +87,28 @@ const AddEditSalaryRuleCategory: React.FC<Props> = ({ onSuccess, data }) => {
   };
 
   const resetForm = () => {
-    setFormData({ 
-      name: "", 
-      parent_id: null, 
-      note: "" 
+    setFormData({
+      name: "",
+      parent_id: null,
+      note: "",
     });
     setErrors({});
     setIsSubmitted(false);
     setIsSubmitting(false);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
     const { name, value } = e.target;
-    
+
     let processedValue: any = value;
     if (name === "parent_id") {
       processedValue = value === "" ? null : Number(value);
     }
-    
+
     setFormData({ ...formData, [name]: processedValue });
 
     if (errors[name]) {
@@ -114,7 +120,7 @@ const AddEditSalaryRuleCategory: React.FC<Props> = ({ onSuccess, data }) => {
 
   const validate = () => {
     let tempErrors: any = {};
-    
+
     if (!formData.name?.trim()) {
       tempErrors.name = "Category name is required";
     } else if (formData.name.trim().length < 2) {
@@ -165,8 +171,8 @@ const AddEditSalaryRuleCategory: React.FC<Props> = ({ onSuccess, data }) => {
   };
 
   // Filter out current category from parent options (prevent self-reference)
-  const filteredParentCategories = parentCategories.filter(
-    cat => data?.id ? String(cat.value) !== String(data.id) : true
+  const filteredParentCategories = parentCategories.filter((cat) =>
+    data?.id ? String(cat.value) !== String(data.id) : true,
   );
 
   return (
@@ -215,7 +221,8 @@ const AddEditSalaryRuleCategory: React.FC<Props> = ({ onSuccess, data }) => {
               {/* Parent Category */}
               <div className="mb-3">
                 <label className="form-label fs-13 fw-bold">
-                  Parent Category <span className="text-muted">(Optional)</span>
+                  Parent Category
+                  {/* / <span className="text-muted">(Optional)</span> */}
                 </label>
                 <select
                   name="parent_id"
@@ -239,7 +246,8 @@ const AddEditSalaryRuleCategory: React.FC<Props> = ({ onSuccess, data }) => {
               {/* Note */}
               <div className="mb-3">
                 <label className="form-label fs-13 fw-bold">
-                  Note <span className="text-muted">(Optional)</span>
+                  Note
+                  {/* <span className="text-muted">(Optional)</span> */}
                 </label>
                 <textarea
                   name="note"
@@ -254,7 +262,9 @@ const AddEditSalaryRuleCategory: React.FC<Props> = ({ onSuccess, data }) => {
                 />
                 <div className="d-flex justify-content-between">
                   {isSubmitted && errors.note && (
-                    <div className="invalid-feedback fs-11 d-block">{errors.note}</div>
+                    <div className="invalid-feedback fs-11 d-block">
+                      {errors.note}
+                    </div>
                   )}
                   <small className="text-muted ms-auto">
                     {formData.note?.length || 0}/500 characters

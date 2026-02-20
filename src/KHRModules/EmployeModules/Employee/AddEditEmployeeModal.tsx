@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { DatePicker, Radio, Checkbox } from "antd";
+import { DatePicker, Radio, Slider, Checkbox } from "antd";
 import dayjs from "dayjs";
 import CommonSelect from "../../../core/common/commonSelect";
 import { toast } from "react-toastify";
@@ -186,6 +186,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     // 9. Setting
     pin: "",
   });
+  const todayStr = dayjs().format("YYYY-MM-DD");
 
   const initialFormData = {
     name: "",
@@ -230,6 +231,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     pin_code: "",
     district_id: "",
     state_id: "",
+    joining_date: todayStr,
     emergency_contact_name: "",
     emergency_contact_relation: "",
     emergency_contact_mobile: "",
@@ -240,7 +242,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     bank_iafc_code: "",
     bank_swift_code: "",
     currency_id: "INR",
-
+    attendance_capture_mode: "mobile",
     department_id: "",
     job_id: "",
     employment_type: "permanent",
@@ -273,6 +275,12 @@ const AddEditEmployeeModal: React.FC<Props> = ({
       },
     ]);
   };
+
+  const getCurrentUserId = () => {
+    const id = localStorage.getItem("user_id");
+    return id ? Number(id) : null;
+  };
+
   // ✅ USE THIS CONSOLIDATED EFFECT
   useEffect(() => {
     if (data) {
@@ -859,7 +867,17 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     //   }
     // });
 
-    // Hold logic
+    // Department Validation
+    if (!formData.department_id) {
+      tempErrors.department_id = "Department is required.";
+      isValid = false;
+    }
+    // Designation Validation
+    if (!formData.job_id) {
+      tempErrors.job_id = "Designation is required.";
+      isValid = false;
+    }
+
     if (formData.hold_status && !formData.hold_remarks?.trim()) {
       tempErrors.hold_remarks =
         "Please provide a reason for placing the employee on hold.";
@@ -867,6 +885,10 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     }
     if (!formData.employee_password?.trim()) {
       tempErrors.employee_password = "Login Password is required.";
+      isValid = false;
+    }
+    if (!formData.joining_date) {
+      tempErrors.joining_date = "Joining Date is required.";
       isValid = false;
     }
     setErrors((prev: any) => ({ ...prev, ...tempErrors }));
@@ -1032,17 +1054,30 @@ const AddEditEmployeeModal: React.FC<Props> = ({
 
   useEffect(() => {
     const fetchBranchData = async () => {
-      const data = await getBranches();
-      // Map API data to { value, label } format
-      setBranches(
-        data.map((b: any) => ({
+      try {
+        const data = await getBranches();
+        const branchList = Array.isArray(data) ? data : [];
+
+        const formattedBranches = branchList.map((b: any) => ({
           value: b.id.toString(),
-          label: b.name,
-        })),
-      );
+          label: `${b.RegisteredCompnany} | ${b.address}`,
+        }));
+
+        setBranches(formattedBranches);
+        // ✅ NEW: Set the first branch as default if we are adding a NEW employee
+        if (!data && formattedBranches.length > 0 && !formData.name_of_client) {
+          setFormData((prev: any) => ({
+            ...prev,
+            name_of_client: formattedBranches[0].value,
+          }));
+        }
+      } catch (error) {
+        console.error("Error fetching branches:", error);
+      }
     };
     fetchBranchData();
   }, []);
+
   useEffect(() => {
     const fetchDropdownData = async () => {
       const [policies, schedules] = await Promise.all([
@@ -1234,11 +1269,18 @@ const AddEditEmployeeModal: React.FC<Props> = ({
   useEffect(() => {
     const fetchEmploymentData = async () => {
       try {
-        const [bTypes, bLocs, depts, jobs, wLocs, empList] = await Promise.all([
+        const [
+          bTypes,
+          bLocs,
+          depts,
+          // jobs,
+          wLocs,
+          empList,
+        ] = await Promise.all([
           getBusinessTypes(), // /employee/business-types
           getBusinessLocations(), // /employee/business-locations
           getDepartments(), // /api/department
-          getDesignations(), // /api/job/list
+          // getDesignations(), // /api/job/list
           getWorkLocations(), // /api/work-location
           getReportingManagers(), // /employee/employees
         ]);
@@ -1252,12 +1294,12 @@ const AddEditEmployeeModal: React.FC<Props> = ({
         setDepartments(
           depts.map((i: any) => ({ value: i.id.toString(), label: i.name })),
         );
-        setDesignations(
-          jobs.map((i: any) => ({
-            value: String(i.job_id || i.id),
-            label: i.name,
-          })),
-        );
+        // setDesignations(
+        //   jobs.map((i: any) => ({
+        //     value: String(i.job_id || i.id),
+        //     label: i.name,
+        //   })),
+        // );
         setWorkLocations(
           wLocs.map((i: any) => ({ value: i.id.toString(), label: i.name })),
         );
@@ -1274,6 +1316,20 @@ const AddEditEmployeeModal: React.FC<Props> = ({
 
     if (activeTab === "employment") fetchEmploymentData();
   }, [activeTab]);
+
+  const loadFilteredDesignations = async (deptId: string) => {
+    try {
+      const jobs = await getDesignations(deptId);
+      setDesignations(
+        jobs.map((i: any) => ({
+          value: String(i.job_id || i.id),
+          label: i.name,
+        })),
+      );
+    } catch (error) {
+      console.error("Error loading filtered designations:", error);
+    }
+  };
 
   useEffect(() => {
     const loadTimezones = async () => {
@@ -1792,6 +1848,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
     setGroupAccessLines(list);
   };
 
+  // ===================================Final Handle Submit ==============================================================================
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitted(true);
@@ -2031,6 +2088,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
         ip_address: formData.ip_address,
         random_code_for_reg: formData.random_code_for_reg,
         system_version: formData.system_version,
+        // client_user_id: getCurrentUserId(),
         // group_id: groupAccessLines.map((line) =>
         //   line.group_id ? Number(line.group_id) : 0,
         // ),
@@ -2064,8 +2122,21 @@ const AddEditEmployeeModal: React.FC<Props> = ({
       onSuccess();
       document.getElementById("close-emp-modal")?.click();
     } catch (err: any) {
-      console.error(">>> API Error:", err.response?.data || err.message);
-      toast.error(err.response?.data?.message || "Error processing request");
+      // console.error(">>> API Error:", err.response?.data || err.message);
+      // toast.error(err.response?.data?.message || "Error processing request");
+      if (err.response) {
+        // backend ne response diya (400,500 etc)
+        console.error(">>> Backend Error:", err.response.data);
+        toast.error(err.response.data?.message || "Server Error");
+      } else if (err.request) {
+        // request gaya but response nahi aya (CORS / Network)
+        console.error(">>> No Response from Server:", err.request);
+        toast.error("Server not responding / CORS issue");
+      } else {
+        // axios config error
+        console.error(">>> Axios Error:", err.message);
+        toast.error(err.message);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -2105,7 +2176,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                       {/* 1. Name - MANDATORY */}
                       <div className="col-md-4">
                         <label className="form-label fs-13 fw-bold">
-                          Name <span className="text-danger">*</span>
+                          Full Name <span className="text-danger">*</span>
                         </label>
                         <input
                           type="text"
@@ -2118,7 +2189,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                   : ""
                               : ""
                           }`}
-                          placeholder="Enter Name"
+                          placeholder="Enter Fullname here"
                           value={formData.name}
                           // onChange={(e) => {
                           //   setFormData({ ...formData, name: e.target.value });
@@ -2224,6 +2295,34 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             defaultValue={branches.find(
                               (b) => b.value === formData.name_of_client,
                             )}
+                            // value={
+                            //   branches.find(
+                            //     (b) =>
+                            //       b.value === String(formData.name_of_client),
+                            //   ) || null
+                            // }
+                            formatOptionLabel={(option: any) => {
+                              // Split the combined label back into Company and Address
+                              const [company, address] =
+                                option.label.split(" | ");
+
+                              return (
+                                <div className="d-flex flex-column py-1">
+                                  <span className="fw-bold fs-13 text-dark mb-1">
+                                    {company}
+                                  </span>
+                                  {address && (
+                                    <small
+                                      className="text-muted fs-11 lh-sm"
+                                      style={{ display: "block" }}
+                                    >
+                                      <i className="ti ti-map-pin me-1 text-dark"></i>
+                                      {address}
+                                    </small>
+                                  )}
+                                </div>
+                              );
+                            }}
                             onChange={(opt) => {
                               setFormData({
                                 ...formData,
@@ -2255,7 +2354,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                       </div> */}
 
                       {/* 5. Employee Category - OPTIONAL */}
-                      <div className="col-md-4">
+                      <div className="col-md-3">
                         <label className="form-label fs-13">
                           Employee Category
                         </label>
@@ -2298,6 +2397,78 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             })
                           }
                         />
+                      </div>
+
+                      {/* <div className="col-md-4">
+                        <label className="form-label fs-13">
+                          Experience (Years)
+                        </label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          value={formData.total_experiance}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              total_experiance: e.target.value,
+                            })
+                          }
+                        />
+                      </div> */}
+                      <div className="col-md-4">
+                        <div className="d-flex justify-content-between align-items-center mb-2">
+                          <label className="form-label fs-13 fw-bold text-dark">
+                            Experience (Years)
+                          </label>
+                          {/* Dynamic Badge with better styling */}
+                          <span
+                            className="badge rounded-pill px-3 py-2"
+                            style={{
+                              backgroundColor: "rgba(228, 33, 40, 0.1)",
+                              color: "#E42128",
+                              fontSize: "12px",
+                              border: "1px solid rgba(228, 33, 40, 0.2)",
+                            }}
+                          >
+                            {formData.total_experiance || 0} Years
+                          </span>
+                        </div>
+
+                        <div className="px-2" style={{ height: "50px" }}>
+                          <Slider
+                            min={0}
+                            max={30}
+                            step={1}
+                            // Marks add a professional scale look
+                            marks={{
+                              0: "0",
+                              10: "10",
+                              20: "20",
+                              30: "30+",
+                            }}
+                            tooltip={{
+                              formatter: (value) => `${value} Years`,
+                              open: true, // Keep tooltip visible for better UX
+                            }}
+                            value={Number(formData.total_experiance) || 0}
+                            onChange={(val) =>
+                              setFormData({
+                                ...formData,
+                                total_experiance: val.toString(),
+                              })
+                            }
+                            styles={{
+                              track: { backgroundColor: "#E42128" },
+                              handle: {
+                                borderColor: "#E42128",
+                                backgroundColor: "#fff",
+                                width: "16px",
+                                height: "16px",
+                                marginTop: "-6px",
+                              },
+                            }}
+                          />
+                        </div>
                       </div>
 
                       {/* 7. Shift Roster - OPTIONAL */}
@@ -2490,9 +2661,11 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             {/* Tab Label */}
                             {tabLabel === "Legal"
                               ? "Legal / Identification"
-                              : tabLabel === "Group Access"
-                                ? "Group Access"
-                                : tabLabel + " Information"}
+                              : tabLabel === "Device"
+                                ? "Mobile App Device" // Changed from "Device Information"
+                                : tabLabel === "Group Access"
+                                  ? "Group Access"
+                                  : tabLabel + " Information"}
 
                             {/* Error Icon Indicator */}
                             {isError && (
@@ -2511,7 +2684,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                 {/* --- TABS CONTENT --- */}
                 <div
                   className="tab-content bg-white"
-                  style={{ minHeight: "350px" }}
+                  style={{ minHeight: "130px" }}
                 >
                   {/* 1. Legal / Identification */}
                   {activeTab === "legal" && (
@@ -2524,7 +2697,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                         </h6>
                         <div className="row g-3">
                           {/* Aadhaar Number - MANDATORY */}
-                          <div className="col-md-4">
+                          <div className="col-md-3">
                             <label className="form-label fs-13">
                               Aadhaar Number{" "}
                               <span className="text-danger">*</span>
@@ -2563,7 +2736,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           </div>
 
                           {/* PAN Number - OPTIONAL (Validated) */}
-                          <div className="col-md-4">
+                          <div className="col-md-3">
                             <label className="form-label fs-13">
                               PAN Number
                             </label>
@@ -2606,7 +2779,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           </div>
 
                           {/* Voter ID - OPTIONAL */}
-                          <div className="col-md-4">
+                          <div className="col-md-3">
                             <label className="form-label fs-13">Voter ID</label>
                             <input
                               type="text"
@@ -2645,7 +2818,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           </div>
 
                           {/* Passport No - OPTIONAL */}
-                          <div className="col-md-4">
+                          <div className="col-md-3">
                             <label className="form-label fs-13">
                               Passport No
                             </label>
@@ -2683,16 +2856,46 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                         </div>
                       </div>
 
-                      <hr className="my-4 opacity-25" />
+                      <hr className="my-3 opacity-25" />
 
                       {/* --- Section 2: Social Security & Welfare --- */}
+
                       <div className="form-section mb-4">
                         <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
                           <i className="ti ti-shield-check fs-18 me-2"></i>{" "}
                           Statutory Compliance
                         </h6>
                         <div className="row g-3">
-                          <div className="col-md-4">
+                          <div className="col-md-2">
+                            <label className="form-label fs-13">Category</label>
+                            <div className="">
+                              <CommonSelect
+                                options={[
+                                  { value: "general", label: "General" },
+                                  { value: "sc", label: "SC" },
+                                  { value: "st", label: "ST" },
+                                  { value: "obc", label: "OBC" },
+                                  { value: "others", label: "Others" },
+                                ]}
+                                placeholder="Select Category"
+                                defaultValue={
+                                  formData.category
+                                    ? {
+                                        value: formData.category,
+                                        label: formData.category.toUpperCase(),
+                                      }
+                                    : undefined
+                                }
+                                onChange={(opt) => {
+                                  setFormData({
+                                    ...formData,
+                                    category: opt?.value || "",
+                                  });
+                                }}
+                              />
+                            </div>
+                          </div>
+                          <div className="col-md-3">
                             <label className="form-label fs-13">
                               ESI Number
                             </label>
@@ -2710,7 +2913,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             />
                           </div>
 
-                          <div className="col-md-4 d-flex align-items-center">
+                          <div className="col-md-2 d-flex align-items-center">
                             <div className="form-check pt-4">
                               <input
                                 type="checkbox"
@@ -2733,7 +2936,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             </div>
                           </div>
 
-                          <div className="col-md-4">
+                          <div className="col-md-3">
                             <label className="form-label fs-13">
                               UAN Number{" "}
                               {formData.is_uan_number_applicable && (
@@ -2767,127 +2970,187 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                               </div>
                             )}
                           </div>
+
+                          <div className="col-md-2">
+                            <label className="form-label fs-12 mb-1 text-truncate">
+                              License Copy
+                            </label>
+                            <div className="d-flex align-items-center gap-1">
+                              {/* Minimalist Upload Button */}
+                              <div className="position-relative">
+                                <label
+                                  className={`btn btn-icon btn-xs mb-0 ${formData.driving_license ? "btn-soft-success" : "btn-soft-primary"} border-dashed`}
+                                  style={{
+                                    width: "32px",
+                                    height: "32px",
+                                    borderRadius: "6px",
+                                  }}
+                                  title="Upload License"
+                                >
+                                  <i
+                                    className={`ti ${formData.driving_license ? "ti-file-check" : "ti-upload"} fs-16`}
+                                  ></i>
+                                  <input
+                                    type="file"
+                                    className="position-absolute opacity-0 w-100 h-100 start-0 top-0"
+                                    style={{ cursor: "pointer" }}
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0] || null;
+                                      setFormData({
+                                        ...formData,
+                                        driving_license: file,
+                                      });
+                                    }}
+                                  />
+                                </label>
+                              </div>
+
+                              {/* Small Status Indicators */}
+                              {formData.driving_license && (
+                                <div className="d-flex align-items-center animate__animated animate__fadeIn">
+                                  {/* Existing file: View Icon */}
+                                  {typeof formData.driving_license ===
+                                    "string" && (
+                                    <a
+                                      href={formData.driving_license}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="btn btn-icon btn-xs btn-ghost-info"
+                                      title="View Existing"
+                                    >
+                                      <i className="ti ti-eye fs-16"></i>
+                                    </a>
+                                  )}
+
+                                  {/* New file: Checkmark indicator */}
+                                  {formData.driving_license instanceof File && (
+                                    <div className="ms-1" title="File selected">
+                                      <i className="ti ti-circle-check-filled text-success fs-16"></i>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
 
-                      <hr className="my-4 opacity-25" />
+                      {/* <hr className="my-3 opacity-25" /> */}
 
                       {/* --- Section 3: Classification & Verification --- */}
-                      <div className="form-section">
+                      {/* <div className="form-section">
                         <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
                           <i className="ti ti-file-upload fs-18 me-2"></i>{" "}
                           Verification Documents
                         </h6>
-                        <div className="row g-3">
-                          {/* Category Dropdown - NOW OPTIONAL */}
-                          <div className="col-md-6">
-                            <label className="form-label fs-13">Category</label>
-                            <div className="">
-                              <CommonSelect
-                                options={[
-                                  { value: "general", label: "General" },
-                                  { value: "sc", label: "SC" },
-                                  { value: "st", label: "ST" },
-                                  { value: "obc", label: "OBC" },
-                                  { value: "others", label: "Others" },
-                                ]}
-                                placeholder="Select Category"
-                                defaultValue={
-                                  formData.category
-                                    ? {
-                                        value: formData.category,
-                                        label: formData.category.toUpperCase(),
-                                      }
-                                    : undefined
-                                }
-                                onChange={(opt) => {
-                                  setFormData({
-                                    ...formData,
-                                    category: opt?.value || "",
-                                  });
-                                }}
-                              />
-                            </div>
-                          </div>
-
-                          {/* Driving License Upload - NOW OPTIONAL */}
-                          {/* <div className="col-md-6">
-                            <label className="form-label fs-13">
-                              Driving License (Copy)
-                            </label>
-                            <div className="upload-box border rounded p-1 bg-white">
-                              <input
-                                type="file"
-                                className="form-control border-0 shadow-none"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0] || null;
-                                  setFormData({
-                                    ...formData,
-                                    driving_license: file,
-                                  });
-                                }}
-                              />
-                            </div>
-                            {formData.driving_license && (
-                              <div className="text-success fs-11 mt-1">
-                                <i className="ti ti-check me-1"></i>Document
-                                attached: {formData.driving_license.name}
-                              </div>
-                            )}
-                          </div> */}
-                          <div className="col-md-6">
-                            <label className="form-label fs-13">
-                              Driving License (Copy)
-                            </label>
-                            <div className="upload-box border rounded p-1 bg-white">
-                              <input
-                                type="file"
-                                className="form-control border-0 shadow-none"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0] || null;
-                                  setFormData({
-                                    ...formData,
-                                    driving_license: file,
-                                  });
-                                }}
-                              />
-                            </div>
-                            {/* Example for Driving License */}
-                            {typeof formData.driving_license === "string" && (
-                              <div className="mt-2">
-                                <a
-                                  href={formData.driving_license}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="btn btn-xs btn-outline-success"
-                                >
-                                  <i className="ti ti-eye me-1"></i> View
-                                  Existing License
-                                </a>
-                              </div>
-                            )}
-
-                            {/* NEW: Show Existing File Indicator */}
-                            {/* {typeof formData.driving_license === "string" &&
-                              formData.driving_license.length > 0 && (
-                                <div className="mt-2 p-2 bg-soft-success text-success rounded fs-12 d-flex align-items-center">
-                                  <i className="ti ti-check-circle me-2 fs-16"></i>
-                                  <span>
-                                    Existing License Document Uploaded
-                                  </span>
+                        <div className="row g-3"> */}
+                      {/* <div className="col-md-6">
+                                <label className="form-label fs-13">Category</label>
+                                <div className="">
+                                  <CommonSelect
+                                    options={[
+                                      { value: "general", label: "General" },
+                                      { value: "sc", label: "SC" },
+                                      { value: "st", label: "ST" },
+                                      { value: "obc", label: "OBC" },
+                                      { value: "others", label: "Others" },
+                                    ]}
+                                    placeholder="Select Category"
+                                    defaultValue={
+                                      formData.category
+                                        ? {
+                                            value: formData.category,
+                                            label: formData.category.toUpperCase(),
+                                          }
+                                        : undefined
+                                    }
+                                    onChange={(opt) => {
+                                      setFormData({
+                                        ...formData,
+                                        category: opt?.value || "",
+                                      });
+                                    }}
+                                  />
                                 </div>
-                              )} */}
+                              </div> */}
 
-                            {/* Existing: Show New File Name */}
-                            {formData.driving_license instanceof File && (
-                              <div className="text-success fs-11 mt-1">
-                                <i className="ti ti-check me-1"></i>New File:{" "}
-                                {formData.driving_license.name}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+                      {/* Driving License Upload - NOW OPTIONAL */}
+                      {/* <div className="col-md-6">
+                                <label className="form-label fs-13">
+                                  Driving License (Copy)
+                                </label>
+                                <div className="upload-box border rounded p-1 bg-white">
+                                  <input
+                                    type="file"
+                                    className="form-control border-0 shadow-none"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0] || null;
+                                      setFormData({
+                                        ...formData,
+                                        driving_license: file,
+                                      });
+                                    }}
+                                  />
+                                </div>
+                                {formData.driving_license && (
+                                  <div className="text-success fs-11 mt-1">
+                                    <i className="ti ti-check me-1"></i>Document
+                                    attached: {formData.driving_license.name}
+                                  </div>
+                                )}
+                              </div> */}
+                      {/* ================================================================Last Changes */}
+                      {/* <div className="col-md-4">
+                                <label className="form-label fs-13">
+                                  Driving License (Copy)
+                                </label>
+                                <div className="upload-box border rounded p-1 bg-white">
+                                  <input
+                                    type="file"
+                                    className="form-control border-0 shadow-none"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0] || null;
+                                      setFormData({
+                                        ...formData,
+                                        driving_license: file,
+                                      });
+                                    }}
+                                  />
+                                </div>
+                                {typeof formData.driving_license === "string" && (
+                                  <div className="mt-2">
+                                    <a
+                                      href={formData.driving_license}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="btn btn-xs btn-outline-success"
+                                    >
+                                      <i className="ti ti-eye me-1"></i> View
+                                      Existing License
+                                    </a>
+                                  </div>
+                                )}
+
+                                {/* {typeof formData.driving_license === "string" &&
+                                  formData.driving_license.length > 0 && (
+                                    <div className="mt-2 p-2 bg-soft-success text-success rounded fs-12 d-flex align-items-center">
+                                      <i className="ti ti-check-circle me-2 fs-16"></i>
+                                      <span>
+                                        Existing License Document Uploaded
+                                      </span>
+                                    </div>
+                                  )} 
+
+                                {formData.driving_license instanceof File && (
+                                  <div className="text-success fs-11 mt-1">
+                                    <i className="ti ti-check me-1"></i>New File:{" "}
+                                    {formData.driving_license.name}
+                                  </div>
+                                )}
+                              </div> */}
+                      {/* =============================================================================Last changes */}
+                      {/* </div>
+                      </div> */}
                     </div>
                   )}
                   {/* 2. Personal Information */}
@@ -2900,7 +3163,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           Identity
                         </h6>
                         <div className="row g-3">
-                          <div className="col-md-4">
+                          <div className="col-md-2">
                             <label className="form-label fs-13 text-muted">
                               Employee Code
                             </label>
@@ -2912,7 +3175,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             />
                           </div>
 
-                          <div className="col-md-4">
+                          {/* <div className="col-md-4">
                             <label className="form-label fs-13">
                               CD Emp. No.
                             </label>
@@ -2927,46 +3190,10 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                 })
                               }
                             />
-                          </div>
-
-                          {/* Gender - MANDATORY */}
-                          <div className="col-md-4">
-                            <label className="form-label fs-13 d-block">
-                              Gender <span className="text-danger">*</span>
-                            </label>
-                            <div
-                              className={`pt-1 ps-2 rounded ${
-                                isSubmitted && errors.gender
-                                  ? "border border-danger"
-                                  : ""
-                              }`}
-                            >
-                              <Radio.Group
-                                className="custom-radio-group"
-                                value={formData.gender}
-                                onChange={(e) => {
-                                  setFormData({
-                                    ...formData,
-                                    gender: e.target.value,
-                                  });
-                                  if (errors.gender)
-                                    setErrors({ ...errors, gender: "" });
-                                }}
-                              >
-                                <Radio value="male">Male</Radio>
-                                <Radio value="female">Female</Radio>
-                                <Radio value="other">Other</Radio>
-                              </Radio.Group>
-                            </div>
-                            {isSubmitted && errors.gender && (
-                              <div className="text-danger fs-11 mt-1">
-                                {errors.gender}
-                              </div>
-                            )}
-                          </div>
+                          </div> */}
 
                           {/* Marital Status */}
-                          <div className="col-md-4">
+                          <div className="col-md-3">
                             <label className="form-label fs-13">
                               Marital Status
                             </label>
@@ -3010,7 +3237,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           {/* Conditional Spouse Fields */}
                           {formData.marital === "married" && (
                             <>
-                              <div className="col-md-4 animate__animated animate__fadeInDown">
+                              <div className="col-md-3 animate__animated animate__fadeInDown">
                                 <label className="form-label fs-13">
                                   Spouse Name{" "}
                                   <span className="text-danger">*</span>
@@ -3043,7 +3270,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                   </div>
                                 )}
                               </div>
-                              <div className="col-md-4 animate__animated animate__fadeInDown">
+                              <div className="col-md-2 animate__animated animate__fadeInDown">
                                 <label className="form-label fs-13">
                                   Date of Marriage{" "}
                                   <span className="text-danger">*</span>
@@ -3085,7 +3312,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           )}
 
                           {/* DOB - MANDATORY */}
-                          <div className="col-md-4">
+                          <div className="col-md-2">
                             <label className="form-label fs-13">
                               Date of Birth{" "}
                               <span className="text-danger">*</span>
@@ -3117,9 +3344,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                               </div>
                             )}
                           </div>
-
                           {/* Blood Group - MANDATORY */}
-                          <div className="col-md-4">
+                          <div className="col-md-2">
                             <label className="form-label fs-13">
                               Blood Group <span className="text-danger">*</span>
                             </label>
@@ -3169,10 +3395,46 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                               </div>
                             )}
                           </div>
+
+                          {/* Gender - MANDATORY */}
+                          <div className="col-md-3">
+                            <label className="form-label fs-13 d-block">
+                              Gender <span className="text-danger">*</span>
+                            </label>
+                            <div
+                              className={`pt-1 ps-2 rounded ${
+                                isSubmitted && errors.gender
+                                  ? "border border-danger"
+                                  : ""
+                              }`}
+                            >
+                              <Radio.Group
+                                className="custom-radio-group"
+                                value={formData.gender}
+                                onChange={(e) => {
+                                  setFormData({
+                                    ...formData,
+                                    gender: e.target.value,
+                                  });
+                                  if (errors.gender)
+                                    setErrors({ ...errors, gender: "" });
+                                }}
+                              >
+                                <Radio value="male">Male</Radio>
+                                <Radio value="female">Female</Radio>
+                                <Radio value="other">Other</Radio>
+                              </Radio.Group>
+                            </div>
+                            {isSubmitted && errors.gender && (
+                              <div className="text-danger fs-11 mt-1">
+                                {errors.gender}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
 
-                      <hr className="my-4 opacity-25" />
+                      <hr className="my-2 opacity-25" />
 
                       {/* Section 2: Education (Optional) */}
                       <div className="form-section mb-4">
@@ -3181,7 +3443,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           & Experience
                         </h6>
                         <div className="row g-3">
-                          <div className="col-md-4">
+                          <div className="col-md-3">
                             <label className="form-label fs-13">
                               Post Graduation
                             </label>
@@ -3204,9 +3466,9 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                               }
                             />
                           </div>
-                          <div className="col-md-4">
+                          <div className="col-md-3">
                             <label className="form-label fs-13">
-                              Other Education
+                              University Name
                             </label>
                             <input
                               type="text"
@@ -3226,7 +3488,82 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                               }
                             />
                           </div>
-                          <div className="col-md-4">
+                          <div className="col-md-3">
+                            <label className="form-label fs-12 mb-1 text-truncate">
+                              CV / Resume Attachment
+                            </label>
+                            <div className="d-flex align-items-center gap-1">
+                              {/* Minimalist Upload Button */}
+                              <div className="position-relative">
+                                <label
+                                  className={`btn btn-icon btn-xs mb-0 ${formData.cv_file ? "btn-soft-success" : "btn-soft-primary"} border-dashed`}
+                                  style={{
+                                    width: "32px",
+                                    height: "32px",
+                                    borderRadius: "6px",
+                                  }}
+                                  title="Upload CV"
+                                >
+                                  <i
+                                    className={`ti ${formData.cv_file ? "ti-file-text" : "ti-upload"} fs-16`}
+                                  ></i>
+                                  <input
+                                    type="file"
+                                    accept=".pdf,.doc,.docx"
+                                    className="position-absolute opacity-0 w-100 h-100 start-0 top-0"
+                                    style={{ cursor: "pointer" }}
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0] || null;
+                                      setFormData({
+                                        ...formData,
+                                        cv_file: file,
+                                      });
+                                    }}
+                                  />
+                                </label>
+                              </div>
+
+                              {/* File Status Indicator */}
+                              {formData.cv_file && (
+                                <div className="d-flex align-items-center animate__animated animate__fadeIn">
+                                  {/* If it's a new local file */}
+                                  {formData.cv_file instanceof File && (
+                                    <div
+                                      className="ms-1 d-flex align-items-center"
+                                      title={formData.cv_file.name}
+                                    >
+                                      <i className="ti ti-circle-check-filled text-success fs-16 me-1"></i>
+                                      <span
+                                        className="fs-10 text-muted text-truncate"
+                                        style={{ maxWidth: "80px" }}
+                                      >
+                                        {formData.cv_file.name}
+                                      </span>
+                                    </div>
+                                  )}
+
+                                  {/* If it's an existing URL (for Edit mode) */}
+                                  {typeof formData.cv_file === "string" && (
+                                    <a
+                                      href={formData.cv_file}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="btn btn-icon btn-xs btn-ghost-info"
+                                      title="View Current CV"
+                                    >
+                                      <i className="ti ti-eye fs-16"></i>
+                                    </a>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            <div className="mt-1">
+                              <span className="fs-10 text-muted">
+                                Supports PDF, DOCX (Max 5MB)
+                              </span>
+                            </div>
+                          </div>
+                          {/* <div className="col-md-4">
                             <label className="form-label fs-13">
                               Experience (Years)
                             </label>
@@ -3241,11 +3578,11 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                 })
                               }
                             />
-                          </div>
+                          </div> */}
                         </div>
                       </div>
 
-                      <hr className="my-4 opacity-25" />
+                      <hr className="my-2 opacity-25" />
 
                       {/* Section 3: Background & Contact - MANDATORY FIELDS */}
                       <div className="form-section">
@@ -3255,7 +3592,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                         </h6>
                         <div className="row g-3">
                           {/* Mobile - MANDATORY - FIX: Added error clearing */}
-                          <div className="col-md-4">
+                          <div className="col-md-2">
                             <label className="form-label fs-13">
                               Primary Mobile{" "}
                               <span className="text-danger">*</span>
@@ -3300,7 +3637,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           </div>
 
                           {/* Email - MANDATORY - FIX: Added error clearing */}
-                          <div className="col-md-4">
+                          <div className="col-md-3">
                             <label className="form-label fs-13">
                               Personal Email{" "}
                               <span className="text-danger">*</span>
@@ -3336,7 +3673,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             )}
                           </div>
 
-                          <div className="col-md-4">
+                          <div className="col-md-2">
                             <label className="form-label fs-13">
                               Secondary Mobile
                             </label>
@@ -3355,7 +3692,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                     : ""
                                 }`}
                                 maxLength={10}
-                                placeholder="Enter Secondary Mobile"
+                                placeholder="Mobile No."
                                 value={formData.mobile_phone}
                                 onChange={(e) => {
                                   // Sanitize to digits only
@@ -3375,7 +3712,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             )}
                           </div>
 
-                          <div className="col-md-4">
+                          <div className="col-md-2">
                             <label className="form-label fs-13">Religion</label>
                             <input
                               type="text"
@@ -3393,7 +3730,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             />
                           </div>
 
-                          <div className="col-md-4">
+                          {/* <div className="col-md-4">
                             <label className="form-label fs-13">
                               Upload Passbook
                             </label>
@@ -3419,13 +3756,13 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                               </span>
                             </div>
                             {/* Show Existing File Indicator */}
-                            {/* {typeof formData.upload_passbook === "string" &&
+                          {/* {typeof formData.upload_passbook === "string" &&
                               formData.upload_passbook.length > 0 && (
                                 <div className="mt-2 p-2 bg-soft-success text-success rounded fs-12 d-flex align-items-center">
                                   <i className="ti ti-check-circle me-2 fs-16"></i>
                                   <span>Passbook Uploaded</span>
                                 </div>
-                              )} */}
+                              )} 
 
                             {typeof formData.upload_passbook === "string" && (
                               <div className="mt-2">
@@ -3440,6 +3777,83 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                 </a>
                               </div>
                             )}
+                          </div> */}
+
+                          <div className="col-md-3">
+                            <label className="form-label fs-12 mb-1 text-truncate">
+                              Passbook Copy
+                            </label>
+                            <div className="d-flex align-items-center gap-1">
+                              {/* Minimalist Upload Button */}
+                              <div className="position-relative">
+                                <label
+                                  className={`btn btn-icon btn-xs mb-0 ${formData.upload_passbook ? "btn-soft-success" : "btn-soft-primary"} border-dashed`}
+                                  style={{
+                                    width: "32px",
+                                    height: "32px",
+                                    borderRadius: "6px",
+                                  }}
+                                >
+                                  <i
+                                    className={`ti ${formData.upload_passbook ? "ti-book" : "ti-upload"} fs-16`}
+                                  ></i>
+                                  <input
+                                    type="file"
+                                    accept=".jpg,.jpeg,.png,.pdf"
+                                    className="position-absolute opacity-0 w-100 h-100 start-0 top-0"
+                                    style={{ cursor: "pointer" }}
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0] || null;
+                                      setFormData({
+                                        ...formData,
+                                        upload_passbook: file,
+                                      });
+                                    }}
+                                  />
+                                </label>
+                              </div>
+
+                              {/* Small Status Indicators */}
+                              {formData.upload_passbook && (
+                                <div className="d-flex align-items-center animate__animated animate__fadeIn">
+                                  {/* Existing file: View Icon */}
+                                  {typeof formData.upload_passbook ===
+                                    "string" && (
+                                    <a
+                                      href={formData.upload_passbook}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="btn btn-icon btn-xs btn-ghost-info"
+                                      title="View Existing Passbook"
+                                    >
+                                      <i className="ti ti-eye fs-16"></i>
+                                    </a>
+                                  )}
+
+                                  {/* New file: Checkmark indicator */}
+                                  {formData.upload_passbook instanceof File && (
+                                    <div
+                                      className="ms-1"
+                                      title={`File selected: ${formData.upload_passbook.name}`}
+                                    >
+                                      <i className="ti ti-circle-check-filled text-success fs-16"></i>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* IMPORTANT: Added back the instructional text from your original requirement */}
+                            <div
+                              className="mt-1 d-flex align-items-start text-info"
+                              style={{ lineHeight: "1.2" }}
+                            >
+                              <i className="ti ti-info-circle fs-12 me-1 mt-1"></i>
+                              <span className="fs-10 fw-medium">
+                                Upload <strong>front page</strong> only (A/C
+                                holder name & details).
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -3532,7 +3946,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                         </div>
                       </div>
 
-                      <hr className="my-4 opacity-25" />
+                      <hr className="my-2 opacity-25" />
 
                       {/* --- Section 2: Regional Geography (ALL OPTIONAL) --- */}
                       <div className="form-section">
@@ -3541,24 +3955,6 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           Details
                         </h6>
                         <div className="row g-3">
-                          {/* Pin Code - OPTIONAL */}
-                          <div className="col-md-3">
-                            <label className="form-label fs-13">Pin Code</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              maxLength={6}
-                              placeholder="6-Digits"
-                              value={formData.pin_code}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  pin_code: e.target.value.replace(/\D/g, ""),
-                                })
-                              }
-                            />
-                          </div>
-
                           {/* Country - OPTIONAL */}
                           <div className="col-md-3">
                             <label className="form-label fs-13">Country</label>
@@ -3645,6 +4041,24 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                               }
                             />
                           </div>
+
+                          {/* Pin Code - OPTIONAL */}
+                          <div className="col-md-3">
+                            <label className="form-label fs-13">Pin Code</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              maxLength={6}
+                              placeholder="6-Digits"
+                              value={formData.pin_code}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  pin_code: e.target.value.replace(/\D/g, ""),
+                                })
+                              }
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -3661,7 +4075,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                         </h6>
                         <div className="row g-3">
                           {/* Contact Person Name - MANDATORY */}
-                          <div className="col-md-4">
+                          <div className="col-md-3">
                             <label className="form-label fs-13">
                               Emergency Contact Name{" "}
                               <span className="text-danger">*</span>
@@ -3706,7 +4120,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           </div>
 
                           {/* Relation - MANDATORY */}
-                          <div className="col-md-4">
+                          <div className="col-md-3">
                             <label className="form-label fs-13">
                               Relation <span className="text-danger">*</span>
                             </label>
@@ -3751,7 +4165,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           </div>
 
                           {/* Mobile Number - MANDATORY */}
-                          <div className="col-md-4">
+                          <div className="col-md-3">
                             <label className="form-label fs-13">
                               Mobile Number{" "}
                               <span className="text-danger">*</span>
@@ -3846,9 +4260,9 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                         </h6>
                         <div className="row g-3">
                           {/* Department - OPTIONAL */}
-                          <div className="col-md-3">
+                          <div className="col-md-2">
                             <label className="form-label fs-13">
-                              Department
+                              Department <span className="text-danger">*</span>
                             </label>
                             <div>
                               <CommonSelect
@@ -3858,28 +4272,54 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                   (o) =>
                                     o.value === String(formData.department_id),
                                 )}
+                                // onChange={(opt) => {
+                                //   setFormData({
+                                //     ...formData,
+                                //     department_id: opt?.value || "",
+                                //   });
+                                // }}
                                 onChange={(opt) => {
+                                  const deptId = opt?.value || "";
                                   setFormData({
                                     ...formData,
-                                    department_id: opt?.value || "",
+                                    department_id: deptId,
+                                    job_id: "", // 1. Reset Designation when Department changes
                                   });
+
+                                  if (deptId) {
+                                    loadFilteredDesignations(deptId); // 2. Fetch new Designations
+                                  } else {
+                                    setDesignations([]); // Clear list if no department
+                                  }
                                 }}
                               />
                             </div>
+                            {isSubmitted && errors.department_id && (
+                              <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                                <i className="ti ti-info-circle me-1"></i>
+                                {errors.department_id}
+                              </div>
+                            )}
                           </div>
 
                           {/* Designation - OPTIONAL */}
                           <div className="col-md-3">
                             <label className="form-label fs-13">
-                              Designation
+                              Designation <span className="text-danger">*</span>
                             </label>
                             <div>
                               <CommonSelect
+                                key={`designation-list-${designations.length}-${formData.job_id}`}
                                 options={designations}
-                                placeholder="Select Designation"
+                                placeholder={
+                                  formData.department_id
+                                    ? "Select Designation"
+                                    : "Select Department First"
+                                }
                                 defaultValue={designations.find(
                                   (o) => o.value === String(formData.job_id),
                                 )}
+                                disabled={!formData.department_id}
                                 onChange={(opt) => {
                                   setFormData({
                                     ...formData,
@@ -3888,9 +4328,15 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                 }}
                               />
                             </div>
+                            {isSubmitted && errors.job_id && (
+                              <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                                <i className="ti ti-info-circle me-1"></i>
+                                {errors.job_id}
+                              </div>
+                            )}
                           </div>
-
-                          <div className="col-md-3">
+                          {/* 
+                          <div className="col-md-2">
                             <label className="form-label fs-13">
                               Employment Type
                             </label>
@@ -3915,9 +4361,66 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                 })
                               }
                             />
+                          </div> */}
+                          {/* Employee Password - MANDATORY */}
+                          <div className="col-md-3">
+                            <label className="form-label fs-13">
+                              Login Password{" "}
+                              <span className="text-danger">*</span>
+                            </label>
+
+                            {/* WRAPPER: input-group handles the button positioning */}
+                            <div className="input-group">
+                              <input
+                                // DYNAMIC TYPE: Switches between text and password
+                                type={showPassword ? "text" : "password"}
+                                className={`form-control ${
+                                  isSubmitted
+                                    ? errors.employee_password
+                                      ? "is-invalid"
+                                      : formData.employee_password
+                                        ? "is-valid"
+                                        : ""
+                                    : ""
+                                }`}
+                                placeholder="System Access Password"
+                                value={formData.employee_password}
+                                onChange={(e) => {
+                                  setFormData({
+                                    ...formData,
+                                    employee_password: e.target.value,
+                                  });
+                                  if (errors.employee_password) {
+                                    setErrors({
+                                      ...errors,
+                                      employee_password: "",
+                                    });
+                                  }
+                                }}
+                              />
+
+                              {/* TOGGLE BUTTON */}
+                              <button
+                                className="btn btn-outline-secondary"
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                style={{ border: "1px solid #ced4da" }} // Optional: matches default input border
+                              >
+                                <i
+                                  className={`ti ${showPassword ? "ti-eye" : "ti-eye-off"} fs-16`}
+                                ></i>
+                              </button>
+                            </div>
+
+                            {/* ERROR MESSAGE */}
+                            {isSubmitted && errors.employee_password && (
+                              <div className="text-danger fs-11 mt-1">
+                                {errors.employee_password}
+                              </div>
+                            )}
                           </div>
 
-                          <div className="col-md-3">
+                          {/* <div className="col-md-2">
                             <label className="form-label fs-13">
                               Grade / Band
                             </label>
@@ -3933,11 +4436,11 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                 })
                               }
                             />
-                          </div>
+                          </div> */}
                         </div>
                       </div>
 
-                      <hr className="my-4 opacity-25" />
+                      <hr className="my-2 opacity-25" />
 
                       {/* --- Section 2: Tenure & Probation --- */}
                       <div className="form-section mb-4">
@@ -3949,10 +4452,15 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           {/* Joining Date - OPTIONAL */}
                           <div className="col-md-3">
                             <label className="form-label fs-13">
-                              Joining Date
+                              Joining Date{" "}
+                              <span className="text-danger">*</span>
                             </label>
                             <DatePicker
-                              className="w-100 form-control"
+                              className={`w-100 form-control ${
+                                isSubmitted && errors.joining_date
+                                  ? "is-invalid"
+                                  : ""
+                              }`}
                               value={
                                 formData.joining_date
                                   ? dayjs(formData.joining_date)
@@ -3963,8 +4471,21 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                   ...formData,
                                   joining_date: dateStr,
                                 });
+                                // Clear error as soon as a date is picked
+                                if (errors.joining_date) {
+                                  setErrors((prev: any) => ({
+                                    ...prev,
+                                    joining_date: "",
+                                  }));
+                                }
                               }}
                             />
+                            {isSubmitted && errors.joining_date && (
+                              <div className="text-danger fs-11 mt-1 animate__animated animate__fadeIn">
+                                <i className="ti ti-info-circle me-1"></i>
+                                {errors.joining_date}
+                              </div>
+                            )}
                           </div>
 
                           {/* <div className="col-md-3">
@@ -4046,62 +4567,28 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                               </div>
                             )}
                           </div> */}
-                          {/* Employee Password - MANDATORY */}
-                          <div className="col-md-3">
-                            <label className="form-label fs-13">
-                              Login Password{" "}
-                              <span className="text-danger">*</span>
-                            </label>
 
-                            {/* WRAPPER: input-group handles the button positioning */}
-                            <div className="input-group">
+                          <div className="col-md-2 d-flex align-items-center pt-4">
+                            <div className="form-check">
                               <input
-                                // DYNAMIC TYPE: Switches between text and password
-                                type={showPassword ? "text" : "password"}
-                                className={`form-control ${
-                                  isSubmitted
-                                    ? errors.employee_password
-                                      ? "is-invalid"
-                                      : formData.employee_password
-                                        ? "is-valid"
-                                        : ""
-                                    : ""
-                                }`}
-                                placeholder="System Access Password"
-                                value={formData.employee_password}
-                                onChange={(e) => {
+                                type="checkbox"
+                                className="form-check-input"
+                                id="probCheck"
+                                checked={formData.in_probation}
+                                onChange={(e) =>
                                   setFormData({
                                     ...formData,
-                                    employee_password: e.target.value,
-                                  });
-                                  if (errors.employee_password) {
-                                    setErrors({
-                                      ...errors,
-                                      employee_password: "",
-                                    });
-                                  }
-                                }}
+                                    in_probation: e.target.checked,
+                                  })
+                                }
                               />
-
-                              {/* TOGGLE BUTTON */}
-                              <button
-                                className="btn btn-outline-secondary"
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                style={{ border: "1px solid #ced4da" }} // Optional: matches default input border
+                              <label
+                                className="form-check-label fs-13 ms-1"
+                                htmlFor="probCheck"
                               >
-                                <i
-                                  className={`ti ${showPassword ? "ti-eye" : "ti-eye-off"} fs-16`}
-                                ></i>
-                              </button>
+                                In Probation
+                              </label>
                             </div>
-
-                            {/* ERROR MESSAGE */}
-                            {isSubmitted && errors.employee_password && (
-                              <div className="text-danger fs-11 mt-1">
-                                {errors.employee_password}
-                              </div>
-                            )}
                           </div>
 
                           <div className="col-md-2">
@@ -4133,33 +4620,10 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                               placeholder="Auto-calculated"
                             />
                           </div>
-
-                          <div className="col-md-2 d-flex align-items-center pt-4">
-                            <div className="form-check">
-                              <input
-                                type="checkbox"
-                                className="form-check-input"
-                                id="probCheck"
-                                checked={formData.in_probation}
-                                onChange={(e) =>
-                                  setFormData({
-                                    ...formData,
-                                    in_probation: e.target.checked,
-                                  })
-                                }
-                              />
-                              <label
-                                className="form-check-label fs-13 ms-1"
-                                htmlFor="probCheck"
-                              >
-                                In Probation
-                              </label>
-                            </div>
-                          </div>
                         </div>
                       </div>
 
-                      <hr className="my-4 opacity-25" />
+                      <hr className="my-2 opacity-25" />
 
                       {/* --- Section 3: Administration --- */}
                       <div className="form-section">
@@ -4168,7 +4632,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           Administration & Reporting
                         </h6>
                         <div className="row g-3">
-                          <div className="col-md-4">
+                          <div className="col-md-3">
                             <label className="form-label fs-13">
                               Reporting Manager
                             </label>
@@ -4190,7 +4654,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             />
                           </div>
 
-                          <div className="col-md-4">
+                          <div className="col-md-3">
                             <label className="form-label fs-13">
                               Head of Department
                             </label>
@@ -4212,7 +4676,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             />
                           </div>
 
-                          <div className="col-md-4">
+                          <div className="col-md-2">
                             <label className="form-label fs-13">
                               Attendance Mode
                             </label>
@@ -4222,6 +4686,11 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                 { value: "biometric", label: "BIOMETRIC" },
                                 { value: "mobile", label: "MobileAPP" },
                               ]}
+                              defaultValue={{
+                                value: "mobile",
+                                label: "MobileAPP",
+                              }}
+                              disabled={true}
                               placeholder="Capture Mode"
                               onChange={(opt) =>
                                 setFormData({
@@ -4233,7 +4702,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           </div>
 
                           {/* Status - OPTIONAL */}
-                          <div className="col-md-3">
+                          <div className="col-md-2">
                             <label className="form-label fs-13">Status</label>
                             <div>
                               <CommonSelect
@@ -4259,7 +4728,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             </div>
                           </div>
 
-                          <div className="col-md-3">
+                          {/* <div className="col-md-2">
                             <label className="form-label fs-13">Week Off</label>
                             <input
                               type="text"
@@ -4276,7 +4745,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                 handleAlphaOnlyChange(e, "week_off")
                               }
                             />
-                          </div>
+                          </div> */}
 
                           <div className="col-md-2 d-flex align-items-center pt-4">
                             <div className="form-check">
@@ -4349,7 +4818,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
 
                         <div className="row g-3">
                           {/* 1. Bank Name Dropdown */}
-                          <div className="col-md-6">
+                          <div className="col-md-3">
                             <label className="form-label fs-13 fw-bold">
                               Bank Name <span className="text-danger">*</span>
                             </label>
@@ -4390,7 +4859,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           </div>
 
                           {/* 2. Account Number */}
-                          <div className="col-md-6">
+                          <div className="col-md-4">
                             <label className="form-label fs-13 fw-bold">
                               Account Number{" "}
                               <span className="text-danger">*</span>
@@ -4438,7 +4907,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           </div>
 
                           {/* 3. IFSC Code */}
-                          <div className="col-md-4">
+                          <div className="col-md-2">
                             <label className="form-label fs-13 fw-bold">
                               IFSC Code <span className="text-danger">*</span>
                             </label>
@@ -4465,7 +4934,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           </div>
 
                           {/* 4. SWIFT Code (Read Only) */}
-                          <div className="col-md-4">
+                          <div className="col-md-2">
                             <label className="form-label fs-13 fw-bold text-muted">
                               SWIFT Code
                             </label>
@@ -4479,7 +4948,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           </div>
 
                           {/* 5. Currency */}
-                          <div className="col-md-4">
+                          <div className="col-md-1">
                             <label className="form-label fs-13 fw-bold">
                               Currency
                             </label>
@@ -4513,13 +4982,14 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                       <div className="form-section mb-4">
                         <h6 className="fw-bold text-primary mb-3 d-flex align-items-center">
                           <i className="ti ti-device-mobile fs-18 me-2"></i>{" "}
-                          Registered Device Details
+                          {/* Registered Device Details */}
+                          Mobile Device Binding Details
                         </h6>
                         <div className="row g-3">
                           {/* Device Unique ID - OPTIONAL */}
                           <div className="col-md-4">
                             <label className="form-label fs-13">
-                              Device Unique ID
+                              Mobile Device Unique ID
                             </label>
                             <input
                               type="text"
@@ -4538,7 +5008,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           {/* Device Name */}
                           <div className="col-md-4">
                             <label className="form-label fs-13">
-                              Device Name
+                              Mobile Model Name
                             </label>
                             <input
                               type="text"
@@ -4557,7 +5027,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           {/* Device ID */}
                           <div className="col-md-4">
                             <label className="form-label fs-13">
-                              Device ID
+                              Mobile Device ID
                             </label>
                             <input
                               type="text"
@@ -4574,7 +5044,9 @@ const AddEditEmployeeModal: React.FC<Props> = ({
 
                           {/* Platform & Version */}
                           <div className="col-md-3">
-                            <label className="form-label fs-13">Platform</label>
+                            <label className="form-label fs-13">
+                              Mobile OS Version Type
+                            </label>
                             <input
                               type="text"
                               className="form-control"
@@ -4591,7 +5063,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
 
                           <div className="col-md-3">
                             <label className="form-label fs-13">
-                              System Version
+                              Mobile OS Version number{" "}
                             </label>
                             <input
                               type="text"
@@ -4608,7 +5080,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           </div>
 
                           {/* IP Address */}
-                          <div className="col-md-3">
+                          {/* <div className="col-md-3">
                             <label className="form-label fs-13">
                               IP Address
                             </label>
@@ -4624,7 +5096,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                                 })
                               }
                             />
-                          </div>
+                          </div> */}
 
                           {/* Random Registration Code */}
                           <div className="col-md-3">
@@ -4669,7 +5141,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                         </h6>
                         <div className="row g-3">
                           {/* Type Of Separation */}
-                          <div className="col-md-4">
+                          <div className="col-md-3">
                             <label className="form-label fs-13">
                               Type Of Separation
                             </label>
@@ -4729,7 +5201,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           </div>
 
                           {/* Resignation Date */}
-                          <div className="col-md-4">
+                          <div className="col-md-3">
                             <label className="form-label fs-13">
                               Resignation Date
                             </label>
@@ -4778,7 +5250,7 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                           </div>
 
                           {/* Notice Period (Days) */}
-                          <div className="col-md-4">
+                          <div className="col-md-2">
                             <label className="form-label fs-13">
                               Notice Period (Days)
                             </label>
@@ -4824,27 +5296,8 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                             )}
                           </div>
 
-                          {/* Status Checkbox (Calculated) */}
-                          <div className="col-md-4 d-flex align-items-center pt-4">
-                            <div className="form-check form-switch">
-                              <input
-                                type="checkbox"
-                                className="form-check-input"
-                                id="noticeCheck"
-                                checked={formData.in_notice_period}
-                                disabled // Field is system-calculated based on dates
-                              />
-                              <label
-                                className="form-check-label fs-13 ms-2 fw-bold text-info"
-                                htmlFor="noticeCheck"
-                              >
-                                Currently In Notice Period
-                              </label>
-                            </div>
-                          </div>
-
                           {/* Notice Period End Date (Read-only) */}
-                          <div className="col-md-4">
+                          <div className="col-md-2">
                             <label className="form-label fs-13 text-muted italic">
                               Calculated Last Working Day
                             </label>
@@ -4858,6 +5311,24 @@ const AddEditEmployeeModal: React.FC<Props> = ({
                               disabled
                               placeholder="System Calculated"
                             />
+                          </div>
+                          {/* Status Checkbox (Calculated) */}
+                          <div className="col-md-2 d-flex align-items-center pt-4">
+                            <div className="form-check form-switch">
+                              <input
+                                type="checkbox"
+                                className="form-check-input"
+                                id="noticeCheck"
+                                checked={formData.in_notice_period}
+                                disabled // Field is system-calculated based on dates
+                              />
+                              <label
+                                className="form-check-label fs-13 ms-2 fw-bold text-info"
+                                htmlFor="noticeCheck"
+                              >
+                                In Notice Period
+                              </label>
+                            </div>
                           </div>
                         </div>
                       </div>

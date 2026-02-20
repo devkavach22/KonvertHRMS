@@ -83,7 +83,6 @@ const AddEditRegCategory: React.FC<Props> = ({ onSuccess, data, onClose }) => {
     try {
       let response;
 
-      // 1. Await the API call and capture the FULL response object
       if (data?.id) {
         response = await updateRegCategory(data.id, formData);
       } else {

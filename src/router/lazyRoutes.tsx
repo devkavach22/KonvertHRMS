@@ -383,6 +383,10 @@ export const AttendancePolicyKHR = createLazyComponent(
     import("../KHRModules/Master Modules/AttendancePolicy/AttendancePolicy"),
 );
 
+export const BranchKHR = createLazyComponent(
+  () => import("../KHRModules/Master Modules/Branch/BranchKHR"),
+);
+
 export const WorkLocationKHR = createLazyComponent(
   () => import("../KHRModules/Master Modules/WorkLocation/WorkLocation"),
 );
@@ -459,6 +463,14 @@ export const SalaryStructureKHR = createLazyComponent(
   () => import("../KHRModules/payRollModules/SalaryStructure/SalaryStructure"),
 );
 
+export const PayslipOtherInputTypes = createLazyComponent(
+  () =>
+    import("../KHRModules/payRollModules/PayslipOtherInputTypes/PayslipOtherInputTypes"),
+);
+
+export const PayslipKHR = createLazyComponent(
+  () => import("../KHRModules/payRollModules/Payslip/PayslipKHR"),
+);
 export const BanksKHR = createLazyComponent(
   () => import("../KHRModules/Master Modules/BanksKHR/BanksKHR"),
 );

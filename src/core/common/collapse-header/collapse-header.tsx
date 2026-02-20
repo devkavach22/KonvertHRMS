@@ -6,7 +6,7 @@ import { setHeaderCollapse } from "../../data/redux/themeSettingSlice";
 const CollapseHeader = () => {
   const dispatch = useDispatch();
   const headerCollapse = useSelector(
-    (state: any) => state.themeSetting.headerCollapse
+    (state: any) => state.themeSetting.headerCollapse,
   );
 
   const toggleHeaderCollapse = () => {

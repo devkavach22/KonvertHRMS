@@ -1,4 +1,5 @@
 import Instance from "../../../api/axiosInstance";
+import { toast } from "react-toastify";
 
 export interface RegCategory {
   id?: string;
@@ -23,8 +24,11 @@ export const getRegCategories = async (): Promise<RegCategory[]> => {
       params: { user_id },
     });
     return response.data.data || response.data || [];
-  } catch (error) {
+  } catch (error: any) {
     console.error("Fetch Error:", error);
+    const errorMessage =
+      error.response?.data?.message || "Failed to load categories";
+    toast.error(errorMessage);
     return [];
   }
 };
