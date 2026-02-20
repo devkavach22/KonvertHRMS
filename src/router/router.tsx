@@ -19,6 +19,8 @@ const ALLRoutes: React.FC = () => {
 
   // Call ApiAuth once on app initialization to get authToken
   React.useEffect(() => {
+    console.log("hemanshiiiii");
+    
     const authToken = localStorage.getItem("authToken");
     // Only call ApiAuth if no token exists
     if (!authToken || authToken === "undefined") {
