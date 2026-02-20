@@ -317,15 +317,11 @@ const AdminDashboard = () => {
   }, []);
 
   // useEffect(() => {
-  // if (isApiAuth) {
-  // dispatch(getDashboadrdCount() as any);
-  // dispatch(updateState({ isApiAuth: false }))
-  // }
-  // }, [dispatch]);
+  // Load dashboard data on mount
   useEffect(() => {
-    // fetchData();
-    dispatch(ApiAuth() as any);
+    dispatch(getDashboadrdCount() as any);
   }, [dispatch]);
+
   console.log(getDashboadrdCountData, "getDashboadrdCountData");
 
   return (

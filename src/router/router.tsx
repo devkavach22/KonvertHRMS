@@ -4,7 +4,7 @@ import { authRoutes, publicRoutes } from "./router.link";
 import { LoadingSpinner } from "../core/common/LoadingSpinner";
 import { ProtectedRoute, GuestRoute } from "./RouteGuards";
 import { useDispatch, useSelector } from "react-redux";
-import { getCurrentAttendanceStatus, TBSelector, updateState } from "@/Store/Reducers/TBSlice";
+import { getCurrentAttendanceStatus, TBSelector, updateState, ApiAuth } from "@/Store/Reducers/TBSlice";
 import { useNotificationContext } from "@/createContextStore/NotificationContext";
 
 // Lazy load the main feature components
@@ -12,10 +12,19 @@ const LazyFeature = lazy(() => import("../feature-module/feature"));
 const LazyAuthFeature = lazy(() => import("../feature-module/authFeature"));
 
 const ALLRoutes: React.FC = () => {
-  const { isError, errorMessage, isSuccess, successMessage, isCheckinCheckout } =
+  const { isError, errorMessage, isSuccess, successMessage, isCheckinCheckout, isApiAuth } =
     useSelector(TBSelector);
   const dispatch = useDispatch();
   const { openNotification } = useNotificationContext();
+
+  // Call ApiAuth once on app initialization to get authToken
+  React.useEffect(() => {
+    const authToken = localStorage.getItem("authToken");
+    // Only call ApiAuth if no token exists
+    if (!authToken || authToken === "undefined") {
+      dispatch(ApiAuth() as any);
+    }
+  }, [dispatch]);
 
   React.useEffect(() => {
     if (isError) {

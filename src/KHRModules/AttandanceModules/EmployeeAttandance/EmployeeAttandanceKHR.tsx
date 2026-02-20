@@ -173,9 +173,11 @@ const EmployeeAttendanceKHR = () => {
       dispatch(updateState({ isApiAuth: false }));
     }
   }, [dispatch, isApiAuth]);
+
   useEffect(() => {
-    dispatch(ApiAuth() as any);
-    // Load current attendance status on page load
+    // Load attendance data and current status on page load
+    dispatch(EmployeeAttendanceApi({}) as any);
+    dispatch(getRegularizationStatus() as any);
     dispatch(getCurrentAttendanceStatus() as any);
     
     // Test date range calculations (remove in production)

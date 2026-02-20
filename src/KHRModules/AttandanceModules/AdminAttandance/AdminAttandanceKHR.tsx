@@ -708,18 +708,19 @@ const AdminAttandanceKHR = () => {
       dispatch(updateState({ isGetEmployeesBasicInfo: false }));
     }
   }, [isGetEmployeesBasicInfo, getEmployeesBasicInfoData, dispatch]);
+
   useEffect(() => {
-    // fetchData();
     if (isApiAuth) {
       dispatch(AttendancesGetApi({}) as any);
       dispatch(updateState({ isApiAuth: false }))
     }
   }, [dispatch, isApiAuth]);
-  useEffect(() => {
-    // fetchData();
-    dispatch(ApiAuth());
 
+  useEffect(() => {
+    // Load attendance data on page load
+    dispatch(AttendancesGetApi({}) as any);
   }, [dispatch]);
+
   const columns = [
     {
       title: "Employee",
