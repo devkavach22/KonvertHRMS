@@ -87,7 +87,6 @@ const Login = () => {
         // 3. User Profile (Consolidated to just these two)
         if (data.email) localStorage.setItem("user_email", data.email);
         if (data.full_name) localStorage.setItem("full_name", data.full_name);
-        // REMOVED: user_fullname, user_name (Update your header to read 'full_name')
 
         // 4. Role (The Single Source of Truth for Menu/Sidebar)
         const role = data.user_role || "EMPLOYEE";
@@ -103,8 +102,8 @@ const Login = () => {
           localStorage.setItem("plan_start_date", data.plan_start_date);
         if (data.plan_end_date)
           localStorage.setItem("plan_end_date", data.plan_end_date);
-
-        // Product Details
+        if (data.company_name)
+          localStorage.setItem("company_name", data.company_name);
         if (Array.isArray(data.product_id) && data.product_id.length > 0) {
           localStorage.setItem("product_id", data.product_id[0].toString());
           localStorage.setItem("product_name", data.product_id[1] || "");

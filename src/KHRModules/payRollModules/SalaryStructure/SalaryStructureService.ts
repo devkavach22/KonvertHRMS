@@ -48,7 +48,7 @@ export const getSalaryStructures = async (): Promise<SalaryStructure[]> => {
     const response = await Instance.get("/api/salary-structure", {
       params: { user_id },
     });
-    return response.data.data || [];
+    return response.data?.data || response.data || [];
   } catch (error) {
     console.error("Fetch Error:", error);
     return [];

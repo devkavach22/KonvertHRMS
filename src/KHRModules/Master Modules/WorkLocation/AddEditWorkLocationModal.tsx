@@ -41,13 +41,26 @@ const AddEditWorkLocationModal: React.FC<Props> = ({
   }, [onClose]); // Added dependency
 
   // --- 2. DATA POPULATION ---
+  // useEffect(() => {
+  //   if (data) {
+  //     setFormData({
+  //       name: data.name || "",
+  //       location_type: data.location_type || "office",
+  //     });
+  //   } else {
+  //     resetForm();
+  //   }
+  // }, [data]);
+
   useEffect(() => {
-    if (data) {
+    // Check if data is a full object (Edit mode) or just an ID string (Add mode)
+    if (data && typeof data === "object" && "name" in data) {
       setFormData({
         name: data.name || "",
         location_type: data.location_type || "office",
       });
     } else {
+      // If data is just an ID string or null, it's a NEW location for that Branch
       resetForm();
     }
   }, [data]);
@@ -76,12 +89,42 @@ const AddEditWorkLocationModal: React.FC<Props> = ({
     return Object.keys(tempErrors).length === 0;
   };
 
+  // const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   setIsSubmitted(true);
+
+  //   if (!validate()) return;
+
+  //   setIsSubmitting(true);
+
+  //   try {
+  //     const apiPayload = {
+  //       name: formData.name.trim(),
+  //       location_type: formData.location_type,
+  //     };
+
+  //     if (data && data.id) {
+  //       await updateWorkLocation(data.id, apiPayload);
+  //       toast.success("Location updated successfully!");
+  //     } else {
+  //       await addWorkLocation(apiPayload);
+  //       toast.success("Location created successfully!");
+  //     }
+
+  //     onSuccess();
+  //     document.getElementById("close-btn-work-loc")?.click();
+  //   } catch (error: any) {
+  //     console.error("Failed to save work location", error);
+  //     toast.error(error.response?.data?.message || "Error saving data.");
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitted(true);
-
     if (!validate()) return;
-
     setIsSubmitting(true);
 
     try {
@@ -90,18 +133,17 @@ const AddEditWorkLocationModal: React.FC<Props> = ({
         location_type: formData.location_type,
       };
 
-      if (data && data.id) {
-        await updateWorkLocation(data.id, apiPayload);
-        toast.success("Location updated successfully!");
-      } else {
-        await addWorkLocation(apiPayload);
-        toast.success("Location created successfully!");
-      }
+      // 'data' is now just the ID (number or string) passed from the click
+      const targetId = typeof data === "object" ? data?.id : data;
+      const finalId = targetId || "0";
 
+      // Calls: http://178.236.185.232:9090/api/create/work-location/targetId?user_id=...
+      await addWorkLocation(apiPayload, finalId);
+
+      toast.success("Work Location saved successfully!");
       onSuccess();
       document.getElementById("close-btn-work-loc")?.click();
     } catch (error: any) {
-      console.error("Failed to save work location", error);
       toast.error(error.response?.data?.message || "Error saving data.");
     } finally {
       setIsSubmitting(false);
@@ -116,7 +158,9 @@ const AddEditWorkLocationModal: React.FC<Props> = ({
           <div className="modal-header border-bottom bg-light py-2">
             <h5 className="modal-title fw-bold text-dark fs-16">
               <i className="ti ti-map-pin me-2 text-primary"></i>
-              {data ? "Edit Work Location" : "Create Work Location"}
+              {data && typeof data === "object"
+                ? "Edit Work Location"
+                : "Create Work Location"}{" "}
             </h5>
             <button
               type="button"
@@ -204,7 +248,7 @@ const AddEditWorkLocationModal: React.FC<Props> = ({
                       ></span>
                       Saving...
                     </>
-                  ) : data ? (
+                  ) : data && typeof data === "object" ? (
                     "Update Changes"
                   ) : (
                     "Save Location"

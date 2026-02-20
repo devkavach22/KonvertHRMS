@@ -1,3 +1,4 @@
+import InstanceSecond from "@/api/axiosInstanceSecond";
 import Instance from "../../../api/axiosInstance";
 
 export interface Employee {
@@ -39,6 +40,59 @@ export const getEmployees = async () => {
     return [];
   }
 };
+
+// export const getEmployees = async () => {
+//   const userId = getUserId() || 3145; // fallback user ID
+
+//   try {
+//     const response = await axios.get(
+//       "http://178.236.185.232:9090/api/employees",
+//       {
+//         params: { user_id: userId },
+//       },
+//     );
+
+//     // Return response.data.data if exists, else response.data, else empty array
+//     return response.data?.data || response.data || [];
+//   } catch (error) {
+//     console.error("Error fetching employees:", error);
+//     return [];
+//   }
+// };
+
+// export const getEmployees = async () => {
+//   const userId = getUserId() || 3145;
+
+//   try {
+//     // We now use 'Instance' instead of raw 'axios'
+//     // The interceptor will automatically add headers.Authorization
+//     const response = await Instance.get("/employees", {
+//       params: { user_id: userId },
+//     });
+
+//     return response.data?.data || [];
+//   } catch (error) {
+//     console.error("Error fetching employees:", error);
+//     // Returning empty array so your .map() functions don't crash
+//     return [];
+//   }
+// };
+
+// export const getEmployees = async () => {
+//   const userId = getUserId() || 3145;
+
+//   try {
+//     const response = await InstanceSecond.get("api/employees", {
+//       params: { user_id: userId },
+//     });
+
+//     return response.data?.data || [];
+//   } catch (error: any) {
+//     console.error("Error fetching employees:", error);
+//     toast.error(error.response?.data?.message || "Failed to load departments");
+//     return [];
+//   }
+// };
 
 export const getEmployeesBasicInfo = async () => {
   try {
@@ -104,10 +158,21 @@ export const getDepartments = async () => {
   return response.data.data || [];
 };
 
-export const getDesignations = async () => {
-  const response = await Instance.get("/api/job/list", {
-    params: { user_id: getUserId() },
-  });
+// export const getDesignations = async () => {
+//   const response = await Instance.get("/api/job/list", {
+//     params: { user_id: getUserId() },
+//   });
+//   return response.data.data || [];
+// };
+
+// Add or update this in EmployeeServices.ts
+export const getDesignations = async (departmentId?: string) => {
+  const params: any = { user_id: getUserId() }; // Use your current user_id logic
+  if (departmentId) {
+    params.department_id = departmentId;
+  }
+
+  const response = await Instance.get("/api/job/list", { params });
   return response.data.data || [];
 };
 
@@ -238,6 +303,7 @@ export const getDistricts = async (countryId: string, stateId: string) => {
     return [];
   }
 };
+
 export const getTimezones = async () => {
   try {
     const response = await Instance.get("/api/timezones");
@@ -255,6 +321,14 @@ export const addEmployee = async (payload: any) => {
     params: { user_id: userId },
   });
 };
+
+import axios from "axios";
+import { toast } from "react-toastify";
+
+// export const addEmployee = async (payload: any) => {
+//   const userId = getUserId() || 2;
+//   return await InstanceSecond.post("/api/employee/create", payload);
+// };
 
 export const updateEmployee = async (id: string, data: any) => {
   const payload = { ...data }; // your request body

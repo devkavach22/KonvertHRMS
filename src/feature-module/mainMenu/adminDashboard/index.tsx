@@ -374,7 +374,7 @@ const AdminDashboard = () => {
                   </ul>
                 </div>
               </div>
-              <div className="mb-2">
+              {/* <div className="mb-2">
                 <div className="input-icon w-120 position-relative">
                   <span className="input-icon-addon">
                     <i className="ti ti-calendar text-gray-9" />
@@ -387,7 +387,7 @@ const AdminDashboard = () => {
                     className="Calendar-form"
                   />
                 </div>
-              </div>
+              </div> */}
               <div className="ms-2 head-icons">
                 <CollapseHeader />
               </div>
@@ -452,7 +452,7 @@ const AdminDashboard = () => {
           {/* /Welcome Wrap */}
           <div className="row">
             {/* Widget Info */}
-            <div className="col-xxl-8 d-flex">
+            {/* <div className="col-xxl-8 d-flex">
               <div className="row flex-fill">
                 <div className="col-md-3 d-flex">
                   <div className="card flex-fill">
@@ -640,7 +640,7 @@ const AdminDashboard = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
             {/* /Widget Info */}
             {/* Employees By Department */}
             <div className="col-xxl-4 d-flex">

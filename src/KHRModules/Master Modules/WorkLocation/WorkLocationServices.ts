@@ -40,21 +40,30 @@ export const getWorkLocations = async (): Promise<APIWorkLocation[]> => {
 };
 
 // POST (Create): http://localhost:4000/api/create/work-location
-export const addWorkLocation = async (data: {
-  name: string;
-  location_type: string;
-}) => {
-  const payload = {
-    ...data,
-    user_id: getUserId(),
-  };
-  return await Instance.post("/api/create/work-location", payload);
+// export const addWorkLocation = async (data: {
+//   name: string;
+//   location_type: string;
+// }) => {
+//   const payload = {
+//     ...data,
+//     user_id: getUserId(),
+//   };
+//   return await Instance.post("/api/create/work-location", payload);
+// };
+
+// POST (Create/Update with ID): http://localhost:4000/api/create/work-location/5?user_id=3145
+export const addWorkLocation = async (payload: any, branchId: any) => {
+  const userId = getUserId() || "3145";
+  return await Instance.post(
+    `/api/create/work-location/${branchId}?user_id=${userId}`,
+    payload,
+  );
 };
 
 // PUT (Update): http://localhost:4000/api/work-location/:id
 export const updateWorkLocation = async (
   id: string,
-  data: { name: string; location_type: string }
+  data: { name: string; location_type: string },
 ) => {
   const payload = {
     ...data,

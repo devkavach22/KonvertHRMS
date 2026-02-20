@@ -276,10 +276,10 @@ const ResetPassword = () => {
                               passwordResponce.passwordResponceKey === "3"
                                 ? "text-success"
                                 : passwordResponce.passwordResponceKey === "2"
-                                ? "text-info"
-                                : passwordResponce.passwordResponceKey === "1"
-                                ? "text-warning"
-                                : "text-danger"
+                                  ? "text-info"
+                                  : passwordResponce.passwordResponceKey === "1"
+                                    ? "text-warning"
+                                    : "text-danger"
                             }
                           >
                             {passwordResponce.passwordResponceText}
