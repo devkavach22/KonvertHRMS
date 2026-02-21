@@ -93,7 +93,7 @@ export const createContract = async (
         "Content-Type": "application/json",
         authorization: `${localStorage.getItem("authToken")}`,
       },
-      url: `/api/employee/Contracts`,
+      url: `/api/employee/Contract`,
       params: { user_id },
       data: contractData,
     });
