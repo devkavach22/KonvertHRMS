@@ -38,8 +38,16 @@ const rawSidebarData = [
         dot: false,
         submenuItems: [
           // { label: "Attendence Policy", link: routes.AttendancePolicyKHR },
-          { label: "Admin Dashboard", link: routes.adminDashboard },
-          { label: "Employee Dashboard", link: routes.employeeDashboard },
+          {
+            label: "Admin Dashboard",
+            link: routes.adminDashboard,
+            roles: [ROLES.ADMIN],
+          },
+          {
+            label: "Employee Dashboard",
+            link: routes.employeeDashboard,
+            roles: [ROLES.EMPLOYEE],
+          },
         ],
       },
       {
@@ -50,6 +58,7 @@ const rawSidebarData = [
         icon: "layout-grid-add",
         base: "application",
         materialicons: "dashboard",
+        roles: [ROLES.ADMIN],
         submenuItems: [
           // { label: "Attendence Policy", link: routes.AttendancePolicyKHR },
           { label: "Regularization Category", link: routes.regCategoryKHR },
@@ -88,7 +97,11 @@ const rawSidebarData = [
         roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only
         submenuItems: [
           { label: "Employees", link: routes.employeeKHR },
-          { label: "Contracts", link: routes.employeeContractKHR },
+          {
+            label: "Contracts",
+            link: routes.employeeContractKHR,
+            roles: [ROLES.ADMIN],
+          },
           { label: "Expense", link: routes.expenseKHR },
           // { label: "Calander", link: routes.employeeCalenderKHR },
         ],
@@ -107,12 +120,12 @@ const rawSidebarData = [
           {
             label: "Admin Attendance",
             link: routes.attendanceAdminKHR,
-            roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only
+            roles: [ROLES.ADMIN], // 🔥 Admin Only
           },
           {
             label: "Employees Attendance",
             link: routes.attendaceEmployeeKHR,
-            roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // Both
+            roles: [ROLES.EMPLOYEE], // Both
           },
         ],
       },
@@ -129,37 +142,37 @@ const rawSidebarData = [
           {
             label: "Leaves (Admin)",
             link: routes.leaveAdminKHR,
-            roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only
+            roles: [ROLES.ADMIN], // 🔥 Admin Only
           },
           {
             label: "Leaves (Employee)",
             link: routes.leaveEmployeeKHR,
-            roles: [ROLES.ADMIN, ROLES.EMPLOYEE],
+            roles: [ROLES.EMPLOYEE],
           },
           {
             label: "Leave Allocation",
             link: routes.leaveAllocationKHR,
-            roles: [ROLES.ADMIN, ROLES.EMPLOYEE],
+            roles: [ROLES.ADMIN],
           },
           {
             label: "Leave Request",
             link: routes.leaveRequestKHR,
-            roles: [ROLES.ADMIN, ROLES.EMPLOYEE],
+            roles: [ROLES.EMPLOYEE],
           },
           {
             label: "Leave Types",
             link: routes.leaveTypesKHR,
-            roles: [ROLES.ADMIN, ROLES.EMPLOYEE],
+            roles: [ROLES.ADMIN],
           },
           {
             label: "Public Holiday",
             link: routes.publicHolidayKHR,
-            roles: [ROLES.ADMIN, ROLES.EMPLOYEE],
+            roles: [ROLES.ADMIN],
           },
           {
             label: "Mandatory Days",
             link: routes.mendetoryDaysKHR,
-            roles: [ROLES.ADMIN, ROLES.EMPLOYEE],
+            roles: [ROLES.ADMIN],
           },
         ],
       },
@@ -172,6 +185,7 @@ const rawSidebarData = [
         base: "dashboard",
         materialicons: "start",
         dot: false,
+        roles: [ROLES.ADMIN], // 🔥 Restricted: Only Admin can see this whole section
         submenuItems: [
           {
             label: "Salary Structure Types",
@@ -199,7 +213,7 @@ const rawSidebarData = [
         base: "dashboard",
         materialicons: "start",
         dot: false,
-        roles: [ROLES.ADMIN, ROLES.EMPLOYEE], // 🔥 Admin Only
+        roles: [ROLES.ADMIN], // 🔥 Admin Only
         submenuItems: [{ label: "Geo Configurations", link: routes.geoKHR }],
       },
       {

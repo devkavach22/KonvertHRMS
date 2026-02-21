@@ -410,9 +410,10 @@ const EmployeeContractKHR = () => {
           >
             <i className="ti ti-edit text-blue" />
           </Link>
-          <Link to="#" onClick={() => handleDelete(record.id!)}>
+
+          {/* <Link to="#" onClick={() => handleDelete(record.id!)}>
             <i className="ti ti-trash text-danger" />
-          </Link>
+          </Link> */}
         </div>
       ),
     },
