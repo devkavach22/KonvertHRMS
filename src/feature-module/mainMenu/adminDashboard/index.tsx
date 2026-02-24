@@ -643,13 +643,13 @@ const AdminDashboard = () => {
             </div> */}
             {/* /Widget Info */}
             {/* Employees By Department */}
-            <div className="col-xxl-4 d-flex">
+            <div className="col-12 d-flex">
               <div className="card flex-fill">
                 <div className="card-header pb-2 d-flex align-items-center justify-content-between flex-wrap">
                   <h5 className="mb-2">Employees By Department</h5>
                   <div className="dropdown mb-2">
                     <Link
-                      to="#"
+                      to="#"  
                       className="btn btn-white border btn-sm d-inline-flex align-items-center"
                       data-bs-toggle="dropdown"
                     >
