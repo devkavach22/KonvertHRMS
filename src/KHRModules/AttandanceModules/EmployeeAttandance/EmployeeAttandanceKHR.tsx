@@ -49,9 +49,6 @@ interface AttendanceAdminData {
   rejectedReason?: string;
 }
 
-
-
-
 // Define a type for employee attendance
 interface EmployeeAttendance {
   id: string;
@@ -71,9 +68,9 @@ const EmployeeAttendanceKHR = () => {
   const [employeeId, setEmployeeId] = useState<string | null>(null);
   const dispatch = useDispatch<AppDispatch>();
   const [summaryCards, setSummaryCards] = useState<any[]>([]);
-  
+
   // Group by functionality
-  const [groupBy, setGroupBy] = useState<string>('none');
+  const [groupBy, setGroupBy] = useState<string>("none");
   const [groupedData, setGroupedData] = useState<GroupedData[]>([]);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
@@ -117,7 +114,7 @@ const EmployeeAttendanceKHR = () => {
   };
 
   if (!CheckinCheckoutData) {
-    console.warn('CheckinCheckoutData is not available');
+    console.warn("CheckinCheckoutData is not available");
     return <div>Loading...</div>;
   }
 
@@ -179,7 +176,7 @@ const EmployeeAttendanceKHR = () => {
     dispatch(EmployeeAttendanceApi({}) as any);
     dispatch(getRegularizationStatus() as any);
     dispatch(getCurrentAttendanceStatus() as any);
-    
+
     // Test date range calculations (remove in production)
     testDateRangeCalculations();
   }, [dispatch]);
@@ -257,21 +254,20 @@ const EmployeeAttendanceKHR = () => {
   console.log(data, "mappedDatamappedData");
 
   useEffect(() => {
-    console.log(EmployeeAttendanceApiData,"EmployeeAttendanceApiDatafff");
-    
+    console.log(EmployeeAttendanceApiData, "EmployeeAttendanceApiDatafff");
+
     if (!isEmployeeAttendanceApi || !EmployeeAttendanceApiData?.data) return;
 
+    const workingHoursSummary =
+      EmployeeAttendanceApiData?.data?.working_hours_summary;
 
-
-    const workingHoursSummary = EmployeeAttendanceApiData?.data?.working_hours_summary;
-    
     // Provide fallback values if working_hours_summary is not available
     const defaultSummary = {
       worked_hours: 0,
       allowed_hours: 0,
       percentage: 0,
       total_overtime_hours_worked: 0,
-      total_overtime_hours_allowed: 0
+      total_overtime_hours_allowed: 0,
     };
 
     const today = workingHoursSummary?.today || defaultSummary;
@@ -334,12 +330,12 @@ const EmployeeAttendanceKHR = () => {
 
   // Group by functionality
   const groupByOptions = [
-    { value: 'none', label: 'No Grouping' },
-    { value: 'status', label: 'Group by Status' },
-    { value: 'week', label: 'Group by Week' },
-    { value: 'last_month', label: 'Last Month Only' },
-    { value: 'last_3_months', label: 'Last 3 Months' },
-    { value: 'last_6_months', label: 'Last 6 Months' }
+    { value: "none", label: "No Grouping" },
+    { value: "status", label: "Group by Status" },
+    { value: "week", label: "Group by Week" },
+    { value: "last_month", label: "Last Month Only" },
+    { value: "last_3_months", label: "Last 3 Months" },
+    { value: "last_6_months", label: "Last 6 Months" },
   ];
 
   const getWeekNumber = (date: string) => {
@@ -351,27 +347,50 @@ const EmployeeAttendanceKHR = () => {
 
   const getMonthYear = (date: string) => {
     const d = new Date(date);
-    return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
   };
 
   // Helper function to format date range for display
-  const formatDateRange = (dateRange: {date_from: string, date_to: string, label: string}) => {
+  const formatDateRange = (dateRange: {
+    date_from: string;
+    date_to: string;
+    label: string;
+  }) => {
     return dateRange.label;
   };
 
   // Test function to verify date range calculations (can be removed in production)
   const testDateRangeCalculations = () => {
     const now = new Date();
-    console.log('Current date:', now.toLocaleDateString('en-US', { month: 'long', year: 'numeric', day: 'numeric' }));
-    
+    console.log(
+      "Current date:",
+      now.toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+        day: "numeric",
+      }),
+    );
+
     const lastMonth = getLastMonthDateRange();
-    console.log('Last month:', lastMonth.label, `(date_from=${lastMonth.date_from}, date_to=${lastMonth.date_to})`);
-    
+    console.log(
+      "Last month:",
+      lastMonth.label,
+      `(date_from=${lastMonth.date_from}, date_to=${lastMonth.date_to})`,
+    );
+
     const last3Months = getLastNMonthsDateRange(3);
-    console.log('Last 3 months:', last3Months.label, `(date_from=${last3Months.date_from}, date_to=${last3Months.date_to})`);
-    
+    console.log(
+      "Last 3 months:",
+      last3Months.label,
+      `(date_from=${last3Months.date_from}, date_to=${last3Months.date_to})`,
+    );
+
     const last6Months = getLastNMonthsDateRange(6);
-    console.log('Last 6 months:', last6Months.label, `(date_from=${last6Months.date_from}, date_to=${last6Months.date_to})`);
+    console.log(
+      "Last 6 months:",
+      last6Months.label,
+      `(date_from=${last6Months.date_from}, date_to=${last6Months.date_to})`,
+    );
   };
 
   // Helper functions for time-based filtering
@@ -379,40 +398,46 @@ const EmployeeAttendanceKHR = () => {
   // - Last Month: January 2024 (date_from=2024-01-01, date_to=2024-01-31)
   // - Last 3 Months: January, December, November (date_from=2023-11-01, date_to=2024-01-31)
   // - Last 6 Months: January, December, November, October, September, August (date_from=2023-08-01, date_to=2024-01-31)
-  
+
   const getLastMonthDateRange = () => {
     const now = new Date();
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const lastDayOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-    
+
     return {
-      date_from: lastMonth.toISOString().split('T')[0], // YYYY-MM-DD
-      date_to: lastDayOfLastMonth.toISOString().split('T')[0], // YYYY-MM-DD
-      label: lastMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+      date_from: lastMonth.toISOString().split("T")[0], // YYYY-MM-DD
+      date_to: lastDayOfLastMonth.toISOString().split("T")[0], // YYYY-MM-DD
+      label: lastMonth.toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      }),
     };
   };
 
   const getLastNMonthsDateRange = (n: number) => {
     const now = new Date();
     const startMonth = new Date(now.getFullYear(), now.getMonth() - n, 1);
-    
+
     // End at last month (last day of previous month)
     const endMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-    
+
     return {
-      date_from: startMonth.toISOString().split('T')[0], // YYYY-MM-DD
-      date_to: endMonth.toISOString().split('T')[0], // YYYY-MM-DD
-      label: `${startMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} to ${endMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
+      date_from: startMonth.toISOString().split("T")[0], // YYYY-MM-DD
+      date_to: endMonth.toISOString().split("T")[0], // YYYY-MM-DD
+      label: `${startMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })} to ${endMonth.toLocaleDateString("en-US", { month: "long", year: "numeric" })}`,
     };
   };
 
   // Function to fetch attendance data for specific date range
-  const fetchAttendanceForDateRange = async (date_from: string, date_to: string) => {
+  const fetchAttendanceForDateRange = async (
+    date_from: string,
+    date_to: string,
+  ) => {
     try {
       console.log(`Fetching attendance data from ${date_from} to ${date_to}`);
       dispatch(EmployeeAttendanceApi({ date_from, date_to }) as any);
     } catch (error) {
-      console.error('Error fetching attendance data:', error);
+      console.error("Error fetching attendance data:", error);
     }
   };
 
@@ -422,43 +447,44 @@ const EmployeeAttendanceKHR = () => {
       console.log(`Fetching attendance data for month=${month}, year=${year}`);
       dispatch(EmployeeAttendanceApi({ month, year }) as any);
     } catch (error) {
-      console.error('Error fetching attendance data:', error);
+      console.error("Error fetching attendance data:", error);
     }
   };
 
-
-
-  const groupDataByField = (data: AttendanceAdminData[], field: string): GroupedData[] => {
-    if (field === 'none') return [];
+  const groupDataByField = (
+    data: AttendanceAdminData[],
+    field: string,
+  ): GroupedData[] => {
+    if (field === "none") return [];
 
     const grouped = data.reduce((acc: any, item) => {
-      let groupKey = '';
-      
+      let groupKey = "";
+
       switch (field) {
-        case 'month':
+        case "month":
           groupKey = getMonthYear(item.StartDate);
           break;
-        case 'status':
+        case "status":
           groupKey = item.Status;
           break;
-        case 'week':
+        case "week":
           const weekNum = getWeekNumber(item.StartDate);
           const year = new Date(item.StartDate).getFullYear();
           groupKey = `Week ${weekNum}, ${year}`;
           break;
-        case 'regularization':
-          groupKey = item.hasRegularization 
-            ? (item.regularizationStatus || 'Pending')
-            : 'No Regularization';
+        case "regularization":
+          groupKey = item.hasRegularization
+            ? item.regularizationStatus || "Pending"
+            : "No Regularization";
           break;
-        case 'last_month':
-        case 'last_3_months':
-        case 'last_6_months':
+        case "last_month":
+        case "last_3_months":
+        case "last_6_months":
           // For time-based grouping, we'll group by month within the selected period
           groupKey = getMonthYear(item.StartDate);
           break;
         default:
-          groupKey = 'All Records';
+          groupKey = "All Records";
       }
 
       if (!acc[groupKey]) {
@@ -470,21 +496,23 @@ const EmployeeAttendanceKHR = () => {
 
     // Sort groups by date for time-based grouping
     const entries = Object.entries(grouped);
-    
-    if (['last_month', 'last_3_months', 'last_6_months'].includes(field)) {
+
+    if (["last_month", "last_3_months", "last_6_months"].includes(field)) {
       entries.sort(([a], [b]) => {
-        const dateA = new Date(a + ' 1'); // Add day to make it a valid date
-        const dateB = new Date(b + ' 1');
+        const dateA = new Date(a + " 1"); // Add day to make it a valid date
+        const dateB = new Date(b + " 1");
         return dateB.getTime() - dateA.getTime(); // Sort newest first
       });
     }
 
-    return entries.map(([groupName, items]: [string, any]): GroupedData => ({
-      groupName,
-      items,
-      count: items.length,
-      isGroup: true
-    }));
+    return entries.map(
+      ([groupName, items]: [string, any]): GroupedData => ({
+        groupName,
+        items,
+        count: items.length,
+        isGroup: true,
+      }),
+    );
   };
 
   const toggleGroupExpansion = (groupName: string) => {
@@ -499,7 +527,7 @@ const EmployeeAttendanceKHR = () => {
 
   const toggleAllGroups = (expand: boolean) => {
     if (expand) {
-      setExpandedGroups(new Set(groupedData.map(group => group.groupName)));
+      setExpandedGroups(new Set(groupedData.map((group) => group.groupName)));
     } else {
       setExpandedGroups(new Set());
     }
@@ -507,8 +535,8 @@ const EmployeeAttendanceKHR = () => {
 
   const handleGroupByChange = async (value: string) => {
     setGroupBy(value);
-    
-    if (value === 'none') {
+
+    if (value === "none") {
       setGroupedData([]);
       setExpandedGroups(new Set());
       // Fetch current data without date filters
@@ -517,45 +545,60 @@ const EmployeeAttendanceKHR = () => {
     }
 
     // Handle time-based grouping options
-    if (['last_month', 'last_3_months', 'last_6_months'].includes(value)) {
+    if (["last_month", "last_3_months", "last_6_months"].includes(value)) {
       try {
         switch (value) {
-          case 'last_month':
+          case "last_month":
             // Only previous month's data
             const lastMonthRange = getLastMonthDateRange();
-            console.log('Fetching last month data:', lastMonthRange.label);
-            console.log(`API call: date_from=${lastMonthRange.date_from}, date_to=${lastMonthRange.date_to}`);
-            await fetchAttendanceForDateRange(lastMonthRange.date_from, lastMonthRange.date_to);
+            console.log("Fetching last month data:", lastMonthRange.label);
+            console.log(
+              `API call: date_from=${lastMonthRange.date_from}, date_to=${lastMonthRange.date_to}`,
+            );
+            await fetchAttendanceForDateRange(
+              lastMonthRange.date_from,
+              lastMonthRange.date_to,
+            );
             break;
-          
-          case 'last_3_months':
+
+          case "last_3_months":
             // Previous 3 months (excluding current month)
             const last3MonthsRange = getLastNMonthsDateRange(3);
             console.log(`Fetching last 3 months: ${last3MonthsRange.label}`);
-            console.log(`API call: date_from=${last3MonthsRange.date_from}, date_to=${last3MonthsRange.date_to}`);
-            await fetchAttendanceForDateRange(last3MonthsRange.date_from, last3MonthsRange.date_to);
+            console.log(
+              `API call: date_from=${last3MonthsRange.date_from}, date_to=${last3MonthsRange.date_to}`,
+            );
+            await fetchAttendanceForDateRange(
+              last3MonthsRange.date_from,
+              last3MonthsRange.date_to,
+            );
             break;
-          
-          case 'last_6_months':
+
+          case "last_6_months":
             // Previous 6 months (excluding current month)
             const last6MonthsRange = getLastNMonthsDateRange(6);
             console.log(`Fetching last 6 months: ${last6MonthsRange.label}`);
-            console.log(`API call: date_from=${last6MonthsRange.date_from}, date_to=${last6MonthsRange.date_to}`);
-            await fetchAttendanceForDateRange(last6MonthsRange.date_from, last6MonthsRange.date_to);
+            console.log(
+              `API call: date_from=${last6MonthsRange.date_from}, date_to=${last6MonthsRange.date_to}`,
+            );
+            await fetchAttendanceForDateRange(
+              last6MonthsRange.date_from,
+              last6MonthsRange.date_to,
+            );
             break;
         }
-        
+
         // The grouping will be handled in the useEffect when data is updated
         return;
       } catch (error) {
-        console.error('Error fetching time-based data:', error);
+        console.error("Error fetching time-based data:", error);
       }
     }
 
     // Handle regular grouping (non-time-based)
     const grouped = groupDataByField(data, value);
     setGroupedData(grouped);
-    
+
     // Expand first group by default
     if (grouped.length > 0) {
       setExpandedGroups(new Set([grouped[0].groupName]));
@@ -564,12 +607,12 @@ const EmployeeAttendanceKHR = () => {
 
   // Update grouped data when main data changes
   useEffect(() => {
-    if (data.length > 0 && groupBy !== 'none') {
+    if (data.length > 0 && groupBy !== "none") {
       // For time-based grouping, we need to regroup the data after API call
-      if (['last_month', 'last_3_months', 'last_6_months'].includes(groupBy)) {
+      if (["last_month", "last_3_months", "last_6_months"].includes(groupBy)) {
         const grouped = groupDataByField(data, groupBy);
         setGroupedData(grouped);
-        
+
         // Expand first group by default
         if (grouped.length > 0) {
           setExpandedGroups(new Set([grouped[0].groupName]));
@@ -578,7 +621,7 @@ const EmployeeAttendanceKHR = () => {
         // For regular grouping, use the existing logic
         const grouped = groupDataByField(data, groupBy);
         setGroupedData(grouped);
-        
+
         if (grouped.length > 0) {
           setExpandedGroups(new Set([grouped[0].groupName]));
         }
@@ -587,42 +630,46 @@ const EmployeeAttendanceKHR = () => {
   }, [data, groupBy]);
 
   const renderGroupedTable = () => {
-    if (groupBy === 'none') {
+    if (groupBy === "none") {
       return <DatatableKHR data={data} columns={columns} selection={true} />;
     }
 
     return (
       <div className="grouped-table">
         {groupedData.map((group: GroupedData, groupIndex: number) => (
-          <div 
-            key={`group-${groupIndex}-${group.groupName}`} 
-            className="group-section mb-4" 
+          <div
+            key={`group-${groupIndex}-${group.groupName}`}
+            className="group-section mb-4"
             style={{
-              border: '1px solid #e9ecef',
-              borderRadius: '8px',
-              overflow: 'hidden'
+              border: "1px solid #e9ecef",
+              borderRadius: "8px",
+              overflow: "hidden",
             }}
           >
             {/* Group Header */}
-            <div 
+            <div
               className="group-header bg-light p-3 border rounded cursor-pointer d-flex justify-content-between align-items-center"
               onClick={() => toggleGroupExpansion(group.groupName)}
-              style={{ 
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                border: '1px solid #e9ecef'
+              style={{
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+                border: "1px solid #e9ecef",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#f8f9fa';
+                e.currentTarget.style.backgroundColor = "#f8f9fa";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#f8f9fa';
+                e.currentTarget.style.backgroundColor = "#f8f9fa";
               }}
             >
               <div className="d-flex align-items-center">
-                <i className={`ti ${expandedGroups.has(group.groupName) ? 'ti-chevron-down' : 'ti-chevron-right'} me-2`}></i>
+                <i
+                  className={`ti ${expandedGroups.has(group.groupName) ? "ti-chevron-down" : "ti-chevron-right"} me-2`}
+                ></i>
                 <h6 className="mb-0 fw-bold">{group.groupName}</h6>
-                <span className="badge badge-primary ms-2">{group.count} records</span>
+                <span className="badge badge-primary ms-2">
+                  {group.count} records
+                </span>
               </div>
               <div className="group-stats">
                 <div className="d-flex gap-3">
@@ -632,19 +679,45 @@ const EmployeeAttendanceKHR = () => {
                   </small>
                   <small className="text-success">
                     <i className="ti ti-check me-1"></i>
-                    Present: <strong>{group.items.filter((item: AttendanceAdminData) => item.Status === 'Present').length}</strong>
+                    Present:{" "}
+                    <strong>
+                      {
+                        group.items.filter(
+                          (item: AttendanceAdminData) =>
+                            item.Status === "Present",
+                        ).length
+                      }
+                    </strong>
                   </small>
                   <small className="text-danger">
                     <i className="ti ti-x me-1"></i>
-                    Absent: <strong>{group.items.filter((item: AttendanceAdminData) => item.Status === 'Absent').length}</strong>
+                    Absent:{" "}
+                    <strong>
+                      {
+                        group.items.filter(
+                          (item: AttendanceAdminData) =>
+                            item.Status === "Absent",
+                        ).length
+                      }
+                    </strong>
                   </small>
-                  {groupBy === 'regularization' && (
+                  {groupBy === "regularization" && (
                     <small className="text-warning">
                       <i className="ti ti-clock me-1"></i>
-                      Pending: <strong>{group.items.filter((item: AttendanceAdminData) => item.regularizationStatus === 'pending').length}</strong>
+                      Pending:{" "}
+                      <strong>
+                        {
+                          group.items.filter(
+                            (item: AttendanceAdminData) =>
+                              item.regularizationStatus === "pending",
+                          ).length
+                        }
+                      </strong>
                     </small>
                   )}
-                  {['last_month', 'last_3_months', 'last_6_months'].includes(groupBy) && (
+                  {["last_month", "last_3_months", "last_6_months"].includes(
+                    groupBy,
+                  ) && (
                     <small className="text-info">
                       <i className="ti ti-calendar me-1"></i>
                       Period: <strong>{group.groupName}</strong>
@@ -656,10 +729,13 @@ const EmployeeAttendanceKHR = () => {
 
             {/* Group Content */}
             {expandedGroups.has(group.groupName) && (
-              <div className="group-content mt-2" style={{ borderTop: '1px solid #e9ecef' }}>
-                <DatatableKHR 
-                  data={group.items} 
-                  columns={columns} 
+              <div
+                className="group-content mt-2"
+                style={{ borderTop: "1px solid #e9ecef" }}
+              >
+                <DatatableKHR
+                  data={group.items}
+                  columns={columns}
                   selection={true}
                 />
               </div>
@@ -678,7 +754,7 @@ const EmployeeAttendanceKHR = () => {
 
     // Safety check for attendance_records
     if (!attendance_records || !Array.isArray(attendance_records)) {
-      console.warn('attendance_records is not available or not an array');
+      console.warn("attendance_records is not available or not an array");
       return;
     }
 
@@ -915,16 +991,19 @@ const EmployeeAttendanceKHR = () => {
                       data-bs-toggle="dropdown"
                     >
                       <i className="ti ti-layout-grid me-1" />
-                      {groupByOptions.find(opt => opt.value === groupBy)?.label || 'Group By'}
+                      {groupByOptions.find((opt) => opt.value === groupBy)
+                        ?.label || "Group By"}
                     </button>
                     <ul className="dropdown-menu dropdown-menu-end">
                       {groupByOptions.map((option) => (
                         <li key={option.value}>
                           <button
-                            className={`dropdown-item ${groupBy === option.value ? 'active' : ''}`}
+                            className={`dropdown-item ${groupBy === option.value ? "active" : ""}`}
                             onClick={() => handleGroupByChange(option.value)}
                           >
-                            <i className={`ti ${groupBy === option.value ? 'ti-check' : 'ti-point'} me-2`} />
+                            <i
+                              className={`ti ${groupBy === option.value ? "ti-check" : "ti-point"} me-2`}
+                            />
                             {option.label}
                           </button>
                         </li>
@@ -1050,7 +1129,8 @@ const EmployeeAttendanceKHR = () => {
 
                     <h6 className="fw-medium d-flex align-items-center justify-content-center mb-3">
                       <i className="ti ti-fingerprint text-primary me-1" />
-                      {getCurrentAttendanceStatusData?.status === "CheckedOut" &&
+                      {getCurrentAttendanceStatusData?.status ===
+                        "CheckedOut" &&
                       getCurrentAttendanceStatusData?.action_time
                         ? `Checked Out at ${formatTime(getCurrentAttendanceStatusData.action_time)}`
                         : getCurrentAttendanceStatusData?.status ===
@@ -1107,25 +1187,34 @@ trendType: card.trendType === "up" ? "up" : "down",
               ) : (
                 <>
                   {/* Group By Info */}
-                  {groupBy !== 'none' && (
+                  {groupBy !== "none" && (
                     <div className="alert alert-info m-3 mb-0 d-flex justify-content-between align-items-center">
                       <div>
                         <i className="ti ti-info-circle me-2"></i>
-                        <strong>Grouped by:</strong> {groupByOptions.find(opt => opt.value === groupBy)?.label}
+                        <strong>Grouped by:</strong>{" "}
+                        {
+                          groupByOptions.find((opt) => opt.value === groupBy)
+                            ?.label
+                        }
                         <span className="ms-2">
-                          ({groupedData.length} groups, {data.length} total records)
+                          ({groupedData.length} groups, {data.length} total
+                          records)
                         </span>
-                        {['last_month', 'last_3_months', 'last_6_months'].includes(groupBy) && (
+                        {[
+                          "last_month",
+                          "last_3_months",
+                          "last_6_months",
+                        ].includes(groupBy) && (
                           <span className="ms-2 badge badge-info">
                             <i className="ti ti-calendar me-1"></i>
-                            {groupBy === 'last_month' && 'Previous Month Only'}
-                            {groupBy === 'last_3_months' && 'Previous 3 Months'}
-                            {groupBy === 'last_6_months' && 'Previous 6 Months'}
+                            {groupBy === "last_month" && "Previous Month Only"}
+                            {groupBy === "last_3_months" && "Previous 3 Months"}
+                            {groupBy === "last_6_months" && "Previous 6 Months"}
                           </span>
                         )}
                       </div>
                       <div className="btn-group btn-group-sm">
-                        <button 
+                        <button
                           className="btn btn-outline-primary btn-sm"
                           onClick={() => toggleAllGroups(true)}
                           title="Expand All Groups"
@@ -1133,7 +1222,7 @@ trendType: card.trendType === "up" ? "up" : "down",
                           <i className="ti ti-chevrons-down me-1"></i>
                           Expand All
                         </button>
-                        <button 
+                        <button
                           className="btn btn-outline-secondary btn-sm"
                           onClick={() => toggleAllGroups(false)}
                           title="Collapse All Groups"
@@ -1144,11 +1233,9 @@ trendType: card.trendType === "up" ? "up" : "down",
                       </div>
                     </div>
                   )}
-                  
+
                   {/* Render Table or Grouped Table */}
-                  <div className="p-3">
-                    {renderGroupedTable()}
-                  </div>
+                  <div className="p-3">{renderGroupedTable()}</div>
                 </>
               )}
             </div>

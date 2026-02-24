@@ -67,7 +67,7 @@ const rawSidebarData = [
           { label: "Branch", link: routes.branchKHR },
           // { label: "Work Location", link: routes.workLocationKHR },
           { label: "Working Schedule", link: routes.workingScheduleKHR },
-          // { label: "Work Entry Type", link: routes.workEntryTypeKHR },
+          { label: "Work Entry Type", link: routes.workEntryTypeKHR },
           { label: "Skills", link: routes.skillsKHR },
           { label: "Industries", link: routes.industriesKHR },
           { label: "Bank", link: routes.banksKHR },
